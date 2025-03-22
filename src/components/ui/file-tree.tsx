@@ -51,7 +51,7 @@ const FileTreeNode = ({ node, onFileSelect, level = 0 }: FileTreeNodeProps) => {
         </span>
         <span className="mr-2">
           {node.type === 'directory' ? (
-            isOpen ? <FiFolder className="w-4 h-4 text-yellow-400" /> : <FiFolder className="w-4 h-4 text-yellow-400" />
+            isOpen ? <FiFolder className="w-4 h-4 text-blue-400" /> : <FiFolder className="w-4 h-4 text-blue-400" />
           ) : (
             <FiFile className="w-4 h-4" />
           )}

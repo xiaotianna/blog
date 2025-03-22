@@ -79,7 +79,6 @@ export default function Projects() {
                     <a
                       href={project.previewUrl}
                       className="flex items-center text-blue-400 hover:text-blue-300 transition-colors"
-                      target="_blank"
                       rel="noopener noreferrer"
                     >
                       <FiExternalLink className="mr-2" />

@@ -17,14 +17,14 @@ const projects: Project[] = [
     title: 'Mini Markdown Editor',
     description: '基于React构建的轻量级Markdown编辑器',
     techStack: ['React', 'TypeScript', 'Markdown'],
-    previewUrl: '/preview?url=https://github.com/xiaotianna/mini-markdown-editor.git',
+    previewUrl: '/preview?url=https://gitee.com/lin-yaozhen/mini-markdown-editor',
     repoUrl: 'https://github.com/xiaotianna/mini-markdown-editor'
   },
   {
     title: 'Code Blocks 低代码开发平台',
     description: 'Vue构建的全栈低代码开发平台',
     techStack: ['Vue', 'Vite', 'Element-Plus', 'Nest.js'],
-    previewUrl: '/preview?url=https://github.com/xiaotianna/code-blocks.git',
+    previewUrl: '/preview?url=https://gitee.com/wifi-skew-f/code-blocks',
     repoUrl: 'https://github.com/xiaotianna/code-blocks'
   },
   {

@@ -18,6 +18,9 @@ const nextConfig: NextConfig = {
   assetPrefix: assetPrefix,
   basePath: basePath,
   output: 'export',
+  telemetry: {
+    enabled: false,
+  },
 };
 
 export default nextConfig;

@@ -5,7 +5,6 @@ import path from 'path';
 import os from 'os';
 
 const git = simpleGit();
-export const revalidate = false;
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);

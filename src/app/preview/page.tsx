@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { FileTree } from '@/components/ui/file-tree'
@@ -32,15 +32,9 @@ export default function Preview() {
         description: '请在URL中添加?url=仓库地址来预览项目'
       })
     }
-  }, [])
+  }, [toast])
 
-  useEffect(() => {
-    if (url) {
-      handleUrlSubmit(null)
-    }
-  }, [url])
-
-  const handleUrlSubmit = async (e: React.FormEvent | null) => {
+  const handleUrlSubmit = useCallback(async (e: React.FormEvent | null) => {
     if (e) e.preventDefault()
     if (!url) return
 
@@ -70,7 +64,13 @@ export default function Preview() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [url, toast])
+
+  useEffect(() => {
+    if (url) {
+      handleUrlSubmit(null)
+    }
+  }, [url, handleUrlSubmit])
 
   const handleFileSelect = async (path: string) => {
     try {

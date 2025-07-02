@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import simpleGit from 'simple-git';
-import fs from 'fs';
-import path from 'path';
-import os from 'os';
+import fs from 'node:fs';
+import path from 'node:path';
+import os from 'node:os';
 
 const git = simpleGit();
 

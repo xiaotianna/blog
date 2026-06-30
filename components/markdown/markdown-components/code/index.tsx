@@ -2,13 +2,13 @@ import { getStringProperty } from '@/utils/get-string-property'
 import { cn } from '@/lib/utils'
 import { CodeBlock } from './code-block'
 
-interface CodeProps {
-  className?: string
-  children?: React.ReactNode
-  node?: unknown
-}
+import { type MarkdownComponentProps } from '..'
 
-export const Code = ({ className, children, node }: CodeProps) => {
+export const Code = ({
+  className,
+  children,
+  node
+}: MarkdownComponentProps<'code'>) => {
   const language = /language-(\w+)/.exec(className ?? '')?.[1]
   const meta = getStringProperty(node, 'data-meta')
   const value = String(children)

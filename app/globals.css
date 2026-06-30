@@ -119,7 +119,7 @@
   --ds-purple-900: lab(33.4854% 69.2003 -76.1092);
   --geist-background: var(--ds-background-100);
   --geist-foreground: var(--ds-gray-1000);
-  --geist-link-color: var(--ds-blue-700);
+  --geist-link-color: var(--ds-blue-900);
 }
 
 .dark {
@@ -188,4 +188,15 @@
   html {
     @apply font-sans;
   }
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* Scoped to AnimatedThemeToggler — the toggler sets the data-attribute and the variable only during a theme toggle. */
+html[data-magicui-theme-vt="active"]::view-transition-group(root) {
+  animation-duration: var(--magicui-theme-toggle-vt-duration);
 }

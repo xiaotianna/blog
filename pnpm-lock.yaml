@@ -14,9 +14,15 @@ importers:
       '@iconify-react/icon-park-outline':
         specifier: ^1.0.2
         version: 1.0.2(react@19.2.4)
+      '@iconify-react/logos':
+        specifier: ^1.0.3
+        version: 1.0.3(react@19.2.4)
       '@iconify-react/vscode-icons':
         specifier: ^1.0.21
         version: 1.0.21(react@19.2.4)
+      '@ridemountainpig/svgl-react':
+        specifier: ^1.0.17
+        version: 1.0.17(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -317,6 +323,9 @@ packages:
 
   '@iconify-react/icon-park-outline@1.0.2':
     resolution: {integrity: sha512-edCFd0n1OjmIAIM5i2s1blqJjchh8pC39fWQgS6Y3ga6lB3hBC5CfftenwkHBmrjBbDparKHWz5PDN850lKjEw==}
+
+  '@iconify-react/logos@1.0.3':
+    resolution: {integrity: sha512-oyzpZosZIwx2pUdiY3mGo+Ns1kSgmxjr3BvrC+QiY7vW9ygEJaIXY0fdOc3NehdZul85b5O8LQgertTh27dxzA==}
 
   '@iconify-react/vscode-icons@1.0.21':
     resolution: {integrity: sha512-MIYP2eZNuGEfHm4rwW0Lb9rpiIHCUA3Qr/cHYlqFfSSpZlFWPoLUpPdWcuDxUe+5bgCHUfQ/eP+HpguXgLZR6g==}
@@ -1296,6 +1305,12 @@ packages:
 
   '@radix-ui/rect@1.1.2':
     resolution: {integrity: sha512-xnXE7wG13PI+cxieVssYXlQJuYVRhH9NBoxt3KNwzghDIA69GMm7d4wXRouHIYjE+KvS6U/MsMO73NdS2MH9ZA==}
+
+  '@ridemountainpig/svgl-react@1.0.17':
+    resolution: {integrity: sha512-395fAAjPOaZmQ5sQ3Uz6tqiiixwAzB7OarooKF988NbrJ9OzyrqfKm6ZqQ7AA1ptHGQSSKbSdpnGUKL4WA6bYA==}
+    peerDependencies:
+      react: ^16.8 || ^17.0 || ^18.0 || ^19.0
+      react-dom: ^16.8 || ^17.0 || ^18.0 || ^19.0
 
   '@rtsao/scc@1.1.0':
     resolution: {integrity: sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g==}
@@ -4326,6 +4341,12 @@ snapshots:
     transitivePeerDependencies:
       - react
 
+  '@iconify-react/logos@1.0.3(react@19.2.4)':
+    dependencies:
+      '@iconify/css-react': 1.0.2(react@19.2.4)
+    transitivePeerDependencies:
+      - react
+
   '@iconify-react/vscode-icons@1.0.21(react@19.2.4)':
     dependencies:
       '@iconify/css-react': 1.0.2(react@19.2.4)
@@ -5297,6 +5318,11 @@ snapshots:
       '@types/react-dom': 19.2.3(@types/react@19.2.17)
 
   '@radix-ui/rect@1.1.2': {}
+
+  '@ridemountainpig/svgl-react@1.0.17(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
+    dependencies:
+      react: 19.2.4
+      react-dom: 19.2.4(react@19.2.4)
 
   '@rtsao/scc@1.1.0': {}
 

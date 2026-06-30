@@ -11,7 +11,9 @@
   "dependencies": {
     "@iconify-react/devicon": "^1.0.5",
     "@iconify-react/icon-park-outline": "^1.0.2",
+    "@iconify-react/logos": "^1.0.3",
     "@iconify-react/vscode-icons": "^1.0.21",
+    "@ridemountainpig/svgl-react": "^1.0.17",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^1.22.0",

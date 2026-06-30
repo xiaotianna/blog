@@ -1,53 +1,88 @@
-import { createElement } from 'react'
-import { CSS } from '@/components/icon/css'
-import { Docker } from '@/components/icon/docker'
-import { Env } from '@/components/icon/env'
-import { Go } from '@/components/icon/go'
-import { HTML5 } from '@/components/icon/html'
-import { JavaScript } from '@/components/icon/javascript'
-import { JSON } from '@/components/icon/json'
-import { Markdown } from '@/components/icon/markdown'
-import { MongoDB } from '@/components/icon/mongodb'
-import { MySQL } from '@/components/icon/mysql'
-import { PostgreSQL } from '@/components/icon/postgresql'
-import { Python } from '@/components/icon/python'
-import { React as ReactIcon } from '@/components/icon/react'
-import { Rust } from '@/components/icon/rust'
-import { Sql } from '@/components/icon/sql'
-import { Svelte } from '@/components/icon/svelte'
-import { Bash } from '@/components/icon/terminal'
-import { Text } from '@/components/icon/text'
-import { TypeScript } from '@/components/icon/typescript'
-import { Vue } from '@/components/icon/vue'
-import { YAML } from '@/components/icon/yaml'
-import { getLanguageIconKey } from './get-language-info'
+import { fileIconMap, filenameIconMap } from './icon-map'
+import { fileStrategies, filenameStrategies } from './icon-strategies'
 
-export const languageIconMap = {
-  typescript: createElement(TypeScript),
-  javascript: createElement(JavaScript),
-  react: createElement(ReactIcon),
-  vue: createElement(Vue),
-  svelte: createElement(Svelte),
-  html: createElement(HTML5),
-  css: createElement(CSS),
-  terminal: createElement(Bash),
-  json: createElement(JSON),
-  markdown: createElement(Markdown),
-  yaml: createElement(YAML),
-  env: createElement(Env),
-  go: createElement(Go),
-  python: createElement(Python),
-  rust: createElement(Rust),
-  sql: createElement(Sql),
-  mysql: createElement(MySQL),
-  mongodb: createElement(MongoDB),
-  postgresql: createElement(PostgreSQL),
-  docker: createElement(Docker),
-  text: createElement(Text),
-} as const
+function normalizeValue(value?: string) {
+  return value?.trim().toLowerCase() || ''
+}
 
-export type LanguageIconKey = keyof typeof languageIconMap
+function getNormalizedFilename(filename?: string) {
+  return normalizeValue(filename)?.replaceAll('\\', '/') || ''
+}
 
-export function LanguageIcon({ language }: { language: string }) {
-  return languageIconMap[getLanguageIconKey(language)]
+function getBasename(filename?: string) {
+  const normalizedFilename = getNormalizedFilename(filename)
+
+  if (!normalizedFilename) {
+    return ''
+  }
+
+  const segments = normalizedFilename.split('/')
+
+  return segments[segments.length - 1] || ''
+}
+
+function matchByExactFileName(filename?: string) {
+  const normalizedFilename = getNormalizedFilename(filename)
+  const basename = getBasename(filename)
+
+  if (!normalizedFilename) {
+    return null
+  }
+
+  const strategy = filenameStrategies.find((item) =>
+    item.fileNames?.includes(basename) || item.fileNames?.includes(normalizedFilename)
+  )
+
+  return strategy?.icon ?? null
+}
+
+function matchByGlobPattern(filename?: string) {
+  const normalizedFilename = getNormalizedFilename(filename)
+  const basename = getBasename(filename)
+
+  if (!normalizedFilename) {
+    return null
+  }
+
+  const strategy = filenameStrategies.find((item) =>
+    item.patterns?.some((pattern) => pattern.test(basename) || pattern.test(normalizedFilename))
+  )
+
+  return strategy?.icon ?? null
+}
+
+function matchByLanguage(language?: string) {
+  const normalizedLanguage = normalizeValue(language)
+
+  if (!normalizedLanguage) {
+    return null
+  }
+
+  const strategy = fileStrategies.find((item) => item.aliases.includes(normalizedLanguage))
+
+  return strategy?.icon ?? null
+}
+
+export type LanguageIconKey = keyof typeof fileIconMap
+
+export function LanguageIcon({
+  language,
+  filename,
+}: {
+  language?: string
+  filename?: string
+}) {
+  const filenameIconKey =
+    matchByExactFileName(filename) ??
+    matchByGlobPattern(filename)
+
+  if (filenameIconKey) {
+    return filenameIconMap[filenameIconKey]
+  }
+
+  const fileIconKey =
+    matchByLanguage(language) ??
+    'text'
+
+  return fileIconMap[fileIconKey]
 }

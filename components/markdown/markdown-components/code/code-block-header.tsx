@@ -19,7 +19,7 @@ export const CodeBlockHeader = ({
           className='inline-flex size-4 shrink-0 items-center justify-center text-(--ds-gray-900)'
           aria-hidden='true'
         >
-          <LanguageIcon language={language} />
+          <LanguageIcon language={language} filename={filename} />
         </span>
         <span className='inline-block min-w-0 max-w-full truncate break-normal'>{filename}</span>
       </div>

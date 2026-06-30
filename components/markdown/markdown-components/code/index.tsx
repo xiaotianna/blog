@@ -1,4 +1,5 @@
 import { getStringProperty } from '@/utils/get-string-property'
+import { cn } from '@/lib/utils'
 import { CodeBlock } from './code-block'
 
 interface CodeProps {
@@ -23,5 +24,5 @@ export const Code = ({ className, children, node }: CodeProps) => {
     )
   }
 
-  return <code className={className}>{children}</code>
+  return <code className={cn('inline-block', className)}>{children}</code>
 }

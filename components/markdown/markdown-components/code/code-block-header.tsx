@@ -13,17 +13,17 @@ export const CodeBlockHeader = ({
   language,
 }: CodeBlockHeaderProps) => {
   return (
-    <div className='next-docs-code-header'>
-      <div className='next-docs-code-title'>
+    <div className='flex h-12 items-center rounded-t-md border-b border-(--ds-gray-400) bg-(--ds-background-200) pr-3 pl-4'>
+      <div className='mr-auto flex min-w-0 items-center gap-2 text-[13px] text-(--ds-gray-900)'>
         <span
-          className='next-docs-code-file-icon'
+          className='inline-flex size-4 shrink-0 items-center justify-center text-(--ds-gray-900)'
           aria-hidden='true'
         >
           <LanguageIcon language={language} />
         </span>
-        <span className='next-docs-code-filename'>{filename}</span>
+        <span className='inline-block min-w-0 max-w-full truncate break-normal'>{filename}</span>
       </div>
-      <div className='next-docs-code-actions'>
+      <div className='flex self-stretch gap-1'>
         <CopyCodeButton code={code} />
       </div>
     </div>

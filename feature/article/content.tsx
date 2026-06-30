@@ -6,7 +6,6 @@ export const ArticleContent = ({ content }: { content: string }) => {
       <main className='min-w-0 py-14 pb-24 max-md:py-9'>
         <article
           className='article-content'
-          data-docs-container
         >
           <MarkdownRender>{content}</MarkdownRender>
         </article>

@@ -10,14 +10,14 @@ export const MarkdownComponents: Components = {
   strong: ({ children }) => <strong className='font-semibold'>{children}</strong>,
   a: ({ children, className, ...props }) => (
     <a
-      className={cn('text-(--geist-link-color) no-underline hover:no-underline [&_code]:border-[color-mix(in_oklab,var(--geist-link-color)_18%,#ededed)] [&_code]:text-(--geist-link-color) [&_strong]:text-(--geist-link-color)', className)}
+      className={cn('text-(--geist-link-color) no-underline hover:no-underline [&_code]:text-(--geist-link-color) [&_strong]:text-(--geist-link-color)', className)}
       {...props}
     >
       {children}
     </a>
   ),
   ul: ({ children, className }) => (
-    <ul className={cn("list-none pl-3 [&>li]:relative [&>li]:pl-3 [&>li::before]:absolute [&>li::before]:-mt-px [&>li::before]:-ml-[22px] [&>li::before]:text-(--accents-4) [&>li::before]:content-['-']", className)}>
+    <ul className={cn("list-none pl-3 [&>li]:relative [&>li]:pl-3 [&>li::before]:absolute [&>li::before]:-mt-px [&>li::before]:ml-[-22px] [&>li::before]:text-(--accents-4) [&>li::before]:content-['-']", className)}>
       {children}
     </ul>
   ),

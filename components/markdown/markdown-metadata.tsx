@@ -15,7 +15,7 @@ export const MarkdownMetadata = ({ metadata }: MarkdownMetadataProps) => {
   }
 
   return (
-    <div className='not-prose mb-10 border-b border-(--ds-gray-200) pb-8'>
+    <div className='not-prose mb-8'>
       {metadata.title ? (
         <h1 className='m-0 text-[40px] font-semibold leading-[1.16] tracking-normal text-(--ds-gray-1000)'>
           {metadata.title}

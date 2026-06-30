@@ -1,64 +1,114 @@
 ---
-title: Layouts and Pages
-description: Learn how to create your first pages and layouts, and link between them with the Link component.
-url: "https://nextjs.org/docs/app/getting-started/layouts-and-pages"
+title: How to use CSS-in-JS libraries
+description: Use CSS-in-JS libraries with Next.js
+url: "https://nextjs.org/docs/app/guides/css-in-js"
 docs_index: /docs/llms.txt
 version: 16.2.9
-lastUpdated: 2026-06-23
+lastUpdated: 2025-07-28
 prerequisites:
-  - "Getting Started: /docs/app/getting-started"
-related:
-  - app/getting-started/linking-and-navigating
-  - app/api-reference/file-conventions/layout
-  - app/api-reference/file-conventions/page
-  - app/api-reference/components/link
-  - app/api-reference/file-conventions/dynamic-routes
+  - "Guides: /docs/app/guides"
 ---
 
 
 > For an index of all Next.js documentation, see [/docs/llms.txt](/docs/llms.txt).
-Next.js uses **file-system based routing**, meaning you can use folders and files to define routes. This page will guide you through how to create layouts and pages, and link between them.
+> **Warning:** Using CSS-in-JS with newer React features like Server Components and Streaming requires library authors to support the latest version of React, including [concurrent rendering](https://react.dev/blog/2022/03/29/react-v18#what-is-concurrent-react).
 
-## Creating a page
+The following libraries are supported in Client Components in the `app` directory (alphabetical):
 
-A **page** is UI that is rendered on a specific route. To create a page, add a [`page` file](/docs/app/api-reference/file-conventions/page) inside the `app` directory and default export a React component. For example, to create an index page (`/`):
+* [`ant-design`](https://ant.design/docs/react/use-with-next#using-app-router)
+* [`chakra-ui`](https://chakra-ui.com/getting-started/nextjs-app-guide)
+* [`@fluentui/react-components`](https://react.fluentui.dev/?path=/docs/concepts-developer-server-side-rendering-next-js-appdir-setup--page)
+* [`kuma-ui`](https://kuma-ui.com)
+* [`@mui/material`](https://mui.com/material-ui/guides/next-js-app-router/)
+* [`@mui/joy`](https://mui.com/joy-ui/integrations/next-js-app-router/)
+* [`pandacss`](https://panda-css.com)
+* [`styled-jsx`](#styled-jsx)
+* [`styled-components`](#styled-components)
+* [`stylex`](https://stylexjs.com)
+* [`tamagui`](https://tamagui.dev/docs/guides/next-js#server-components)
+* [`tss-react`](https://tss-react.dev/)
+* [`vanilla-extract`](https://vanilla-extract.style)
 
-![page.js special file](https://h8DxKfmAPhn8O0p3.public.blob.vercel-storage.com/docs/light/page-special-file.png)
+The following are currently working on support:
 
-```tsx filename="app/page.tsx" switcher
-export default function Page() {
-  return <h1>Hello Next.js!</h1>
+* [`emotion`](https://github.com/emotion-js/emotion/issues/2928)
+
+> **Good to know**: We're testing out different CSS-in-JS libraries and we'll be adding more examples for libraries that support React 18 features and/or the `app` directory.
+
+## Configuring CSS-in-JS in `app`
+
+Configuring CSS-in-JS is a three-step opt-in process that involves:
+
+1. A **style registry** to collect all CSS rules in a render.
+2. The new `useServerInsertedHTML` hook to inject rules before any content that might use them.
+3. A Client Component that wraps your app with the style registry during initial server-side rendering.
+
+### `styled-jsx`
+
+Using `styled-jsx` in Client Components requires using `v5.1.0`. First, create a new registry:
+
+```tsx filename="app/registry.tsx" switcher
+'use client'
+
+import React, { useState } from 'react'
+import { useServerInsertedHTML } from 'next/navigation'
+import { StyleRegistry, createStyleRegistry } from 'styled-jsx'
+
+export default function StyledJsxRegistry({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  // Only create stylesheet once with lazy initial state
+  // x-ref: https://reactjs.org/docs/hooks-reference.html#lazy-initial-state
+  const [jsxStyleRegistry] = useState(() => createStyleRegistry())
+
+  useServerInsertedHTML(() => {
+    const styles = jsxStyleRegistry.styles()
+    jsxStyleRegistry.flush()
+    return <>{styles}</>
+  })
+
+  return <StyleRegistry registry={jsxStyleRegistry}>{children}</StyleRegistry>
 }
 ```
 
-```jsx filename="app/page.js" switcher
-export default function Page() {
-  return <h1>Hello Next.js!</h1>
+```jsx filename="app/registry.js" switcher
+'use client'
+
+import React, { useState } from 'react'
+import { useServerInsertedHTML } from 'next/navigation'
+import { StyleRegistry, createStyleRegistry } from 'styled-jsx'
+
+export default function StyledJsxRegistry({ children }) {
+  // Only create stylesheet once with lazy initial state
+  // x-ref: https://reactjs.org/docs/hooks-reference.html#lazy-initial-state
+  const [jsxStyleRegistry] = useState(() => createStyleRegistry())
+
+  useServerInsertedHTML(() => {
+    const styles = jsxStyleRegistry.styles()
+    jsxStyleRegistry.flush()
+    return <>{styles}</>
+  })
+
+  return <StyleRegistry registry={jsxStyleRegistry}>{children}</StyleRegistry>
 }
 ```
 
-## Creating a layout
-
-A layout is UI that is **shared** between multiple pages. On navigation, layouts preserve state, remain interactive, and do not rerender.
-
-You can define a layout by default exporting a React component from a [`layout` file](/docs/app/api-reference/file-conventions/layout). The component should accept a `children` prop which can be a page or another [layout](#nesting-layouts).
-
-For example, to create a layout that accepts your index page as child, add a `layout` file inside the `app` directory:
-
-![layout.js special file](https://h8DxKfmAPhn8O0p3.public.blob.vercel-storage.com/docs/light/layout-special-file.png)
+Then, wrap your [root layout](/docs/app/api-reference/file-conventions/layout#root-layout) with the registry:
 
 ```tsx filename="app/layout.tsx" switcher
-export default function DashboardLayout({
+import StyledJsxRegistry from './registry'
+
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html>
       <body>
-        {/* Layout UI */}
-        {/* Place children where you want to render a page or nested layout */}
-        <main>{children}</main>
+        <StyledJsxRegistry>{children}</StyledJsxRegistry>
       </body>
     </html>
   )
@@ -66,286 +116,141 @@ export default function DashboardLayout({
 ```
 
 ```jsx filename="app/layout.js" switcher
-export default function DashboardLayout({ children }) {
+import StyledJsxRegistry from './registry'
+
+export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html>
       <body>
-        {/* Layout UI */}
-        {/* Place children where you want to render a page or nested layout */}
-        <main>{children}</main>
+        <StyledJsxRegistry>{children}</StyledJsxRegistry>
       </body>
     </html>
   )
 }
 ```
 
-The layout above is called a [root layout](/docs/app/api-reference/file-conventions/layout#root-layout) because it's defined at the root of the `app` directory. The root layout is **required** and must contain `html` and `body` tags.
+[View an example here](https://github.com/vercel/next.js/tree/canary/examples/with-styled-jsx).
 
-## Creating a nested route
+### Styled Components
 
-A nested route is a route composed of multiple URL segments. For example, the `/blog/[slug]` route is composed of three segments:
+Below is an example of how to configure `styled-components@6` or newer:
 
-* `/` (Root Segment)
-* `blog` (Segment)
-* `[slug]` (Leaf Segment)
+First, enable styled-components in `next.config.js`.
 
-In Next.js:
-
-* **Folders** are used to define the route segments that map to URL segments.
-* **Files** (like `page` and `layout`) are used to create UI that is shown for a segment.
-
-To create nested routes, you can nest folders inside each other. For example, to add a route for `/blog`, create a folder called `blog` in the `app` directory. Then, to make `/blog` publicly accessible, add a `page.tsx` file:
-
-![File hierarchy showing blog folder and a page.js file](https://h8DxKfmAPhn8O0p3.public.blob.vercel-storage.com/docs/light/blog-nested-route.png)
-
-```tsx filename="app/blog/page.tsx" switcher
-// Dummy imports
-import { getPosts } from '@/lib/posts'
-import { Post } from '@/ui/post'
-
-export default async function Page() {
-  const posts = await getPosts()
-
-  return (
-    <ul>
-      {posts.map((post) => (
-        <Post key={post.id} post={post} />
-      ))}
-    </ul>
-  )
+```js filename="next.config.js"
+module.exports = {
+  compiler: {
+    styledComponents: true,
+  },
 }
 ```
 
-```jsx filename="app/blog/page.jsx" switcher
-// Dummy imports
-import { getPosts } from '@/lib/posts'
-import { Post } from '@/ui/post'
+Then, use the `styled-components` API to create a global registry component to collect all CSS style rules generated during a render, and a function to return those rules. Then use the `useServerInsertedHTML` hook to inject the styles collected in the registry into the `<head>` HTML tag in the root layout.
 
-export default async function Page() {
-  const posts = await getPosts()
+```tsx filename="lib/registry.tsx" switcher
+'use client'
 
-  return (
-    <ul>
-      {posts.map((post) => (
-        <Post key={post.id} post={post} />
-      ))}
-    </ul>
-  )
-}
-```
+import React, { useState } from 'react'
+import { useServerInsertedHTML } from 'next/navigation'
+import { ServerStyleSheet, StyleSheetManager } from 'styled-components'
 
-You can continue nesting folders to create nested routes. For example, to create a route for a specific blog post, create a new `[slug]` folder inside `blog` and add a `page` file:
-
-![File hierarchy showing blog folder with a nested slug folder and a page.js file](https://h8DxKfmAPhn8O0p3.public.blob.vercel-storage.com/docs/light/blog-post-nested-route.png)
-
-```tsx filename="app/blog/[slug]/page.tsx" switcher
-function generateStaticParams() {}
-
-export default function Page() {
-  return <h1>Hello, Blog Post Page!</h1>
-}
-```
-
-```jsx filename="app/blog/[slug]/page.js" switcher
-function generateStaticParams() {}
-
-export default function Page() {
-  return <h1>Hello, Blog Post Page!</h1>
-}
-```
-
-Wrapping a folder name in square brackets (e.g. `[slug]`) creates a [dynamic route segment](/docs/app/api-reference/file-conventions/dynamic-routes) which is used to generate multiple pages from data. e.g. blog posts, product pages, etc.
-
-## Nesting layouts
-
-By default, layouts in the folder hierarchy are also nested, which means they wrap child layouts via their `children` prop. You can nest layouts by adding `layout` inside specific route segments (folders).
-
-For example, to create a layout for the `/blog` route, add a new `layout` file inside the `blog` folder.
-
-![File hierarchy showing root layout wrapping the blog layout](https://h8DxKfmAPhn8O0p3.public.blob.vercel-storage.com/docs/light/nested-layouts.png)
-
-```tsx filename="app/blog/layout.tsx" switcher
-export default function BlogLayout({
+export default function StyledComponentsRegistry({
   children,
 }: {
   children: React.ReactNode
 }) {
-  return <section>{children}</section>
+  // Only create stylesheet once with lazy initial state
+  // x-ref: https://reactjs.org/docs/hooks-reference.html#lazy-initial-state
+  const [styledComponentsStyleSheet] = useState(() => new ServerStyleSheet())
+
+  useServerInsertedHTML(() => {
+    const styles = styledComponentsStyleSheet.getStyleElement()
+    styledComponentsStyleSheet.instance.clearTag()
+    return <>{styles}</>
+  })
+
+  if (typeof window !== 'undefined') return <>{children}</>
+
+  return (
+    <StyleSheetManager sheet={styledComponentsStyleSheet.instance}>
+      {children}
+    </StyleSheetManager>
+  )
 }
 ```
 
-```jsx filename="app/blog/layout.js" switcher
-export default function BlogLayout({ children }) {
-  return <section>{children}</section>
+```jsx filename="lib/registry.js" switcher
+'use client'
+
+import React, { useState } from 'react'
+import { useServerInsertedHTML } from 'next/navigation'
+import { ServerStyleSheet, StyleSheetManager } from 'styled-components'
+
+export default function StyledComponentsRegistry({ children }) {
+  // Only create stylesheet once with lazy initial state
+  // x-ref: https://reactjs.org/docs/hooks-reference.html#lazy-initial-state
+  const [styledComponentsStyleSheet] = useState(() => new ServerStyleSheet())
+
+  useServerInsertedHTML(() => {
+    const styles = styledComponentsStyleSheet.getStyleElement()
+    styledComponentsStyleSheet.instance.clearTag()
+    return <>{styles}</>
+  })
+
+  if (typeof window !== 'undefined') return <>{children}</>
+
+  return (
+    <StyleSheetManager sheet={styledComponentsStyleSheet.instance}>
+      {children}
+    </StyleSheetManager>
+  )
 }
 ```
 
-If you were to combine the two layouts above, the root layout (`app/layout.js`) would wrap the blog layout (`app/blog/layout.js`), which would wrap the blog (`app/blog/page.js`) and blog post page (`app/blog/[slug]/page.js`).
+Wrap the `children` of the root layout with the style registry component:
 
-## Creating a dynamic segment
+```tsx filename="app/layout.tsx" switcher
+import StyledComponentsRegistry from './lib/registry'
 
-[Dynamic segments](/docs/app/api-reference/file-conventions/dynamic-routes) allow you to create routes that are generated from data. For example, instead of manually creating a route for each individual blog post, you can create a dynamic segment to generate the routes based on blog post data.
-
-To create a dynamic segment, wrap the segment (folder) name in square brackets: `[segmentName]`. For example, in the `app/blog/[slug]/page.tsx` route, the `[slug]` is the dynamic segment.
-
-```tsx filename="app/blog/[slug]/page.tsx" switcher
-export default async function BlogPostPage({
-  params,
+export default function RootLayout({
+  children,
 }: {
-  params: Promise<{ slug: string }>
+  children: React.ReactNode
 }) {
-  const { slug } = await params
-  const post = await getPost(slug)
-
   return (
-    <div>
-      <h1>{post.title}</h1>
-      <p>{post.content}</p>
-    </div>
+    <html>
+      <body>
+        <StyledComponentsRegistry>{children}</StyledComponentsRegistry>
+      </body>
+    </html>
   )
 }
 ```
 
-```jsx filename="app/blog/[slug]/page.js" switcher
-export default async function BlogPostPage({ params }) {
-  const { slug } = await params
-  const post = await getPost(slug)
+```jsx filename="app/layout.js" switcher
+import StyledComponentsRegistry from './lib/registry'
 
+export default function RootLayout({ children }) {
   return (
-    <div>
-      <h1>{post.title}</h1>
-      <p>{post.content}</p>
-    </div>
+    <html>
+      <body>
+        <StyledComponentsRegistry>{children}</StyledComponentsRegistry>
+      </body>
+    </html>
   )
 }
 ```
 
-Learn more about [Dynamic Segments](/docs/app/api-reference/file-conventions/dynamic-routes) and the [`params`](/docs/app/api-reference/file-conventions/page#params-optional) props.
+[View an example here](https://github.com/vercel/next.js/tree/canary/examples/with-styled-components).
 
-Nested [layouts within Dynamic Segments](/docs/app/api-reference/file-conventions/layout#params-optional), can also access the `params` props.
-
-## Rendering with search params
-
-In a Server Component **page**, you can access search parameters using the [`searchParams`](/docs/app/api-reference/file-conventions/page#searchparams-optional) prop:
-
-```tsx filename="app/page.tsx" switcher
-export default async function Page({
-  searchParams,
-}: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
-}) {
-  const filters = (await searchParams).filters
-}
-```
-
-```jsx filename="app/page.jsx" switcher
-export default async function Page({ searchParams }) {
-  const filters = (await searchParams).filters
-}
-```
-
-Using `searchParams` opts your page into [**dynamic rendering**](/docs/app/glossary#dynamic-rendering) because it requires an incoming request to read the search parameters from.
-
-Client Components can read search params using the [`useSearchParams`](/docs/app/api-reference/functions/use-search-params) hook.
-
-Learn more about `useSearchParams` in [prerendered](/docs/app/api-reference/functions/use-search-params#prerendering) and [dynamically rendered](/docs/app/api-reference/functions/use-search-params#dynamic-rendering) routes.
-
-### What to use and when
-
-* Use the `searchParams` prop when you need search parameters to **load data for the page** (e.g. pagination, filtering from a database).
-* Use `useSearchParams` when search parameters are used **only on the client** (e.g. filtering a list already loaded via props).
-* As a small optimization, you can use `new URLSearchParams(window.location.search)` in **callbacks or event handlers** to read search params without triggering re-renders.
-
-## Linking between pages
-
-You can use the [`<Link>` component](/docs/app/api-reference/components/link) to navigate between routes. `<Link>` is a built-in Next.js component that extends the HTML `<a>` tag to provide [prefetching](/docs/app/getting-started/linking-and-navigating#prefetching) and [client-side navigation](/docs/app/getting-started/linking-and-navigating#client-side-transitions).
-
-For example, to generate a list of blog posts, import `<Link>` from `next/link` and pass a `href` prop to the component:
-
-```tsx filename="app/ui/post.tsx" highlight={1,2,11} switcher
-import Link from 'next/link'
-import { getPosts } from '@/lib/posts'
-
-export default async function Posts() {
-  const posts = await getPosts()
-
-  return (
-    <ul>
-      {posts.map((post) => (
-        <li key={post.slug}>
-          <Link href={`/blog/${post.slug}`}>{post.title}</Link>
-        </li>
-      ))}
-    </ul>
-  )
-}
-```
-
-```jsx filename="app/ui/post.js" highlight={1,2,11} switcher
-import Link from 'next/link'
-import { getPosts } from '@/lib/posts'
-
-export default async function Posts() {
-  const posts = await getPosts()
-
-  return (
-    <ul>
-      {posts.map((post) => (
-        <li key={post.slug}>
-          <Link href={`/blog/${post.slug}`}>{post.title}</Link>
-        </li>
-      ))}
-    </ul>
-  )
-}
-```
-
-> **Good to know**: `<Link>` is the primary way to navigate between routes in Next.js. You can also use the [`useRouter` hook](/docs/app/api-reference/functions/use-router) for more advanced navigation.
-
-## Route Props Helpers
-
-Next.js exposes utility types that infer `params` and named slots from your route structure:
-
-* [**PageProps**](/docs/app/api-reference/file-conventions/page#page-props-helper): Props for `page` components, including `params` and `searchParams`.
-* [**LayoutProps**](/docs/app/api-reference/file-conventions/layout#layout-props-helper): Props for `layout` components, including `children` and any named slots (e.g. folders like `@analytics`).
-
-These are globally available helpers, generated when running either `next dev`, `next build` or [`next typegen`](/docs/app/api-reference/cli/next#next-typegen-options).
-
-```tsx filename="app/blog/[slug]/page.tsx"
-export default async function Page(props: PageProps<'/blog/[slug]'>) {
-  const { slug } = await props.params
-  return <h1>Blog post: {slug}</h1>
-}
-```
-
-```tsx filename="app/dashboard/layout.tsx"
-export default function Layout(props: LayoutProps<'/dashboard'>) {
-  return (
-    <section>
-      {props.children}
-      {/* If you have app/dashboard/@analytics, it appears as a typed slot: */}
-      {/* {props.analytics} */}
-    </section>
-  )
-}
-```
-
-> **Good to know**
+> **Good to know**:
 >
-> * Static routes resolve `params` to `{}`.
-> * `PageProps`, `LayoutProps` are global helpers — no imports required.
-> * Types are generated during `next dev`, `next build` or `next typegen`.
-## API Reference
+> * During server rendering, styles will be extracted to a global registry and flushed to the `<head>` of your HTML. This ensures the style rules are placed before any content that might use them. In the future, we may use an upcoming React feature to determine where to inject the styles.
+> * During streaming, styles from each chunk will be collected and appended to existing styles. After client-side hydration is complete, `styled-components` will take over as usual and inject any further dynamic styles.
+> * We specifically use a Client Component at the top level of the tree for the style registry because it's more efficient to extract CSS rules this way. It avoids re-generating styles on subsequent server renders, and prevents them from being sent in the Server Component payload.
+> * For advanced use cases where you need to configure individual properties of styled-components compilation, you can read our [Next.js styled-components API reference](/docs/architecture/nextjs-compiler#styled-components) to learn more.
+---
 
-Learn more about the features mentioned in this page by reading the API Reference.
+For a semantic overview of all documentation, see [/docs/sitemap.md](/docs/sitemap.md)
 
-- [Linking and Navigating](/docs/app/getting-started/linking-and-navigating)
-  - Learn how the built-in navigation optimizations work, including prefetching, prerendering, and client-side navigation, and how to optimize navigation for dynamic routes and slow networks.
-- [layout.js](/docs/app/api-reference/file-conventions/layout)
-  - API reference for the layout.js file.
-- [page.js](/docs/app/api-reference/file-conventions/page)
-  - API reference for the page.js file.
-- [Link Component](/docs/app/api-reference/components/link)
-  - Enable fast client-side navigation with the built-in `next/link` component.
-- [Dynamic Segments](/docs/app/api-reference/file-conventions/dynamic-routes)
-  - Use Dynamic Segments to read URL path params and generate routes from dynamic data.
+For an index of all available documentation, see [/docs/llms.txt](/docs/llms.txt)

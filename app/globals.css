@@ -62,36 +62,8 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-  --ds-background-100: lab(100% 0 0);
-  --ds-background-200: lab(98.26% 0 0);
-  --ds-gray-alpha-200: #0000000a;
-  --ds-gray-100: lab(95.476% -0.0000298023 0);
-  --ds-gray-200: lab(93.04% 0.0000298023 -0.0000119209);
-  --ds-gray-300: lab(91.3% 0 -0.0000119209);
-  --ds-gray-400: lab(92.692% 0 0);
-  --ds-gray-600: lab(68.912% 0 -0.0000119209);
-  --ds-gray-900: lab(32.72% -0.0000149012 0);
-  --ds-gray-1000: lab(7.78201% -0.0000149012 0);
-  --ds-blue-300: lab(92.2482% -1.21419 -5.30823);
-  --ds-blue-700: #006bff;
-  --ds-blue-900: lab(42.9093% 21.1896 -82.6493);
-  --ds-amber-300: lab(93.1024% 0.677962 15.0703);
-  --ds-amber-900: lab(51.9755% 14.7084 59.9956);
-  --ds-red-300: lab(92.343% 4.71273 1.00443);
-  --ds-red-900: lab(48.4493% 77.4328 61.5452);
-  --ds-green-300: lab(91.9757% -16.9344 11.3899);
-  --ds-green-900: lab(45.7946% -42.7208 32.0975);
-  --ds-pink-900: lab(43.5237% 66.4129 5.12512);
-  --ds-purple-900: lab(33.4854% 69.2003 -76.1092);
-  --geist-background: var(--ds-background-100);
-  --geist-foreground: var(--ds-gray-1000);
-  --geist-link-color: var(--ds-blue-700);
   --accents-4: var(--ds-gray-600);
   --accents-5: var(--ds-gray-900);
-
-  background: #ffffff;
-  color: var(--geist-foreground);
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -124,38 +96,34 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-    --ds-background-100: #000000;
-    --ds-background-200: #0a0a0a;
-    --ds-gray-alpha-200: #ffffff17;
-    --ds-gray-100: #1a1a1a;
-    --ds-gray-200: #1f1f1f;
-    --ds-gray-300: #2e2e2e;
-    --ds-gray-400: #333333;
-    --ds-gray-600: #666666;
-    --ds-gray-900: #a1a1a1;
-    --ds-gray-1000: #ededed;
-    --ds-blue-300: #10233d;
-    --ds-blue-700: #006bff;
-    --ds-blue-900: #52a8ff;
-    --ds-amber-300: #332a10;
-    --ds-amber-900: #f2a20d;
-    --ds-red-300: #391b1b;
-    --ds-red-900: #ff6b6b;
-    --ds-green-300: #12351f;
-    --ds-green-900: #63d297;
-    --ds-pink-900: #ff5c8a;
-    --ds-purple-900: #bf7af0;
-    background: var(--ds-background-100);
-    color: var(--geist-foreground);
-  }
+  --ds-background-100: lab(100% 0 0);
+  --ds-background-200: lab(98.26% 0 0);
+  --ds-gray-alpha-200: #0000000a;
+  --ds-gray-100: lab(95.476% -0.0000298023 0);
+  --ds-gray-200: lab(93.04% 0.0000298023 -0.0000119209);
+  --ds-gray-300: lab(91.3% 0 -0.0000119209);
+  --ds-gray-400: lab(92.692% 0 0);
+  --ds-gray-600: lab(68.912% 0 -0.0000119209);
+  --ds-gray-900: lab(32.72% -0.0000149012 0);
+  --ds-gray-1000: lab(7.78201% -0.0000149012 0);
+  --ds-blue-300: lab(92.2482% -1.21419 -5.30823);
+  --ds-blue-700: #006bff;
+  --ds-blue-900: lab(42.9093% 21.1896 -82.6493);
+  --ds-amber-300: lab(93.1024% 0.677962 15.0703);
+  --ds-amber-900: lab(51.9755% 14.7084 59.9956);
+  --ds-red-300: lab(92.343% 4.71273 1.00443);
+  --ds-red-900: lab(48.4493% 77.4328 61.5452);
+  --ds-green-300: lab(91.9757% -16.9344 11.3899);
+  --ds-green-900: lab(45.7946% -42.7208 32.0975);
+  --ds-pink-900: lab(43.5237% 66.4129 5.12512);
+  --ds-purple-900: lab(33.4854% 69.2003 -76.1092);
+  --geist-background: var(--ds-background-100);
+  --geist-foreground: var(--ds-gray-1000);
+  --geist-link-color: var(--ds-blue-700);
 }
 
 .dark {
+  color-scheme: dark;
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
@@ -187,6 +155,27 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  --ds-background-100: #000000;
+  --ds-background-200: #0a0a0a;
+  --ds-gray-alpha-200: #ffffff17;
+  --ds-gray-100: #1a1a1a;
+  --ds-gray-200: #1f1f1f;
+  --ds-gray-300: #2e2e2e;
+  --ds-gray-400: #333333;
+  --ds-gray-600: #666666;
+  --ds-gray-900: #a1a1a1;
+  --ds-gray-1000: #ededed;
+  --ds-blue-300: #10233d;
+  --ds-blue-700: #006bff;
+  --ds-blue-900: #52a8ff;
+  --ds-amber-300: #332a10;
+  --ds-amber-900: #f2a20d;
+  --ds-red-300: #391b1b;
+  --ds-red-900: #ff6b6b;
+  --ds-green-300: #12351f;
+  --ds-green-900: #63d297;
+  --ds-pink-900: #ff5c8a;
+  --ds-purple-900: #bf7af0;
 }
 
 @layer base {

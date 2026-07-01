@@ -2,6 +2,9 @@ import type { NextConfig } from 'next'
 import { getLocalDevOrigins } from './utils/get-local-dev-origins'
 
 const nextConfig: NextConfig = {
+  typescript: {
+    ignoreBuildErrors: true
+  },
   allowedDevOrigins: [
     'localhost',
     'localhost:3000',

@@ -5,13 +5,12 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { AnimatedThemeToggler } from './ui/animated-theme-toggler'
 import { Button } from './ui/button'
-import { routerMeta } from '@/config/router-meta'
+import { Menu } from '@/components/menu'
+import { routerMeta, type RouteMeta } from '@/config/router-meta'
 import { cn } from '@/lib/utils'
 
-type RouterMeta = (typeof routerMeta)[keyof typeof routerMeta]
-
 const routeMetaEntries = Object.entries(routerMeta) as Array<
-  [keyof typeof routerMeta, RouterMeta]
+  [keyof typeof routerMeta, RouteMeta]
 >
 
 const FLICKERING_GRID_VISIBLE_THRESHOLD = 76
@@ -87,11 +86,11 @@ export const Header = () => {
       className={cn(
         'sticky top-3 z-50 -mx-3 mb-6 flex items-center justify-between rounded-xl border px-3 py-2 transition-all duration-300 max-md:top-2 max-md:-mx-2 max-md:px-2',
         isScrolled
-          ? 'border-border/60 bg-background/40 shadow-sm backdrop-blur-xl'
+          ? 'border-border/60 bg-background/40 backdrop-blur-md'
           : 'border-transparent bg-transparent shadow-none'
       )}
     >
-      <div>
+      <div className='flex min-w-0 items-center gap-2'>
         {showBack && (
           <Button
             type="button"
@@ -103,6 +102,7 @@ export const Header = () => {
             返回
           </Button>
         )}
+        <Menu meta={meta} />
       </div>
 
       <AnimatedThemeToggler duration={600} />

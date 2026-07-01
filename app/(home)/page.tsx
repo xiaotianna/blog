@@ -1,8 +1,11 @@
+import { Highlighter } from '@/components/ui/highlighter'
 import { SparklesText } from '@/components/ui/sparkles-text'
 import { Categories } from '@/features/home/categories'
 import { MeImage } from '@/features/home/me-image'
 import { Skills } from '@/features/home/skills'
+import { ArrowRight } from 'lucide-react'
 import Image from 'next/image'
+import Link from 'next/link'
 import Markdown from 'react-markdown'
 
 const profile = {
@@ -47,6 +50,19 @@ export default function Home() {
               className='size-full rounded-full border object-cover shadow-lg ring-4 ring-muted transition-transform duration-300 ease-out hover:scale-110'
             />
           </MeImage>
+        </div>
+        <div className='mt-4'>
+          <span className='cursor-pointer inline-block'>
+            <Highlighter
+              action='underline'
+              color='#FF9800'
+            >
+              <Link href='/blog' className="flex items-center gap-1">
+                翻翻我的笔记
+                <ArrowRight className='size-4' />
+              </Link>
+            </Highlighter>
+          </span>
         </div>
       </section>
 

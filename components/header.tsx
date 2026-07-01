@@ -2,7 +2,7 @@
 
 import { ChevronLeft } from 'lucide-react'
 import { usePathname, useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { AnimatedThemeToggler } from './ui/animated-theme-toggler'
 import { BlogMobileNavigationTrigger } from '@/features/blog/blog-mobile-navigation-trigger'
 import { Button } from './ui/button'
@@ -108,7 +108,9 @@ export const Header = () => {
       </div>
 
       <div className='flex items-center gap-2'>
-        <BlogMobileNavigationTrigger />
+        <Suspense fallback={null}>
+          <BlogMobileNavigationTrigger />
+        </Suspense>
         <HeaderSearchDialog />
         <AnimatedThemeToggler duration={600} />
       </div>

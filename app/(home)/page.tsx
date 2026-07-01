@@ -26,14 +26,14 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 
 export default function Home() {
   return (
-    <main className='mx-auto flex min-h-dvh w-full max-w-2xl flex-col gap-14 px-6 py-20 sm:px-8 lg:px-0'>
+    <main className='mx-auto flex min-h-dvh w-full flex-col gap-14 px-6 pb-20 pt-4 sm:px-8 lg:px-0'>
       <section id='hero'>
         <div className='flex flex-col gap-6 md:flex-row md:items-start md:justify-between'>
           <div className='order-2 flex flex-col gap-2 md:order-1'>
             <h1 className='text-4xl font-semibold tracking-tight text-foreground sm:text-5xl flex items-center gap-2'>
               Hi, I&apos;m <SparklesText>{profile.name}</SparklesText>
             </h1>
-            <p className='max-w-xl text-lg leading-relaxed text-muted-foreground sm:text-xl'>
+            <p className='max-w-3xl text-lg leading-relaxed text-muted-foreground sm:text-xl'>
               {profile.description}
             </p>
           </div>

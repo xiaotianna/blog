@@ -4,6 +4,7 @@ import { FlickeringGrid } from '@/components/magicui/flickering-grid'
 import { ThemeProvider } from '@/components/theme-provider'
 import './globals.css'
 import '@/styles/article.css'
+import { Header } from '@/components/header'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -25,8 +26,8 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: '小T1an\'s Blog',
-  description: '一个关于我个人经历和对技术、编程以及生活的思考的博客。',
+  title: "小T1an's Blog",
+  description: '一个关于我个人经历和对技术、编程以及生活的思考的博客。'
 }
 
 export default function RootLayout({
@@ -54,7 +55,14 @@ export default function RootLayout({
               }}
             />
           </div>
-          <div className='relative z-10'>{children}</div>
+          <div className='relative z-10'>
+            <div className='mx-auto min-h-screen w-full max-w-260 px-12 max-xl:px-8 max-md:px-5'>
+              <main className='min-w-0 pt-14 max-md:py-9'>
+                <Header />
+                <div>{children}</div>
+              </main>
+            </div>
+          </div>
         </ThemeProvider>
       </body>
     </html>

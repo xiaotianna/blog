@@ -1,5 +1,5 @@
 import { readdir, readFile } from 'node:fs/promises'
-import { join, parse } from 'node:path'
+import { extname, join, parse } from 'node:path'
 
 import BlurFade from '@/components/magicui/blur-fade'
 import { parseFrontmatter } from '@/components/markdown/parse-frontmatter'
@@ -18,6 +18,7 @@ export const metadata: Metadata = {
 
 const PAGE_SIZE = 5
 const BLUR_FADE_DELAY = 0.04
+const MARKDOWN_EXTENSIONS = ['.mdx', '.md'] as const
 
 type BlogPost = {
   slug: string
@@ -33,13 +34,33 @@ type Pagination = {
   hasNextPage: boolean
 }
 
+function isMarkdownFile(file: string) {
+  return MARKDOWN_EXTENSIONS.includes(
+    extname(file) as (typeof MARKDOWN_EXTENSIONS)[number]
+  )
+}
+
+function getPublishedAt(metadata: Record<string, unknown>) {
+  if (typeof metadata.date === 'string') {
+    return metadata.date
+  }
+
+  if (typeof metadata.lastUpdated === 'string') {
+    return metadata.lastUpdated
+  }
+
+  return ''
+}
+
 async function getBlogPosts(): Promise<BlogPost[]> {
   const publicDir = join(process.cwd(), 'public')
-  const files = await readdir(publicDir)
-  const mdxFiles = files.filter((file) => file.endsWith('.mdx'))
+  const entries = await readdir(publicDir, { withFileTypes: true })
+  const markdownFiles = entries
+    .filter((entry) => entry.isFile() && isMarkdownFile(entry.name))
+    .map((entry) => entry.name)
 
   const posts = await Promise.all(
-    mdxFiles.map(async (file) => {
+    markdownFiles.map(async (file) => {
       const slug = parse(file).name
       const source = await readFile(join(publicDir, file), 'utf8')
       const { metadata } = parseFrontmatter(source)
@@ -51,10 +72,7 @@ async function getBlogPosts(): Promise<BlogPost[]> {
           typeof metadata.description === 'string'
             ? metadata.description
             : undefined,
-        publishedAt:
-          typeof metadata.lastUpdated === 'string'
-            ? metadata.lastUpdated
-            : ''
+        publishedAt: getPublishedAt(metadata)
       }
     })
   )
@@ -110,7 +128,7 @@ export default async function BlogPage({
   const { posts, pagination } = paginatePosts(sortedPosts, currentPage)
 
   return (
-    <main className='mx-auto w-full max-w-2xl px-6 py-12 pb-24 sm:py-24'>
+    <main className='mx-auto w-full max-w-2xl px-6 pb-24'>
       <section id='blog'>
         <BlurFade delay={BLUR_FADE_DELAY}>
           <h1 className='mb-2 text-2xl font-semibold tracking-tight'>

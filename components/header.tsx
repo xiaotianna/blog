@@ -4,7 +4,7 @@ import { ChevronLeft } from 'lucide-react'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { AnimatedThemeToggler } from './ui/animated-theme-toggler'
-import { BlogMobileFileTreeTrigger } from '@/features/blog/blog-mobile-file-tree-trigger'
+import { BlogMobileNavigationTrigger } from '@/features/blog/blog-mobile-navigation-trigger'
 import { Button } from './ui/button'
 import { HeaderSearchDialog } from './header-search-dialog'
 import { Menu } from '@/components/menu'
@@ -108,7 +108,7 @@ export const Header = () => {
       </div>
 
       <div className='flex items-center gap-2'>
-        {pathname === '/blog' ? <BlogMobileFileTreeTrigger /> : null}
+        <BlogMobileNavigationTrigger />
         <HeaderSearchDialog />
         <AnimatedThemeToggler duration={600} />
       </div>

@@ -10,6 +10,14 @@ type BlogDetailTableOfContentsProps = {
   items: MarkdownHeadingItem[]
 }
 
+type BlogDetailTableOfContentsContentProps = {
+  className?: string
+  headingClassName?: string
+  items: MarkdownHeadingItem[]
+  onNavigate?: () => void
+  title?: string
+}
+
 const ARTICLE_SCROLL_OFFSET = 140
 
 function getContentHeadings() {
@@ -50,6 +58,27 @@ function getDecodedHashTitle() {
 export function BlogDetailTableOfContents({
   items
 }: BlogDetailTableOfContentsProps) {
+  if (items.length === 0) {
+    return null
+  }
+
+  return (
+    <aside className='not-prose fixed right-6 top-32 z-40 hidden w-52 xl:block 2xl:left-[calc(50%+34rem)] 2xl:right-auto 2xl:w-56'>
+      <BlogDetailTableOfContentsContent
+        className='max-h-[calc(100vh-10rem)]'
+        items={items}
+      />
+    </aside>
+  )
+}
+
+export function BlogDetailTableOfContentsContent({
+  className,
+  headingClassName,
+  items,
+  onNavigate,
+  title = 'On this page'
+}: BlogDetailTableOfContentsContentProps) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null)
 
   const scrollToHeading = useCallback((headingIndex: number) => {
@@ -65,6 +94,7 @@ export function BlogDetailTableOfContents({
     setActiveIndex(index)
     updateHash(item.title)
     scrollToHeading(index)
+    onNavigate?.()
   }
 
   const scrollToTop = () => {
@@ -79,6 +109,7 @@ export function BlogDetailTableOfContents({
     if (!content) return
 
     scrollToElement(content, 'smooth')
+    onNavigate?.()
   }
 
   useEffect(() => {
@@ -130,52 +161,53 @@ export function BlogDetailTableOfContents({
     }
   }, [])
 
-  if (items.length === 0) {
-    return null
-  }
-
   return (
-    <aside className='not-prose fixed right-6 top-32 z-40 hidden w-52 xl:block 2xl:left-[calc(50%+34rem)] 2xl:right-auto 2xl:w-56'>
-      <nav
-        aria-label='目录'
-        className='max-h-[calc(100vh-10rem)] overflow-y-auto pr-2'
-      >
-        <p className='mb-4 text-sm font-semibold text-(--ds-gray-1000)'>
-          On this page
+    <nav
+      aria-label='目录'
+      className={cn('flex min-h-0 flex-col', className)}
+    >
+      {title ? (
+        <p
+          className={cn(
+            'mb-4 shrink-0 text-sm font-semibold text-(--ds-gray-1000)',
+            headingClassName
+          )}
+        >
+          {title}
         </p>
-        <ol className='space-y-3'>
-          {items.map((item, index) => {
-            const isActive = activeIndex === index
+      ) : null}
+      <ol className='min-h-0 flex-1 space-y-3 overflow-y-auto pr-2'>
+        {items.map((item, index) => {
+          const isActive = activeIndex === index
 
-            return (
-              <li key={`${item.level}-${item.title}-${index}`}>
-                <button
-                  type='button'
-                  aria-current={isActive ? 'true' : undefined}
-                  onClick={() => handleHeadingClick(item, index)}
-                  className={cn(
-                    'block w-full cursor-pointer text-left text-sm leading-5 text-(--ds-gray-900) transition-colors hover:text-(--geist-link-color)',
-                    item.level === 3 && 'pl-5',
-                    isActive && 'text-(--geist-link-color)'
-                  )}
-                >
-                  {item.title}
-                </button>
-              </li>
-            )
-          })}
-        </ol>
-        <div className='mt-8 border-t border-(--ds-gray-200) pt-5'>
-          <button
-            type='button'
-            onClick={scrollToTop}
-            className='flex cursor-pointer items-center gap-2 text-sm text-(--ds-gray-900) transition-colors hover:text-(--geist-link-color)'
-          >
-            Scroll to top
-            <CircleArrowUp className='size-4' />
-          </button>
-        </div>
-      </nav>
-    </aside>
+          return (
+            <li key={`${item.level}-${item.title}-${index}`}>
+              <button
+                type='button'
+                aria-current={isActive ? 'true' : undefined}
+                onClick={() => handleHeadingClick(item, index)}
+                className={cn(
+                  'block w-full cursor-pointer text-left text-sm leading-5 text-(--ds-gray-900) transition-colors hover:text-(--geist-link-color)',
+                  item.level === 3 && 'pl-5',
+                  isActive && 'text-(--geist-link-color)'
+                )}
+              >
+                {item.title}
+              </button>
+            </li>
+          )
+        })}
+      </ol>
+      <div className='mt-8 shrink-0 border-t border-(--ds-gray-200) pt-5'>
+        <button
+          type='button'
+          onClick={scrollToTop}
+          className='flex cursor-pointer items-center gap-2 text-sm text-(--ds-gray-900) transition-colors hover:text-(--geist-link-color)'
+        >
+          Scroll to top
+          <CircleArrowUp className='size-4' />
+        </button>
+      </div>
+    </nav>
   )
 }

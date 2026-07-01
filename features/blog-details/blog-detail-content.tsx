@@ -4,6 +4,7 @@ import { parseFrontmatter } from '@/components/markdown/parse-frontmatter'
 import { extractMarkdownHeadings } from '@/lib/markdown-headings'
 
 import { BlogDetailTableOfContents } from './blog-detail-table-of-contents'
+import { BlogDetailTableOfContentsRegistry } from './blog-detail-table-of-contents-store'
 
 type BlogDetailContentProps = {
   children: string
@@ -18,6 +19,7 @@ export function BlogDetailContent({ children }: BlogDetailContentProps) {
       id='blog-detail-content'
       className='article-content xl:pr-64 2xl:pr-0'
     >
+      <BlogDetailTableOfContentsRegistry items={tableOfContentsItems} />
       <BlogDetailTableOfContents items={tableOfContentsItems} />
       <MarkdownMetadata metadata={metadata} />
       <MarkdownContent>{markdownBody}</MarkdownContent>

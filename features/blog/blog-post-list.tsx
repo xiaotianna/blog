@@ -1,9 +1,15 @@
 import BlurFade from '@/components/magicui/blur-fade'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Newspaper } from 'lucide-react'
 import Link from 'next/link'
 
 import type { BlogPost, Pagination } from './blog-data'
 import { PAGE_SIZE } from './blog-data'
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+} from '@/components/ui/empty'
 
 type BlogPostListProps = {
   activeFolderId?: string
@@ -41,9 +47,14 @@ export function BlogPostList({
           className='mt-8 flex flex-col items-center justify-center rounded-xl border border-border px-4 py-12'
           delay={delay * 2}
         >
-          <p className='text-center text-muted-foreground'>
-            这个文件夹还没有文章。
-          </p>
+          <Empty>
+            <EmptyHeader>
+              <EmptyMedia variant='icon'>
+                <Newspaper />
+              </EmptyMedia>
+              <EmptyDescription>该目录还没有文章</EmptyDescription>
+            </EmptyHeader>
+          </Empty>
         </BlurFade>
       )}
 
@@ -121,12 +132,18 @@ function BlogPagination({
             className='flex h-8 w-fit items-center justify-center gap-1 rounded-lg border border-border px-2 text-sm transition-colors hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
             href={getBlogPageHref(pagination.page - 1, activeFolderId)}
           >
-            <ChevronLeft aria-hidden className='size-4' />
+            <ChevronLeft
+              aria-hidden
+              className='size-4'
+            />
             上一页
           </Link>
         ) : (
           <span className='flex h-8 w-fit cursor-not-allowed items-center justify-center gap-1 rounded-lg border border-border px-2 text-sm opacity-50'>
-            <ChevronLeft aria-hidden className='size-4' />
+            <ChevronLeft
+              aria-hidden
+              className='size-4'
+            />
             上一页
           </span>
         )}
@@ -136,12 +153,18 @@ function BlogPagination({
             href={getBlogPageHref(pagination.page + 1, activeFolderId)}
           >
             下一页
-            <ChevronRight aria-hidden className='size-4' />
+            <ChevronRight
+              aria-hidden
+              className='size-4'
+            />
           </Link>
         ) : (
           <span className='flex h-8 w-fit cursor-not-allowed items-center justify-center gap-1 rounded-lg border border-border px-2 text-sm opacity-50'>
             下一页
-            <ChevronRight aria-hidden className='size-4' />
+            <ChevronRight
+              aria-hidden
+              className='size-4'
+            />
           </span>
         )}
       </div>

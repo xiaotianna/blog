@@ -130,8 +130,8 @@ function getBlogMobileNavigationContent({
 }): BlogMobileNavigationContent | null {
   if (pathname === '/blog') {
     return {
-      title: '博客文件树',
-      emptyMessage: '文件树暂时不可用。',
+      title: '博客目录树',
+      emptyMessage: '目录树为空。',
       triggerClassName: 'lg:hidden',
       content:
         tree.length > 0 ? (
@@ -149,7 +149,7 @@ function getBlogMobileNavigationContent({
   if (pathname.startsWith('/blog/')) {
     return {
       title: '文章目录',
-      emptyMessage: '文章目录暂时不可用。',
+      emptyMessage: '文章目录为空。',
       triggerClassName: 'xl:hidden',
       content:
         items.length > 0 ? (

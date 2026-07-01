@@ -57,8 +57,12 @@ export default function Home() {
               action='underline'
               color='#FF9800'
             >
-              <Link href='/blog' className="flex items-center gap-1">
+              <Link
+                href='/blog'
+                className='flex items-center gap-1'
+              >
                 翻翻我的笔记
+                𐔌՞. .՞𐦯 ᢉ𐭩.ᐟ🍮
                 <ArrowRight className='size-4' />
               </Link>
             </Highlighter>

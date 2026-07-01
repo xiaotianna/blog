@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { AnimatedThemeToggler } from './ui/animated-theme-toggler'
 import { BlogMobileFileTreeTrigger } from '@/features/blog/blog-mobile-file-tree-trigger'
 import { Button } from './ui/button'
+import { HeaderSearchDialog } from './header-search-dialog'
 import { Menu } from '@/components/menu'
 import { routerMeta, type RouteMeta } from '@/config/router-meta'
 import { cn } from '@/lib/utils'
@@ -108,6 +109,7 @@ export const Header = () => {
 
       <div className='flex items-center gap-2'>
         {pathname === '/blog' ? <BlogMobileFileTreeTrigger /> : null}
+        <HeaderSearchDialog />
         <AnimatedThemeToggler duration={600} />
       </div>
     </div>

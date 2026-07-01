@@ -1,7 +1,7 @@
 import { readdir, readFile } from 'node:fs/promises'
 import { extname, join, parse } from 'node:path'
 
-import { MarkdownRender } from '@/components/markdown'
+import { BlogDetailContent } from '@/features/blog-details/blog-detail-content'
 import { notFound } from 'next/navigation'
 
 type BlogDetailParams = {
@@ -55,9 +55,5 @@ export default async function BlogDetail({
   const { id } = await params
   const content = await getBlogContent(id)
 
-  return (
-    <article className='article-content'>
-      <MarkdownRender>{content}</MarkdownRender>
-    </article>
-  )
+  return <BlogDetailContent>{content}</BlogDetailContent>
 }

@@ -50,7 +50,7 @@ export default async function BlogPage({
   const { posts, pagination } = paginatePosts(folderPosts, currentPage)
 
   return (
-    <main className='mx-auto flex min-h-[calc(100dvh-9rem)] w-full max-w-5xl flex-col px-6 pb-0 lg:block lg:min-h-0 lg:pb-10'>
+    <main className='mx-auto flex min-h-[calc(100dvh-9rem)] w-full max-w-5xl flex-col pb-0 px-6 lg:px-0 lg:block lg:min-h-0 lg:pb-10'>
       <BlogTreeRegistry tree={folderTree} />
       <section
         className='grid min-h-0 flex-1 gap-10 lg:grid-cols-[220px_minmax(0,1fr)]'

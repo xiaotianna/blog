@@ -1,7 +1,8 @@
-import ReactMarkdown from "react-markdown"
-import { MarkdownComponents } from "./markdown-components"
-import { remarkCodeMeta } from "./markdown-components/code/extension"
-import remarkGfm from "remark-gfm"
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+
+import { MarkdownComponents } from './markdown-components'
+import { remarkCodeMeta } from './markdown-components/code/extension'
 
 interface MarkdownContentProps {
   children: string

@@ -2,7 +2,7 @@
 
 import BlurFade from '@/components/magicui/blur-fade'
 import { cn } from '@/lib/utils'
-import { ChevronDown, ChevronRight, FileText, Folder } from 'lucide-react'
+import { ChevronRight, FileText, Folder } from 'lucide-react'
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
 
@@ -74,9 +74,8 @@ export function BlogFileTreeContent({
 
   return (
     <div className={cn('flex flex-col', className)}>
-      <div className='mb-3 flex items-center gap-2 text-xs font-medium uppercase tracking-normal text-muted-foreground'>
-        <ChevronDown aria-hidden className='size-4' />
-        文件夹
+      <div className='mb-3 pl-8 text-base font-medium tracking-normal text-muted-foreground'>
+        目录
       </div>
       <nav
         aria-label='博客文件夹'
@@ -117,7 +116,7 @@ function BlogTreePostItem({
 }) {
   return (
     <Link
-      className='flex h-7 items-center gap-2 rounded-md px-2 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
+      className='flex h-7 items-center gap-2 rounded-md px-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
       href={`/blog/${node.slug}`}
       style={{
         paddingLeft: `${0.75 + node.depth * 1.25}rem`

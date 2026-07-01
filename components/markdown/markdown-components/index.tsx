@@ -46,6 +46,16 @@ export const MarkdownComponents: Components = {
       {children}
     </blockquote>
   ),
+  table: ({ children, className, ...props }) => (
+    <div className='my-8 w-full max-w-full overflow-x-auto overscroll-x-contain'>
+      <table
+        className={cn('my-0 w-full min-w-max table-auto', className)}
+        {...props}
+      >
+        {children}
+      </table>
+    </div>
+  ),
   th: ({ children, className, ...props }) => (
     <th
       className={cn('first:pl-0 last:pr-0', className)}

@@ -60,6 +60,14 @@ import { VueConfig } from '@/components/icon/vueconfig'
 import { WindiCSS } from '@/components/icon/windicss'
 import { YAML } from '@/components/icon/yaml'
 import { Yarn } from '@/components/icon/yarn'
+import { Sass } from '@/components/icon/sass'
+import { Less } from '@/components/icon/less'
+import { Webpack } from '@/components/icon/webpack'
+import { Rollup } from '@/components/icon/rollup'
+import { NPM } from '@/components/icon/npm'
+import { Stylelint } from '@/components/icon/stylelint'
+import { ESLint } from '@/components/icon/eslint'
+import { Oxlint } from '@/components/icon/oxlint'
 
 // 文件icon映射
 export const fileIconMap = {
@@ -70,6 +78,8 @@ export const fileIconMap = {
   svelte: createElement(Svelte),
   html: createElement(HTML5),
   css: createElement(CSS),
+  sass: createElement(Sass),
+  less: createElement(Less),
   terminal: createElement(Bash),
   json: createElement(JSON),
   markdown: createElement(Markdown),
@@ -90,52 +100,43 @@ export const fileIconMap = {
 export const filenameIconMap = {
   vite: createElement(Vite),
   vitest: createElement(Vitest),
-  webpack: createElement(Text),
-  rollup: createElement(Text),
+  webpack: createElement(Webpack),
+  rollup: createElement(Rollup),
   rolldown: createElement(Rolldown),
   rspack: createElement(Rspack),
   rsbuild: createElement(Rsbuild),
-  rslib: createElement(Text),
-  rspress: createElement(Text),
   nextjs: createElement(Nextjs),
   swc: createElement(SWC),
   babel: createElement(Babel),
-  tsup: createElement(Text),
-  tsdown: createElement(Text),
-  unbuild: createElement(Text),
   vueconfig: createElement(VueConfig),
   nuxt: createElement(Nuxt),
   angular: createElement(Angular),
   docusaurus: createElement(Docusaurus),
   storybook: createElement(Storybook),
   node: createElement(Node),
-  npm: createElement(Text),
+  npm: createElement(NPM),
   pnpm: createElement(Pnpm),
   yarn: createElement(Yarn),
   bun: createElement(Bun),
   deno: createElement(Deno),
   tailwind: createElement(Tailwind),
   postcss: createElement(PostCSS),
-  stylelint: createElement(Text),
+  stylelint: createElement(Stylelint),
   unocss: createElement(UnoCSS),
   windicss: createElement(WindiCSS),
-  eslint: createElement(Text),
+  eslint: createElement(ESLint),
   prettier: createElement(Prettier),
-  oxlint: createElement(Text),
-  oxfmt: createElement(Text),
-  husky: createElement(Text),
+  oxlint: createElement(Oxlint),
   jest: createElement(Jest),
   playwright: createElement(Playwright),
   cypress: createElement(Cypress),
   turbo: createElement(Turbo),
   nx: createElement(Nx),
-  lerna: createElement(Text),
   nest: createElement(Nest),
   nestmodule: createElement(NestModule),
   nestservice: createElement(NestService),
   nestcontroller: createElement(NestController),
   prisma: createElement(Prisma),
-  prismaconfig: createElement(Text),
   typeorm: createElement(TypeORM),
   graphql: createElement(GraphQL),
   docker: createElement(Docker),

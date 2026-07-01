@@ -1,8 +1,3 @@
-<!-- BEGIN:nextjs-agent-rules -->
-# This is NOT the Next.js you know
-
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
-
 ## Git Commit Message 约束
 
 提交信息必须使用以下格式：
@@ -34,9 +29,8 @@ docs: update usage guide
 
 ### 规则
 
-* 使用英文提交信息
+* 使用中文提交信息
 * `subject` 简短明确，不超过 72 个字符
 * 不以句号结尾
 * 禁止使用 `update`、`fix bug`、`test`、`wip` 等无意义描述
 * 一次提交只包含一类变更
-<!-- END:nextjs-agent-rules -->

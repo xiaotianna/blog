@@ -39,8 +39,18 @@ export const fileStrategies: FileStrategy[] = [
   },
   {
     key: 'css',
-    aliases: ['css', 'scss', 'sass', 'less', 'stylus'],
+    aliases: ['css', 'stylus'],
     icon: 'css',
+  },
+  {
+    key: 'sass',
+    aliases: ['scss', 'sass'],
+    icon: 'sass',
+  },
+  {
+    key: 'less',
+    aliases: ['less'],
+    icon: 'less',
   },
   {
     key: 'terminal',
@@ -145,32 +155,12 @@ export const filenameStrategies: FilenameStrategy[] = [
     patterns: [/^rsbuild\.config\.(?:[cm]?js|[cm]?ts)$/],
   },
   {
-    icon: 'rslib',
-    patterns: [/^rslib\.config\.(?:[cm]?js|ts)$/],
-  },
-  {
-    icon: 'rspress',
-    patterns: [/^rspress\.config\.(?:[cm]?js|ts)$/],
-  },
-  {
     icon: 'swc',
     fileNames: ['.swcrc'],
   },
   {
     icon: 'babel',
     patterns: [/^(?:\.babelrc|babel\.config\.(?:[cm]?js|json))$/],
-  },
-  {
-    icon: 'tsup',
-    patterns: [/^tsup\.config\.(?:[cm]?js|[cm]?ts)$/],
-  },
-  {
-    icon: 'tsdown',
-    patterns: [/^tsdown\.config\.(?:[cm]?js|ts)$/],
-  },
-  {
-    icon: 'unbuild',
-    patterns: [/^(?:build|unbuild)\.config\.(?:[cm]?js|ts)$/],
   },
   {
     icon: 'nextjs',
@@ -253,14 +243,6 @@ export const filenameStrategies: FilenameStrategy[] = [
     fileNames: ['.oxlintrc.json', '.oxlintignore'],
   },
   {
-    icon: 'oxfmt',
-    fileNames: ['.oxfmtrc.json'],
-  },
-  {
-    icon: 'husky',
-    patterns: [/^(?:^|\/)\.husky(?:\/.+)?$/],
-  },
-  {
     icon: 'jest',
     patterns: [/^jest\.config\.(?:[cm]?js|ts|json)$/],
   },
@@ -281,10 +263,6 @@ export const filenameStrategies: FilenameStrategy[] = [
     fileNames: ['nx.json', '.nxignore'],
   },
   {
-    icon: 'lerna',
-    fileNames: ['lerna.json'],
-  },
-  {
     icon: 'nest',
     fileNames: ['nest-cli.json'],
   },
@@ -303,9 +281,6 @@ export const filenameStrategies: FilenameStrategy[] = [
   {
     icon: 'prisma',
     fileNames: ['schema.prisma'],
-  },
-  {
-    icon: 'prismaconfig',
     patterns: [/^prisma\.config\.(?:js|ts)$/],
   },
   {

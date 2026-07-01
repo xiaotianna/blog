@@ -283,31 +283,6 @@ export default {
 }
 ```
 
-### esbuild / tsup / tsdown / unbuild
-
-```ts filename="tsup.config.ts"
-import { defineConfig } from 'tsup'
-
-export default defineConfig({
-  entry: ['src/index.ts'],
-  dts: true,
-})
-```
-
-```ts filename="tsdown.config.ts"
-export default {
-  entry: ['./src/index.ts'],
-  outDir: './dist',
-}
-```
-
-```ts filename="build.config.ts"
-export default {
-  entries: ['./src/index'],
-  clean: true,
-}
-```
-
 ## 框架
 
 ### Next.js
@@ -387,13 +362,6 @@ export default config
   "scripts": {
     "dev": "next dev"
   }
-}
-```
-
-```json filename="package-lock.json"
-{
-  "name": "demo-app",
-  "lockfileVersion": 3
 }
 ```
 
@@ -513,22 +481,6 @@ export default {
 }
 ```
 
-### oxfmt
-
-```json filename=".oxfmtrc.json"
-{
-  "semi": false,
-  "singleQuote": true
-}
-```
-
-### Husky
-
-```sh filename=".husky/pre-commit"
-pnpm lint
-pnpm test
-```
-
 ### SWC
 
 ```json filename=".swcrc"
@@ -612,14 +564,6 @@ export default defineConfig({
 ```json filename="nx.json"
 {
   "extends": "nx/presets/npm.json"
-}
-```
-
-### Lerna
-
-```json filename="lerna.json"
-{
-  "version": "independent"
 }
 ```
 

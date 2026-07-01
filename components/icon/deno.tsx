@@ -3,7 +3,7 @@ import type { ComponentProps } from 'react'
 import { ThemedSvgIcon } from './themed-svg-icon'
 
 const Deno = (props: ComponentProps<typeof DenoDark>) => (
-  <ThemedSvgIcon dark={DenoLight} light={DenoDark} {...props} />
+  <ThemedSvgIcon dark={DenoDark} light={DenoLight} {...props} />
 )
 
 export { Deno }

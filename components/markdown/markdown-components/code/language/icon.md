@@ -13,9 +13,6 @@
 | esbuild   | `esbuild.config.js/ts/mjs/cjs`、`esbuild.js/ts`                                        | `esbuild`            |
 | SWC       | `.swcrc`                                                                              | `swc`                |
 | Babel     | `.babelrc`、`babel.config.js/cjs/mjs/json`                                             | `babel`              |
-| tsup      | `tsup.config.ts/js/mts/mjs`                                                           | `tsup`               |
-| tsdown    | `tsdown.config.ts/js/mjs`                                                             | `tsdown`             |
-| unbuild   | `build.config.ts/js`、`unbuild.config.*`                                               | `unbuild`            |
 
 | 技术栈          | 常见配置文件                                          | 推荐 icon key                     |
 | ------------ | ----------------------------------------------- | ------------------------------- |
@@ -54,8 +51,6 @@
 | ESLint       | `eslint.config.js/ts/mjs/cjs`、`.eslintrc.*`、`.eslintignore`       | `eslint`       |
 | Prettier     | `prettier.config.js/ts/mjs/cjs`、`.prettierrc.*`、`.prettierignore` | `prettier`     |
 | Oxlint       | `.oxlintrc.json`、`.oxlintignore`                                  | `oxlint`       |
-| oxfmt        | `.oxfmtrc.json`                                                   | `oxfmt`        |
-| Husky        | `.husky/*`                                                        | `husky`        |
 
 | 技术栈             | 常见配置文件                                        | 推荐 icon key  |
 | --------------- | --------------------------------------------- | ------------ |
@@ -68,7 +63,6 @@
 | -------------- | ------------------------------------------- | ------------ |
 | Turborepo      | `turbo.json`、`turbo.jsonc`                  | `turbo`      |
 | Nx             | `nx.json`、`.nxignore`                       | `nx`         |
-| Lerna          | `lerna.json`                                | `lerna`      |
 | pnpm Workspace | `pnpm-workspace.yaml`                       | `pnpm`       |
 | Yarn Workspace | `package.json` + `workspaces`、`.yarnrc.yml` | `yarn`       |
 
@@ -76,7 +70,7 @@
 | ----------------- | -------------------------------------------------------------- | ------------------------- |
 | Express           | 一般无固定配置，`server.ts/js`                                         | `node` / `express`        |
 | NestJS            | `nest-cli.json`、`*.module.ts`、`*.service.ts`、`*.controller.ts` | `nest`                    |
-| Prisma            | `schema.prisma`、`prisma.config.js/ts`                          | `prisma` / `prismaconfig` |
+| Prisma            | `schema.prisma`、`prisma.config.js/ts`                          | `prisma`                  |
 | TypeORM           | `ormconfig.*`、`data-source.ts`                                 | `typeorm`                 |
 | GraphQL           | `.graphqlrc.*`、`graphql.config.*`、`*.graphql`                  | `graphql`                 |
 

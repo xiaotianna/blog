@@ -17,6 +17,9 @@ importers:
       '@iconify-react/logos':
         specifier: ^1.0.3
         version: 1.0.3(react@19.2.4)
+      '@iconify-react/material-icon-theme':
+        specifier: ^1.0.17
+        version: 1.0.17(react@19.2.4)
       '@iconify-react/vscode-icons':
         specifier: ^1.0.21
         version: 1.0.21(react@19.2.4)
@@ -326,6 +329,9 @@ packages:
 
   '@iconify-react/logos@1.0.3':
     resolution: {integrity: sha512-oyzpZosZIwx2pUdiY3mGo+Ns1kSgmxjr3BvrC+QiY7vW9ygEJaIXY0fdOc3NehdZul85b5O8LQgertTh27dxzA==}
+
+  '@iconify-react/material-icon-theme@1.0.17':
+    resolution: {integrity: sha512-PRyM2M1A1fKgCFx8sKqS2DqDExK5mqGY9NFv2dj2J1igrE991ycETS/PYDCddjuCifGtMswlccIL41K6Iz3d5g==}
 
   '@iconify-react/vscode-icons@1.0.21':
     resolution: {integrity: sha512-MIYP2eZNuGEfHm4rwW0Lb9rpiIHCUA3Qr/cHYlqFfSSpZlFWPoLUpPdWcuDxUe+5bgCHUfQ/eP+HpguXgLZR6g==}
@@ -4342,6 +4348,12 @@ snapshots:
       - react
 
   '@iconify-react/logos@1.0.3(react@19.2.4)':
+    dependencies:
+      '@iconify/css-react': 1.0.2(react@19.2.4)
+    transitivePeerDependencies:
+      - react
+
+  '@iconify-react/material-icon-theme@1.0.17(react@19.2.4)':
     dependencies:
       '@iconify/css-react': 1.0.2(react@19.2.4)
     transitivePeerDependencies:

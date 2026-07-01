@@ -1,7 +1,6 @@
-import { GoDark, GoLight } from '@ridemountainpig/svgl-react'
-import type { ComponentProps } from 'react'
-import { ThemedSvgIcon } from './themed-svg-icon'
+import GoIcon from '@iconify-react/devicon/go';
+import { ComponentProps } from 'react';
 
-export const Go = (props: ComponentProps<typeof GoDark>) => (
-  <ThemedSvgIcon dark={GoDark} light={GoLight} {...props} />
-)
+export const Go = (props: ComponentProps<typeof GoIcon>) => (
+  <GoIcon {...props} />
+);

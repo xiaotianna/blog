@@ -1,3 +1,5 @@
+'use client'
+
 import { CopyCodeButton } from './copy-code-button'
 import { LanguageIcon } from './language/language-icon'
 
@@ -12,6 +14,8 @@ export const CodeBlockHeader = ({
   filename,
   language,
 }: CodeBlockHeaderProps) => {
+  const title = filename || language
+
   return (
     <div className='flex h-12 items-center rounded-t-md border-b border-(--ds-gray-400) bg-(--ds-background-200) pr-3 pl-4'>
       <div className='mr-auto flex min-w-0 items-center gap-2 text-[13px] text-(--ds-gray-900)'>
@@ -21,7 +25,7 @@ export const CodeBlockHeader = ({
         >
           <LanguageIcon language={language} filename={filename} />
         </span>
-        <span className='inline-block min-w-0 max-w-full truncate break-normal'>{filename}</span>
+        <span className='inline-block min-w-0 max-w-full truncate break-normal'>{title}</span>
       </div>
       <div className='flex self-stretch gap-1'>
         <CopyCodeButton code={code} />

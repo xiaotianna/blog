@@ -1,3 +1,4 @@
+import { cloneElement, isValidElement, type ReactElement, type ReactNode } from 'react'
 import { fileIconMap, filenameIconMap } from './icon-map'
 import { fileStrategies, filenameStrategies } from './icon-strategies'
 
@@ -65,6 +66,17 @@ function matchByLanguage(language?: string) {
 
 export type LanguageIconKey = keyof typeof fileIconMap
 
+function renderIcon(icon: ReactNode): ReactElement | null {
+  if (!isValidElement(icon)) {
+    return null
+  }
+
+  return cloneElement(
+    icon as ReactElement<{ suppressHydrationWarning?: boolean }>,
+    { suppressHydrationWarning: true }
+  )
+}
+
 export function LanguageIcon({
   language,
   filename,
@@ -77,12 +89,12 @@ export function LanguageIcon({
     matchByGlobPattern(filename)
 
   if (filenameIconKey) {
-    return filenameIconMap[filenameIconKey]
+    return renderIcon(filenameIconMap[filenameIconKey])
   }
 
   const fileIconKey =
     matchByLanguage(language) ??
     'text'
 
-  return fileIconMap[fileIconKey]
+  return renderIcon(fileIconMap[fileIconKey])
 }

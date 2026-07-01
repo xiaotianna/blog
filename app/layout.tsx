@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
+import { FlickeringGrid } from '@/components/magicui/flickering-grid'
 import { ThemeProvider } from '@/components/theme-provider'
 import './globals.css'
 import '@/styles/article.css'
@@ -25,7 +26,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: '小T1an\'s Blog',
-  description: 'A blog about my personal experiences and thoughts on technology, programming, and life.',
+  description: '一个关于我个人经历和对技术、编程以及生活的思考的博客。',
 }
 
 export default function RootLayout({
@@ -39,8 +40,22 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body>
-        <ThemeProvider>{children}</ThemeProvider>
+      <body className='relative min-h-screen selection:bg-foreground selection:text-background'>
+        <ThemeProvider>
+          <div className='absolute inset-x-0 top-0 z-0 h-[100px] overflow-hidden'>
+            <FlickeringGrid
+              className='h-full w-full'
+              squareSize={2}
+              gridGap={2}
+              style={{
+                maskImage: 'linear-gradient(to bottom, black, transparent)',
+                WebkitMaskImage:
+                  'linear-gradient(to bottom, black, transparent)'
+              }}
+            />
+          </div>
+          <div className='relative z-10'>{children}</div>
+        </ThemeProvider>
       </body>
     </html>
   )

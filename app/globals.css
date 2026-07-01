@@ -200,3 +200,578 @@
 html[data-magicui-theme-vt="active"]::view-transition-group(root) {
   animation-duration: var(--magicui-theme-toggle-vt-duration);
 }
+
+@property --c5-x1 {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 10%;
+}
+
+@property --c5-y1 {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 10%;
+}
+
+@property --c5-x2 {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 90%;
+}
+
+@property --c5-y2 {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 10%;
+}
+
+@property --c5-x3 {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 10%;
+}
+
+@property --c5-y3 {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 90%;
+}
+
+@property --c5-x4 {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 90%;
+}
+
+@property --c5-y4 {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 90%;
+}
+
+@property --c5-x5 {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 50%;
+}
+
+@property --c5-y5 {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 50%;
+}
+
+@property --c5-s1 {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 55%;
+}
+
+@property --c5-s2 {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 55%;
+}
+
+@property --c5-s3 {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 55%;
+}
+
+@property --c5-s4 {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 55%;
+}
+
+@property --c5-s5 {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 65%;
+}
+
+.c5-animated-gradient {
+  background-color: #ff8e53;
+  background-image:
+    radial-gradient(
+      circle at var(--c5-x1) var(--c5-y1),
+      #fff1aa 0,
+      transparent var(--c5-s1)
+    ),
+    radial-gradient(
+      circle at var(--c5-x2) var(--c5-y2),
+      #ff4b2b 0,
+      transparent var(--c5-s2)
+    ),
+    radial-gradient(
+      circle at var(--c5-x3) var(--c5-y3),
+      #8aff8a 0,
+      transparent var(--c5-s3)
+    ),
+    radial-gradient(
+      circle at var(--c5-x4) var(--c5-y4),
+      #ffd000 0,
+      transparent var(--c5-s4)
+    ),
+    radial-gradient(
+      circle at var(--c5-x5) var(--c5-y5),
+      #ff1493 0,
+      transparent var(--c5-s5)
+    );
+  animation:
+    c5-blob1 5s ease-in-out infinite,
+    c5-blob2 6s ease-in-out infinite,
+    c5-blob3 5.5s ease-in-out infinite,
+    c5-blob4 6.5s ease-in-out infinite,
+    c5-blob5 4s ease-in-out infinite,
+    c5-size1 3.5s ease-in-out infinite,
+    c5-size2 4.2s ease-in-out infinite,
+    c5-size3 3.8s ease-in-out infinite,
+    c5-size4 4.6s ease-in-out infinite,
+    c5-size5 3s ease-in-out infinite;
+}
+
+.c5-animated-gradient-blue-cyan {
+  background-color: #38bdf8;
+  background-image:
+    radial-gradient(
+      circle at var(--c5-x1) var(--c5-y1),
+      #c7f9ff 0,
+      transparent var(--c5-s1)
+    ),
+    radial-gradient(
+      circle at var(--c5-x2) var(--c5-y2),
+      #2563eb 0,
+      transparent var(--c5-s2)
+    ),
+    radial-gradient(
+      circle at var(--c5-x3) var(--c5-y3),
+      #5eead4 0,
+      transparent var(--c5-s3)
+    ),
+    radial-gradient(
+      circle at var(--c5-x4) var(--c5-y4),
+      #22d3ee 0,
+      transparent var(--c5-s4)
+    ),
+    radial-gradient(
+      circle at var(--c5-x5) var(--c5-y5),
+      #1d4ed8 0,
+      transparent var(--c5-s5)
+    );
+}
+
+.c5-animated-gradient-purple-pink {
+  background-color: #c084fc;
+  background-image:
+    radial-gradient(
+      circle at var(--c5-x1) var(--c5-y1),
+      #f7d2ff 0,
+      transparent var(--c5-s1)
+    ),
+    radial-gradient(
+      circle at var(--c5-x2) var(--c5-y2),
+      #db2777 0,
+      transparent var(--c5-s2)
+    ),
+    radial-gradient(
+      circle at var(--c5-x3) var(--c5-y3),
+      #a855f7 0,
+      transparent var(--c5-s3)
+    ),
+    radial-gradient(
+      circle at var(--c5-x4) var(--c5-y4),
+      #f472b6 0,
+      transparent var(--c5-s4)
+    ),
+    radial-gradient(
+      circle at var(--c5-x5) var(--c5-y5),
+      #6d28d9 0,
+      transparent var(--c5-s5)
+    );
+}
+
+.c5-animated-gradient-mint-lime-yellow {
+  background-color: #7ddfbd;
+  background-image:
+    radial-gradient(
+      circle at var(--c5-x1) var(--c5-y1),
+      #fff2a8 0,
+      transparent var(--c5-s1)
+    ),
+    radial-gradient(
+      circle at var(--c5-x2) var(--c5-y2),
+      #b6f36a 0,
+      transparent var(--c5-s2)
+    ),
+    radial-gradient(
+      circle at var(--c5-x3) var(--c5-y3),
+      #34d399 0,
+      transparent var(--c5-s3)
+    ),
+    radial-gradient(
+      circle at var(--c5-x4) var(--c5-y4),
+      #7ddfbd 0,
+      transparent var(--c5-s4)
+    ),
+    radial-gradient(
+      circle at var(--c5-x5) var(--c5-y5),
+      #14b8a6 0,
+      transparent var(--c5-s5)
+    );
+}
+
+.c5-animated-gradient-coral-peach-cream {
+  background-color: #ff8a7a;
+  background-image:
+    radial-gradient(
+      circle at var(--c5-x1) var(--c5-y1),
+      #ffe6a7 0,
+      transparent var(--c5-s1)
+    ),
+    radial-gradient(
+      circle at var(--c5-x2) var(--c5-y2),
+      #ff6b9a 0,
+      transparent var(--c5-s2)
+    ),
+    radial-gradient(
+      circle at var(--c5-x3) var(--c5-y3),
+      #ffb86b 0,
+      transparent var(--c5-s3)
+    ),
+    radial-gradient(
+      circle at var(--c5-x4) var(--c5-y4),
+      #ff8a7a 0,
+      transparent var(--c5-s4)
+    ),
+    radial-gradient(
+      circle at var(--c5-x5) var(--c5-y5),
+      #f97316 0,
+      transparent var(--c5-s5)
+    );
+}
+
+.c5-animated-gradient-lake-seafoam-warm {
+  background-color: #60a5fa;
+  background-image:
+    radial-gradient(
+      circle at var(--c5-x1) var(--c5-y1),
+      #fef3c7 0,
+      transparent var(--c5-s1)
+    ),
+    radial-gradient(
+      circle at var(--c5-x2) var(--c5-y2),
+      #67e8f9 0,
+      transparent var(--c5-s2)
+    ),
+    radial-gradient(
+      circle at var(--c5-x3) var(--c5-y3),
+      #86efac 0,
+      transparent var(--c5-s3)
+    ),
+    radial-gradient(
+      circle at var(--c5-x4) var(--c5-y4),
+      #60a5fa 0,
+      transparent var(--c5-s4)
+    ),
+    radial-gradient(
+      circle at var(--c5-x5) var(--c5-y5),
+      #2563eb 0,
+      transparent var(--c5-s5)
+    );
+}
+
+.c5-animated-gradient-lavender-rose-apricot {
+  background-color: #a78bfa;
+  background-image:
+    radial-gradient(
+      circle at var(--c5-x1) var(--c5-y1),
+      #fed7aa 0,
+      transparent var(--c5-s1)
+    ),
+    radial-gradient(
+      circle at var(--c5-x2) var(--c5-y2),
+      #f0abfc 0,
+      transparent var(--c5-s2)
+    ),
+    radial-gradient(
+      circle at var(--c5-x3) var(--c5-y3),
+      #fb7185 0,
+      transparent var(--c5-s3)
+    ),
+    radial-gradient(
+      circle at var(--c5-x4) var(--c5-y4),
+      #a78bfa 0,
+      transparent var(--c5-s4)
+    ),
+    radial-gradient(
+      circle at var(--c5-x5) var(--c5-y5),
+      #7c3aed 0,
+      transparent var(--c5-s5)
+    );
+}
+
+.c5-animated-gradient-berry-grape-rose {
+  background-color: #be123c;
+  background-image:
+    radial-gradient(
+      circle at var(--c5-x1) var(--c5-y1),
+      #fb7185 0,
+      transparent var(--c5-s1)
+    ),
+    radial-gradient(
+      circle at var(--c5-x2) var(--c5-y2),
+      #ec4899 0,
+      transparent var(--c5-s2)
+    ),
+    radial-gradient(
+      circle at var(--c5-x3) var(--c5-y3),
+      #7e22ce 0,
+      transparent var(--c5-s3)
+    ),
+    radial-gradient(
+      circle at var(--c5-x4) var(--c5-y4),
+      #be123c 0,
+      transparent var(--c5-s4)
+    ),
+    radial-gradient(
+      circle at var(--c5-x5) var(--c5-y5),
+      #581c87 0,
+      transparent var(--c5-s5)
+    );
+}
+
+.c5-animated-gradient-indigo-violet-cool-pink {
+  background-color: #4f46e5;
+  background-image:
+    radial-gradient(
+      circle at var(--c5-x1) var(--c5-y1),
+      #f0abfc 0,
+      transparent var(--c5-s1)
+    ),
+    radial-gradient(
+      circle at var(--c5-x2) var(--c5-y2),
+      #d946ef 0,
+      transparent var(--c5-s2)
+    ),
+    radial-gradient(
+      circle at var(--c5-x3) var(--c5-y3),
+      #8b5cf6 0,
+      transparent var(--c5-s3)
+    ),
+    radial-gradient(
+      circle at var(--c5-x4) var(--c5-y4),
+      #4f46e5 0,
+      transparent var(--c5-s4)
+    ),
+    radial-gradient(
+      circle at var(--c5-x5) var(--c5-y5),
+      #312e81 0,
+      transparent var(--c5-s5)
+    );
+}
+
+.c5-animated-gradient-gold-turquoise-grass {
+  background-color: #facc15;
+  background-image:
+    radial-gradient(
+      circle at var(--c5-x1) var(--c5-y1),
+      #bef264 0,
+      transparent var(--c5-s1)
+    ),
+    radial-gradient(
+      circle at var(--c5-x2) var(--c5-y2),
+      #2dd4bf 0,
+      transparent var(--c5-s2)
+    ),
+    radial-gradient(
+      circle at var(--c5-x3) var(--c5-y3),
+      #22c55e 0,
+      transparent var(--c5-s3)
+    ),
+    radial-gradient(
+      circle at var(--c5-x4) var(--c5-y4),
+      #facc15 0,
+      transparent var(--c5-s4)
+    ),
+    radial-gradient(
+      circle at var(--c5-x5) var(--c5-y5),
+      #0f766e 0,
+      transparent var(--c5-s5)
+    );
+}
+
+.c5-animated-gradient-sky-sunset-soft-orange {
+  background-color: #38bdf8;
+  background-image:
+    radial-gradient(
+      circle at var(--c5-x1) var(--c5-y1),
+      #fde68a 0,
+      transparent var(--c5-s1)
+    ),
+    radial-gradient(
+      circle at var(--c5-x2) var(--c5-y2),
+      #f9a8d4 0,
+      transparent var(--c5-s2)
+    ),
+    radial-gradient(
+      circle at var(--c5-x3) var(--c5-y3),
+      #fb923c 0,
+      transparent var(--c5-s3)
+    ),
+    radial-gradient(
+      circle at var(--c5-x4) var(--c5-y4),
+      #38bdf8 0,
+      transparent var(--c5-s4)
+    ),
+    radial-gradient(
+      circle at var(--c5-x5) var(--c5-y5),
+      #0ea5e9 0,
+      transparent var(--c5-s5)
+    );
+}
+
+@keyframes c5-blob1 {
+  0%,
+  100% {
+    --c5-x1: 5%;
+    --c5-y1: 5%;
+  }
+  25% {
+    --c5-x1: 45%;
+    --c5-y1: 20%;
+  }
+  50% {
+    --c5-x1: 30%;
+    --c5-y1: 55%;
+  }
+  75% {
+    --c5-x1: 0%;
+    --c5-y1: 30%;
+  }
+}
+
+@keyframes c5-blob2 {
+  0%,
+  100% {
+    --c5-x2: 95%;
+    --c5-y2: 5%;
+  }
+  33% {
+    --c5-x2: 55%;
+    --c5-y2: 35%;
+  }
+  66% {
+    --c5-x2: 80%;
+    --c5-y2: 65%;
+  }
+}
+
+@keyframes c5-blob3 {
+  0%,
+  100% {
+    --c5-x3: 5%;
+    --c5-y3: 95%;
+  }
+  40% {
+    --c5-x3: 45%;
+    --c5-y3: 65%;
+  }
+  70% {
+    --c5-x3: 25%;
+    --c5-y3: 100%;
+  }
+}
+
+@keyframes c5-blob4 {
+  0%,
+  100% {
+    --c5-x4: 95%;
+    --c5-y4: 95%;
+  }
+  30% {
+    --c5-x4: 60%;
+    --c5-y4: 70%;
+  }
+  60% {
+    --c5-x4: 100%;
+    --c5-y4: 50%;
+  }
+}
+
+@keyframes c5-blob5 {
+  0%,
+  100% {
+    --c5-x5: 50%;
+    --c5-y5: 50%;
+  }
+  25% {
+    --c5-x5: 70%;
+    --c5-y5: 30%;
+  }
+  50% {
+    --c5-x5: 40%;
+    --c5-y5: 70%;
+  }
+  75% {
+    --c5-x5: 30%;
+    --c5-y5: 40%;
+  }
+}
+
+@keyframes c5-size1 {
+  0%,
+  100% {
+    --c5-s1: 45%;
+  }
+  50% {
+    --c5-s1: 80%;
+  }
+}
+
+@keyframes c5-size2 {
+  0%,
+  100% {
+    --c5-s2: 45%;
+  }
+  50% {
+    --c5-s2: 85%;
+  }
+}
+
+@keyframes c5-size3 {
+  0%,
+  100% {
+    --c5-s3: 45%;
+  }
+  50% {
+    --c5-s3: 78%;
+  }
+}
+
+@keyframes c5-size4 {
+  0%,
+  100% {
+    --c5-s4: 45%;
+  }
+  50% {
+    --c5-s4: 82%;
+  }
+}
+
+@keyframes c5-size5 {
+  0%,
+  100% {
+    --c5-s5: 50%;
+  }
+  50% {
+    --c5-s5: 85%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .c5-animated-gradient {
+    animation: none;
+  }
+}

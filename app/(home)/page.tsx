@@ -1,8 +1,9 @@
 import { SparklesText } from '@/components/ui/sparkles-text'
+import { Categories } from '@/features/home/categories'
 import { MeImage } from '@/features/home/me-image'
+import { Skills } from '@/features/home/skills'
 import Image from 'next/image'
 import Markdown from 'react-markdown'
-import { Skills } from '@/features/home/skills'
 
 const profile = {
   name: 'T1an',
@@ -65,6 +66,14 @@ export default function Home() {
       >
         <SectionTitle>Skills</SectionTitle>
         <Skills />
+      </section>
+
+      <section
+        id='categories'
+        className='flex flex-col gap-4'
+      >
+        <SectionTitle>Categories</SectionTitle>
+        <Categories />
       </section>
     </main>
   )

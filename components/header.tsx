@@ -4,6 +4,7 @@ import { ChevronLeft } from 'lucide-react'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { AnimatedThemeToggler } from './ui/animated-theme-toggler'
+import { BlogMobileFileTreeTrigger } from '@/features/blog/blog-mobile-file-tree-trigger'
 import { Button } from './ui/button'
 import { Menu } from '@/components/menu'
 import { routerMeta, type RouteMeta } from '@/config/router-meta'
@@ -105,7 +106,10 @@ export const Header = () => {
         <Menu meta={meta} />
       </div>
 
-      <AnimatedThemeToggler duration={600} />
+      <div className='flex items-center gap-2'>
+        {pathname === '/blog' ? <BlogMobileFileTreeTrigger /> : null}
+        <AnimatedThemeToggler duration={600} />
+      </div>
     </div>
   )
 }

@@ -1,6 +1,7 @@
 export type MarkdownMetadataData = {
   title?: string
   description?: string
+  folderId?: string
   version?: string
   lastUpdated?: string
   [key: string]: string | number | boolean | string[] | undefined

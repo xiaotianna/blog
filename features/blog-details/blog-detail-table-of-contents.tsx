@@ -63,7 +63,7 @@ export function BlogDetailTableOfContents({
   }
 
   return (
-    <aside className='not-prose fixed right-6 top-32 z-40 hidden w-52 xl:block 2xl:left-[calc(50%+34rem)] 2xl:right-auto 2xl:w-56'>
+    <aside className='not-prose fixed right-6 top-32 z-40 hidden w-52 lg:block 2xl:left-[calc(50%+34rem)] 2xl:right-auto 2xl:w-56'>
       <BlogDetailTableOfContentsContent
         className='max-h-[calc(100vh-10rem)]'
         items={items}

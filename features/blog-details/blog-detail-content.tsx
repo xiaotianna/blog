@@ -17,7 +17,7 @@ export function BlogDetailContent({ children }: BlogDetailContentProps) {
   return (
     <article
       id='blog-detail-content'
-      className='article-content min-w-0 max-w-full xl:pr-64 2xl:pr-0'
+      className='article-content min-w-0 max-w-full lg:pr-64 xl:pr-37 2xl:pr-0'
     >
       <BlogDetailTableOfContentsRegistry items={tableOfContentsItems} />
       <BlogDetailTableOfContents items={tableOfContentsItems} />

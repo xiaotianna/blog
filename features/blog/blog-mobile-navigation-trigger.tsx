@@ -150,7 +150,7 @@ function getBlogMobileNavigationContent({
     return {
       title: '文章目录',
       emptyMessage: '文章目录为空。',
-      triggerClassName: 'xl:hidden',
+      triggerClassName: 'lg:hidden',
       content:
         items.length > 0 ? (
           <BlogDetailTableOfContentsContent

@@ -1,6 +1,7 @@
 import { Highlighter } from '@/components/ui/highlighter'
 import { SparklesText } from '@/components/ui/sparkles-text'
 import { Categories } from '@/features/home/categories'
+import { Links } from '@/features/home/links'
 import { MeImage } from '@/features/home/me-image'
 import { Skills } from '@/features/home/skills'
 import { ArrowRight } from 'lucide-react'
@@ -86,6 +87,14 @@ export default function Home() {
       >
         <SectionTitle>Skills</SectionTitle>
         <Skills />
+      </section>
+
+      <section
+        id='links'
+        className='flex flex-col gap-4'
+      >
+        <SectionTitle>Links</SectionTitle>
+        <Links />
       </section>
 
       <section

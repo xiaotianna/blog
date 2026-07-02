@@ -12,6 +12,11 @@ export type RouteMeta = {
   menuItems?: readonly MenuItem[]
 }
 
+const baseMenuItems: readonly MenuItem[] = [
+  { label: '首页', href: '/' },
+  { label: '博客', href: '/blog' }
+]
+
 export const routerMeta = {
   '/': {
     isBack: false,
@@ -21,18 +26,12 @@ export const routerMeta = {
     isBack: true,
     backPath: '/',
     showMenu: 'show',
-    menuItems: [
-      { label: '首页', href: '/' },
-      { label: '博客', href: '/blog' }
-    ]
+    menuItems: baseMenuItems
   },
   '/blog/[id]': {
     isBack: true,
     backPath: '/blog',
     showMenu: 'show',
-    menuItems: [
-      { label: '首页', href: '/' },
-      { label: '博客', href: '/blog' }
-    ]
+    menuItems: baseMenuItems
   }
 } as const satisfies Record<string, RouteMeta>

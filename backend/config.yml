@@ -1,0 +1,16 @@
+app:
+  port: :8000
+
+db:
+  host: localhost
+  port: 5432
+  user: user
+  password: 123456
+  db_name: blog
+
+account:
+  phone: 15583251761
+  password: 123456
+
+jwt:
+  secret_key: secret_key_t1an

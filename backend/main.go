@@ -1,17 +1,16 @@
 package main
 
 import (
-	"net/http"
+	"blog/config"
+	"blog/router"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	router := gin.Default()
+	r := gin.Default()
 
-	router.GET("/", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"message": "success"})
-	})
-
-	router.Run()
+	setup()
+	router.InitRouter(r)
+	r.Run(config.GlobalConfig.App.Port)
 }

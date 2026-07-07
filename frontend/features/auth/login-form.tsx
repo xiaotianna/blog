@@ -2,6 +2,7 @@
 
 import BlurFade from '@/components/magicui/blur-fade'
 import { Button } from '@/components/ui/button'
+import { loginAction } from '@/features/auth/actions'
 import { LoaderCircle, LockKeyhole, LogIn, Phone } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { FormEvent, useMemo, useState } from 'react'
@@ -11,19 +12,6 @@ type LoginFormProps = {
   delay: number
 }
 
-type LoginResponse = {
-  code: number
-  message: string
-  data?: {
-    token: string
-    user: {
-      id: string
-      phone: string
-    }
-  }
-}
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? ''
 const PHONE_PATTERN = /^1[3-9]\d{9}$/
 
 export function LoginForm({ delay }: LoginFormProps) {
@@ -53,22 +41,15 @@ export function LoginForm({ delay }: LoginFormProps) {
     setIsSubmitting(true)
 
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ phone, password })
-      })
-      const result = await parseLoginResponse(response)
+      const formData = new FormData(event.currentTarget)
+      const result = await loginAction(formData)
 
-      if (!response.ok || !result.data?.token) {
-        throw new Error(result.message || '登录失败，请稍后重试')
+      if (!result.ok) {
+        throw new Error(result.message ?? '登录失败，请稍后重试')
       }
 
-      window.localStorage.setItem('blog_token', result.data.token)
-      window.localStorage.setItem('blog_user', JSON.stringify(result.data.user))
-      router.push('/blog')
+      router.push(result.redirectTo ?? '/blog')
+      router.refresh()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : '登录失败，请稍后重试')
     } finally {
@@ -100,7 +81,7 @@ export function LoginForm({ delay }: LoginFormProps) {
             id='phone'
             inputMode='numeric'
             maxLength={11}
-            name='login-phone-field'
+            name='phone'
             onChange={(event) => setPhone(event.target.value.trim())}
             placeholder='请输入手机号'
             type='tel'
@@ -125,7 +106,7 @@ export function LoginForm({ delay }: LoginFormProps) {
             autoComplete='new-password'
             className='h-full min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground'
             id='password'
-            name='login-password-field'
+            name='password'
             onChange={(event) => setPassword(event.target.value)}
             placeholder='请输入密码'
             type='password'
@@ -151,24 +132,4 @@ export function LoginForm({ delay }: LoginFormProps) {
       </BlurFade>
     </form>
   )
-}
-
-async function parseLoginResponse(response: Response): Promise<LoginResponse> {
-  const contentType = response.headers.get('content-type')
-
-  if (!contentType?.includes('application/json')) {
-    return {
-      code: response.status,
-      message: '登录失败，请检查服务是否可用'
-    }
-  }
-
-  try {
-    return (await response.json()) as LoginResponse
-  } catch {
-    return {
-      code: response.status,
-      message: '登录失败，请稍后重试'
-    }
-  }
 }

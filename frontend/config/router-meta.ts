@@ -1,5 +1,11 @@
 export type ShowMenu = 'show' | 'hidden' | 'custom'
-export type HeaderAction = 'back' | 'menu' | 'blog-tree' | 'search' | 'theme'
+export type HeaderAction =
+  | 'back'
+  | 'menu'
+  | 'blog-tree'
+  | 'search'
+  | 'auth'
+  | 'theme'
 
 export type MenuItem = {
   label: string

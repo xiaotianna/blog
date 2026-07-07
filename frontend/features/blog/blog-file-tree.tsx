@@ -8,6 +8,7 @@ import { useMemo, useState } from 'react'
 
 import type { BlogTreeNode } from './blog-data'
 import { getVisibleBlogTreeNodes } from './blog-tree-visibility'
+import { Button } from '@/components/ui/button'
 
 type BlogFileTreeProps = {
   activeFolderId?: string
@@ -103,6 +104,7 @@ export function BlogFileTreeContent({
           )}
         </div>
       </nav>
+      <Button className='mt-2'>新增</Button>
     </div>
   )
 }

@@ -8,7 +8,11 @@ import { BlogMobileNavigationTrigger } from '@/features/blog/blog-mobile-navigat
 import { Button } from './ui/button'
 import { HeaderSearchDialog } from './header-search-dialog'
 import { Menu } from '@/components/menu'
-import { routerMeta, type RouteMeta } from '@/config/router-meta'
+import {
+  routerMeta,
+  type HeaderAction,
+  type RouteMeta
+} from '@/config/router-meta'
 import { cn } from '@/lib/utils'
 
 const routeMetaEntries = Object.entries(routerMeta) as Array<
@@ -16,6 +20,13 @@ const routeMetaEntries = Object.entries(routerMeta) as Array<
 >
 
 const FLICKERING_GRID_VISIBLE_THRESHOLD = 76
+const defaultHeaderActions: readonly HeaderAction[] = [
+  'back',
+  'menu',
+  'blog-tree',
+  'search',
+  'theme'
+]
 
 const getRouteMeta = (pathname: string) => {
   const exactMatch = routerMeta[pathname as keyof typeof routerMeta]
@@ -39,6 +50,11 @@ const getRouteMeta = (pathname: string) => {
   })?.[1]
 }
 
+const shouldRenderHeaderAction = (
+  meta: RouteMeta | undefined,
+  action: HeaderAction
+) => (meta?.headerActions ?? defaultHeaderActions).includes(action)
+
 export const Header = () => {
   const pathname = usePathname()
   const router = useRouter()
@@ -46,7 +62,8 @@ export const Header = () => {
 
   const meta = getRouteMeta(pathname)
 
-  const showBack = meta?.isBack
+  const showBack = meta?.isBack && shouldRenderHeaderAction(meta, 'back')
+  const showMenu = shouldRenderHeaderAction(meta, 'menu')
 
   const backPath = meta && 'backPath' in meta ? meta.backPath : undefined
 
@@ -104,15 +121,19 @@ export const Header = () => {
             返回
           </Button>
         )}
-        <Menu meta={meta} />
+        {showMenu && <Menu meta={meta} />}
       </div>
 
       <div className='flex items-center gap-2'>
-        <Suspense fallback={null}>
-          <BlogMobileNavigationTrigger />
-        </Suspense>
-        <HeaderSearchDialog />
-        <AnimatedThemeToggler duration={600} />
+        {shouldRenderHeaderAction(meta, 'blog-tree') && (
+          <Suspense fallback={null}>
+            <BlogMobileNavigationTrigger />
+          </Suspense>
+        )}
+        {shouldRenderHeaderAction(meta, 'search') && <HeaderSearchDialog />}
+        {shouldRenderHeaderAction(meta, 'theme') && (
+          <AnimatedThemeToggler duration={600} />
+        )}
       </div>
     </div>
   )

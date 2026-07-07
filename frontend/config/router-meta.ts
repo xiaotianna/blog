@@ -1,4 +1,5 @@
 export type ShowMenu = 'show' | 'hidden' | 'custom'
+export type HeaderAction = 'back' | 'menu' | 'blog-tree' | 'search' | 'theme'
 
 export type MenuItem = {
   label: string
@@ -8,6 +9,7 @@ export type MenuItem = {
 export type RouteMeta = {
   isBack: boolean
   backPath?: string
+  headerActions?: readonly HeaderAction[]
   showMenu?: ShowMenu
   menuItems?: readonly MenuItem[]
 }
@@ -31,6 +33,13 @@ export const routerMeta = {
   '/blog/[id]': {
     isBack: true,
     backPath: '/blog',
+    showMenu: 'show',
+    menuItems: baseMenuItems
+  },
+  '/login': {
+    isBack: true,
+    backPath: '/',
+    headerActions: ['theme'],
     showMenu: 'show',
     menuItems: baseMenuItems
   }

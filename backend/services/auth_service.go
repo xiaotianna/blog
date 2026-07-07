@@ -1,11 +1,13 @@
 package services
 
 import (
+	"blog/config"
 	"blog/dao"
 	"blog/dto"
 	"blog/middlewares"
 	"blog/utils/jwt"
 	"blog/utils/password"
+	"blog/utils/rediskey"
 	"blog/vo"
 	"context"
 	"errors"
@@ -36,6 +38,13 @@ func (AuthService) Login(ctx context.Context, req dto.LoginRequest) (*vo.LoginVO
 	})
 
 	if err != nil {
+		return nil, err
+	}
+
+	// 存redis
+	redisKey := rediskey.LoginUserToken(user.ID.String())
+
+	if err := config.RedisClient.Set(ctx, redisKey, token, jwt.TokenExpireDuration).Err(); err != nil {
 		return nil, err
 	}
 

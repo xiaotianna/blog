@@ -10,11 +10,12 @@ import { toast } from 'sonner'
 
 type LoginFormProps = {
   delay: number
+  redirectTo: string
 }
 
 const PHONE_PATTERN = /^1[3-9]\d{9}$/
 
-export function LoginForm({ delay }: LoginFormProps) {
+export function LoginForm({ delay, redirectTo }: LoginFormProps) {
   const router = useRouter()
   const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
@@ -63,6 +64,11 @@ export function LoginForm({ delay }: LoginFormProps) {
       className='space-y-5'
       onSubmit={handleSubmit}
     >
+      <input
+        type='hidden'
+        name='redirectTo'
+        value={redirectTo}
+      />
       <BlurFade delay={delay}>
         <label
           className='mb-2 block text-sm font-medium'

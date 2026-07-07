@@ -1,12 +1,16 @@
 package middlewares
 
 import (
+	"blog/config"
 	"blog/utils"
 	"blog/utils/jwt"
+	"blog/utils/rediskey"
+	"errors"
 	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
 )
 
 const TokenUserInfoKey = "token_user_info"
@@ -32,6 +36,26 @@ func JWTAuth(c *gin.Context) {
 	ok, claims := jwt.VerifyJWT[JWTClaims](parts[1])
 	if !ok {
 		utils.AbortError(c, http.StatusUnauthorized, "token无效或已过期")
+		return
+	}
+
+	redisKey := rediskey.LoginUserToken(claims.UserID)
+
+	cacheToken, err := config.RedisClient.Get(c.Request.Context(), redisKey).Result()
+	if err != nil {
+		// redis不存在
+		if errors.Is(err, redis.Nil) {
+			utils.AbortError(c, http.StatusUnauthorized, "登录状态已失效，请重新登录")
+			return
+		}
+		// redis错误
+		utils.AbortError(c, http.StatusInternalServerError, "登录状态校验失败")
+		return
+	}
+
+	// 和redis中缓存的不一样
+	if cacheToken != parts[1] {
+		utils.AbortError(c, http.StatusUnauthorized, "登录状态已失效，请重新登录")
 		return
 	}
 

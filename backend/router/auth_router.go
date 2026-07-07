@@ -9,7 +9,10 @@ import (
 )
 
 func AuthRouter(r *gin.RouterGroup) {
+	// 登录
 	r.POST("/login", middlewares.ValidateJSON[dto.LoginRequest], controllers.Auth.Login)
-	r.POST("/logout")
+	// 退出登录
+	r.POST("/logout", middlewares.JWTAuth, controllers.Auth.Logout)
+	// 个人信息
 	r.GET("/me")
 }

@@ -2,6 +2,7 @@
 
 import { clearAuthToken, setAuthToken } from '@/lib/server/auth'
 import { goApiFetch, readApiResponse } from '@/lib/server/go-api'
+import { normalizeInternalRedirect } from '@/lib/redirect'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
@@ -28,6 +29,7 @@ export async function loginAction(
 ): Promise<LoginActionResult> {
   const phone = String(formData.get('phone') ?? '').trim()
   const password = String(formData.get('password') ?? '')
+  const redirectTo = normalizeInternalRedirect(formData.get('redirectTo'))
 
   if (!PHONE_PATTERN.test(phone)) {
     return {
@@ -67,7 +69,7 @@ export async function loginAction(
 
     return {
       ok: true,
-      redirectTo: '/blog'
+      redirectTo
     }
   } catch {
     return {

@@ -13,4 +13,5 @@ func Use(r *gin.Engine, path string, fn RouterGroupFunc) {
 func InitRouter(r *gin.Engine) {
 	Use(r, "/auth", AuthRouter)
 	Use(r, "/article", ArticleRouter)
+	Use(r, "/category", CategoryRouter)
 }

@@ -1,6 +1,9 @@
 import BlurFade from '@/components/magicui/blur-fade'
 import { LoginForm } from '@/features/auth/login-form'
+import { normalizeInternalRedirect } from '@/lib/redirect'
+import { hasAuthToken } from '@/lib/server/auth'
 import type { Metadata } from 'next'
+import { redirect } from 'next/navigation'
 
 export const metadata: Metadata = {
   title: '登录',
@@ -9,7 +12,20 @@ export const metadata: Metadata = {
 
 const BLUR_FADE_DELAY = 0.04
 
-export default function LoginPage() {
+type LoginPageProps = {
+  searchParams?: Promise<{
+    redirect?: string
+  }>
+}
+
+export default async function LoginPage({ searchParams }: LoginPageProps) {
+  const params = await searchParams
+  const redirectTo = normalizeInternalRedirect(params?.redirect ?? null)
+
+  if (await hasAuthToken()) {
+    redirect(redirectTo)
+  }
+
   return (
     <main className='mx-auto flex min-h-[calc(100dvh-12rem)] w-full max-w-sm flex-col justify-center px-1 pb-10'>
       <BlurFade delay={BLUR_FADE_DELAY}>
@@ -21,7 +37,10 @@ export default function LoginPage() {
         </div>
       </BlurFade>
 
-      <LoginForm delay={BLUR_FADE_DELAY * 2} />
+      <LoginForm
+        delay={BLUR_FADE_DELAY * 2}
+        redirectTo={redirectTo}
+      />
     </main>
   )
 }

@@ -11,7 +11,7 @@ import (
 
 var jwtSecret = []byte(config.GlobalConfig.JWT.SecretKey)
 
-const tokenExpireDuration = 24 * time.Hour
+const TokenExpireDuration = 24 * time.Hour
 
 func GenerateJWT(payload any) (string, error) {
 	claims, err := toMapClaims(payload)
@@ -19,7 +19,7 @@ func GenerateJWT(payload any) (string, error) {
 		return "", err
 	}
 
-	claims["exp"] = time.Now().Add(tokenExpireDuration).Unix()
+	claims["exp"] = time.Now().Add(TokenExpireDuration).Unix()
 	token := jwtlib.NewWithClaims(jwtlib.SigningMethodHS256, claims)
 	return token.SignedString(jwtSecret)
 }

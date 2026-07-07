@@ -7,6 +7,7 @@ type UserEntity struct {
 	Username    string
 	PhoneNumber string `gorm:"column:phone;unique;not null;"`
 	Password    string `gorm:"not null;"`
+	Avatar      string `gorm:"size:500;default:'/me.png'"`
 }
 
 func (u *UserEntity) BeforeCreate(tx *gorm.DB) error {

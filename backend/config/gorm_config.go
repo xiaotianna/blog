@@ -28,7 +28,8 @@ func InitPgSqlORM() *gorm.DB {
 }
 
 func init() {
-	db := InitPgSqlORM()
+	PgDB = InitPgSqlORM()
+	db := PgDB
 	sqlDb, err := db.DB()
 	if err != nil {
 		panic(err)

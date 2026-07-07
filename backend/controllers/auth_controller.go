@@ -4,6 +4,7 @@ import (
 	"blog/dto"
 	"blog/middlewares"
 	"blog/services"
+	"blog/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -21,6 +22,7 @@ var Auth = AuthController{
 func (auth AuthController) Login(c *gin.Context) {
 	req := c.MustGet(middlewares.BodyKey).(dto.LoginRequest)
 	_, _ = auth.service.Login(req)
+	utils.Success(c, "ok", struct{}{})
 }
 
 func (AuthController) Logout(c *gin.Context) {

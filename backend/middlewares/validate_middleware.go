@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"blog/utils"
 	"blog/utils/validate"
 	"net/http"
 
@@ -39,9 +40,7 @@ func validateBind[T any](c *gin.Context, key string, bind bindFunc) {
 	var req T
 
 	if err := bind(&req); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"message": validate.GetValidateMessage(req, err),
-		})
+		utils.AbortError(c, http.StatusBadRequest, validate.GetValidateMessage(req, err))
 		return
 	}
 

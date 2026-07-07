@@ -24,7 +24,23 @@ func InitPgSqlORM() *gorm.DB {
 	if err != nil {
 		panic(err)
 	}
-	return db
+
+	sqlDB, err := db.DB()
+	if err != nil {
+		panic(err)
+	}
+
+	sqlDB.SetMaxIdleConns(10)
+	sqlDB.SetMaxOpenConns(100)
+	sqlDB.SetConnMaxLifetime(time.Hour)
+
+	// 实体配置
+	EntityConfig(db)
+	// 初始化账户配置
+	SeedConfig(db)
+
+	PgDB = db
+	return PgDB
 }
 
 func ClosePgSqlORM() {
@@ -34,22 +50,4 @@ func ClosePgSqlORM() {
 	}
 
 	sqlDB.Close()
-}
-
-func init() {
-	PgDB = InitPgSqlORM()
-	db := PgDB
-	sqlDb, err := db.DB()
-	if err != nil {
-		panic(err)
-	}
-
-	sqlDb.SetMaxIdleConns(10)
-	sqlDb.SetMaxOpenConns(100)
-	sqlDb.SetConnMaxLifetime(time.Hour)
-
-	// 实体配置
-	EntityConfig(db)
-	// 初始化账户配置
-	SeedConfig(db)
 }

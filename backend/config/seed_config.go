@@ -23,5 +23,6 @@ func SeedConfig(db *gorm.DB) {
 	db.Create(&entities.UserEntity{
 		PhoneNumber: GlobalConfig.Account.Phone,
 		Password:    hashedPassword,
+		Username:    "T1an",
 	})
 }

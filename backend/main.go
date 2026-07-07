@@ -8,10 +8,12 @@ import (
 )
 
 func main() {
+	setup()
+	defer config.CloseRedis()
 	defer config.ClosePgSqlORM()
+
 	r := gin.Default()
 
-	setup()
 	router.InitRouter(r)
 	r.Run(config.GlobalConfig.App.Port)
 }

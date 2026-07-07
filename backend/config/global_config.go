@@ -14,6 +14,13 @@ type DB struct {
 	DB_Name  string
 }
 
+type Redis struct {
+	Host     string
+	Port     string
+	Password string
+	DB       int
+}
+
 type Account struct {
 	Phone    string
 	Password string
@@ -24,6 +31,7 @@ type Config struct {
 		Port string
 	}
 	DB      DB
+	Redis   Redis
 	Account Account
 	JWT     struct {
 		SecretKey string `mapstructure:"secret_key"` // 告诉viper序列化的字段key

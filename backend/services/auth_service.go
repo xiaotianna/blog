@@ -3,9 +3,11 @@ package services
 import (
 	"blog/dao"
 	"blog/dto"
+	"blog/middlewares"
 	"blog/utils/jwt"
 	"blog/utils/password"
 	"blog/vo"
+	"context"
 	"errors"
 
 	"gorm.io/gorm"
@@ -15,8 +17,8 @@ type AuthService struct{}
 
 var Auth = AuthService{}
 
-func (AuthService) Login(req dto.LoginRequest) (*vo.LoginVO, error) {
-	user, err := dao.User.FindByPhone(req.Phone)
+func (AuthService) Login(ctx context.Context, req dto.LoginRequest) (*vo.LoginVO, error) {
+	user, err := dao.User.FindByPhone(ctx, req.Phone)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("手机号或密码错误")
@@ -28,9 +30,9 @@ func (AuthService) Login(req dto.LoginRequest) (*vo.LoginVO, error) {
 		return nil, errors.New("手机号或密码错误")
 	}
 
-	token, err := jwt.GenerateJWT(map[string]any{
-		"user_id": user.ID.String(),
-		"phone":   user.PhoneNumber,
+	token, err := jwt.GenerateJWT(middlewares.JWTClaims{
+		UserID: user.ID.String(),
+		Phone:  user.PhoneNumber,
 	})
 
 	if err != nil {

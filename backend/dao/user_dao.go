@@ -3,15 +3,16 @@ package dao
 import (
 	"blog/config"
 	"blog/entities"
+	"context"
 )
 
 type UserDAO struct{}
 
 var User = UserDAO{}
 
-func (UserDAO) FindByPhone(phone string) (*entities.UserEntity, error) {
+func (UserDAO) FindByPhone(ctx context.Context, phone string) (*entities.UserEntity, error) {
 	var user entities.UserEntity
-	err := config.PgDB.Where("phone = ?", phone).First(&user).Error
+	err := config.PgDB.WithContext(ctx).Where("phone = ?", phone).First(&user).Error
 	if err != nil {
 		return nil, err
 	}

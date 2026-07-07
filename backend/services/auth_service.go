@@ -1,11 +1,11 @@
 package services
 
 import (
-	"blog/config"
+	"blog/dao"
 	"blog/dto"
-	"blog/entities"
 	"blog/utils/jwt"
 	"blog/utils/password"
+	"blog/vo"
 	"errors"
 
 	"gorm.io/gorm"
@@ -15,18 +15,17 @@ type AuthService struct{}
 
 var Auth = AuthService{}
 
-func (AuthService) Login(req dto.LoginRequest) (string, error) {
-	var user entities.UserEntity
-	res := config.PgDB.Where("phone = ?", req.Phone).First(&user)
-	if err := res.Error; err != nil {
+func (AuthService) Login(req dto.LoginRequest) (*vo.LoginVO, error) {
+	user, err := dao.User.FindByPhone(req.Phone)
+	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return "", errors.New("手机号或密码错误")
+			return nil, errors.New("手机号或密码错误")
 		}
-		return "", err
+		return nil, err
 	}
 
 	if !password.VerifyPassword(req.Password, user.Password) {
-		return "", errors.New("手机号或密码错误")
+		return nil, errors.New("手机号或密码错误")
 	}
 
 	token, err := jwt.GenerateJWT(map[string]any{
@@ -35,8 +34,14 @@ func (AuthService) Login(req dto.LoginRequest) (string, error) {
 	})
 
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return token, nil
+	return &vo.LoginVO{
+		Token: token,
+		User: vo.LoginUserVO{
+			ID:    user.ID.String(),
+			Phone: user.PhoneNumber,
+		},
+	}, nil
 }

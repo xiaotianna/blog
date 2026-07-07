@@ -27,6 +27,15 @@ func InitPgSqlORM() *gorm.DB {
 	return db
 }
 
+func ClosePgSqlORM() {
+	sqlDB, err := PgDB.DB()
+	if err != nil {
+		panic(err)
+	}
+
+	sqlDB.Close()
+}
+
 func init() {
 	PgDB = InitPgSqlORM()
 	db := PgDB
@@ -34,7 +43,6 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	defer sqlDb.Close()
 
 	sqlDb.SetMaxIdleConns(10)
 	sqlDb.SetMaxOpenConns(100)

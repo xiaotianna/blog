@@ -8,6 +8,7 @@ import (
 )
 
 func main() {
+	defer config.ClosePgSqlORM()
 	r := gin.Default()
 
 	setup()

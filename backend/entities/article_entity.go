@@ -17,7 +17,8 @@ const (
 type ArticleEntity struct {
 	BaseModel
 	Title       string `gorm:"default:'未命名'"`
-	Slug        string `gorm:"size:160;uniqueIndex;not null"` // 短标识
+	Slug        string `gorm:"size:160;not null"`    // 短标识
+	Path        string `gorm:"size:460;uniqueIndex"` // 完整访问路径
 	Description string
 	Content     string        `gorm:"type:text"`
 	Status      ArticleStatus `gorm:"type:article_status;not null;default:'draft'"`

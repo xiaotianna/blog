@@ -43,6 +43,15 @@ const getRouteMeta = (pathname: string) => {
   return routeMetaEntries.find(([route]) => {
     const routeSegments = route.split('/').filter(Boolean)
     const pathnameSegments = pathname.split('/').filter(Boolean)
+    const catchAllIndex = routeSegments.findIndex(
+      (segment) => segment.startsWith('[...') || segment.startsWith('[[...')
+    )
+
+    if (catchAllIndex >= 0) {
+      return routeSegments
+        .slice(0, catchAllIndex)
+        .every((segment, index) => segment === pathnameSegments[index])
+    }
 
     return (
       routeSegments.length === pathnameSegments.length &&

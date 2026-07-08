@@ -15,6 +15,21 @@ type CategoryVO struct {
 	ParentID    *uuid.UUID `json:"parentId"`
 }
 
+type CategoryListItemVO struct {
+	ID          uuid.UUID  `json:"id"`
+	Name        string     `json:"name"`
+	Slug        string     `json:"slug"`
+	Path        string     `json:"path"`
+	Description string     `json:"description"`
+	ParentID    *uuid.UUID `json:"parentId"`
+}
+
+type CategoryOptionVO struct {
+	ID    uuid.UUID `json:"id"`
+	Label string    `json:"label"`
+	Path  string    `json:"path"`
+}
+
 type CategoryCatalogNodeType string
 
 const (

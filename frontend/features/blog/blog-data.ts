@@ -2,187 +2,211 @@ import { goApiFetch, readApiResponse } from '@/lib/server/go-api'
 
 export const PAGE_SIZE = 10
 
-export type BlogPost = {
+export type BlogTab = 'directories' | 'articles'
+
+export type BlogCategory = {
+  id: string
+  name: string
   slug: string
+  path: string
+  description: string
+  parentId?: string | null
+}
+
+export type BlogDirectoryOption = {
+  id: string
+  label: string
+  path: string
+}
+
+export type ArticleStatus = 'publish' | 'private' | 'draft'
+
+export type BlogArticle = {
+  id: string
   title: string
-  description?: string
+  slug: string
+  path: string
+  description: string
+  status: ArticleStatus
+  categoryId: string
   publishedAt: string
-  folderId: string
+}
+
+export type BlogArticleDetail = BlogArticle & {
+  content: string
 }
 
 export type Pagination = {
   page: number
+  pageSize: number
+  total: number
   totalPages: number
   hasPreviousPage: boolean
   hasNextPage: boolean
 }
 
-export type BlogFolder = {
-  id: string
-  label: string
-  parentId?: string
-  slug?: string
+type PageResponse<T> = {
+  items: T[]
+  pagination: Pagination
 }
 
-export type BlogFolderNode = BlogFolder & {
-  type: 'folder'
-  depth: number
-  count: number
+const ROOT_CATEGORY: BlogCategory = {
+  id: '',
+  name: 'Blog',
+  slug: '',
+  path: '',
+  description: '关于技术、编程和生活的一些想法。',
+  parentId: null
 }
 
-export type BlogPostNode = BlogPost & {
-  type: 'post'
-  depth: number
-}
+export async function getCurrentCategory(path: string) {
+  if (!path) {
+    return ROOT_CATEGORY
+  }
 
-export type BlogTreeNode = BlogFolderNode | BlogPostNode
-
-type CategoryCatalogNode = {
-  id: string
-  type: 'category' | 'article'
-  title: string
-  slug: string
-  description?: string
-  parentId?: string | null
-  categoryId?: string | null
-  publishedAt?: string | null
-  children?: CategoryCatalogNode[]
-}
-
-export async function getFolderTree(): Promise<BlogTreeNode[]> {
   try {
-    const response = await goApiFetch('/category/catalog', {
-      auth: false
-    })
-    const result = await readApiResponse<CategoryCatalogNode[]>(response)
+    const response = await goApiFetch(
+      `/category/detail?path=${encodeURIComponent(path)}`,
+      { auth: false }
+    )
+    const result = await readApiResponse<BlogCategory>(response)
+
+    if (!response.ok || !result.data) {
+      return null
+    }
+
+    return result.data
+  } catch {
+    return null
+  }
+}
+
+export async function getChildDirectories(parentPath: string, page: number) {
+  return readPage<BlogCategory>(
+    `/category/children?parentPath=${encodeURIComponent(parentPath)}&page=${page}&pageSize=${PAGE_SIZE}`,
+    { auth: false }
+  )
+}
+
+export async function getArticles(categoryPath: string, page: number) {
+  const result = await readPage<Omit<BlogArticle, 'publishedAt'> & {
+    publishedAt?: string | null
+  }>(
+    `/article/list?categoryPath=${encodeURIComponent(categoryPath)}&page=${page}&pageSize=${PAGE_SIZE}`
+  )
+
+  return {
+    ...result,
+    items: result.items.map(normalizeArticle)
+  }
+}
+
+export async function getArticleDetail(path: string) {
+  try {
+    const response = await goApiFetch(
+      `/article/detail?path=${encodeURIComponent(path)}`
+    )
+    const result = await readApiResponse<
+      Omit<BlogArticleDetail, 'publishedAt'> & { publishedAt?: string | null }
+    >(response)
+
+    if (!response.ok || !result.data) {
+      return null
+    }
+
+    return normalizeArticle(result.data)
+  } catch {
+    return null
+  }
+}
+
+export async function getDirectoryOptions() {
+  try {
+    const response = await goApiFetch('/category/options', { auth: false })
+    const result = await readApiResponse<BlogDirectoryOption[]>(response)
 
     if (!response.ok || !result.data) {
       return []
     }
 
-    return toBlogTreeNodes(result.data)
+    return result.data
   } catch {
     return []
   }
 }
 
-export function getBlogPosts(tree: BlogTreeNode[]): BlogPost[] {
-  return tree
-    .filter((node): node is BlogPostNode => node.type === 'post')
-    .sort((a, b) => {
-      const timeA = new Date(a.publishedAt).getTime()
-      const timeB = new Date(b.publishedAt).getTime()
-
-      if (Number.isFinite(timeA) && Number.isFinite(timeB) && timeA !== timeB) {
-        return timeB - timeA
-      }
-
-      return a.title.localeCompare(b.title)
-    })
+export function normalizeBlogPath(slug: string[] | undefined) {
+  return (slug ?? []).map((segment) => segment.trim()).filter(Boolean).join('/')
 }
 
-export function getFolderById(tree: BlogTreeNode[], folderId?: string) {
-  if (!folderId) {
-    return undefined
+export function normalizePage(page: string | undefined) {
+  const parsedPage = Number(page)
+
+  if (!Number.isInteger(parsedPage) || parsedPage < 1) {
+    return 1
   }
 
-  return tree.find(
-    (node): node is BlogFolderNode =>
-      node.type === 'folder' && node.id === folderId
-  )
+  return parsedPage
 }
 
-export function getDescendantFolderIds(folderId: string, tree: BlogTreeNode[]) {
-  const folders = tree.filter(
-    (node): node is BlogFolderNode => node.type === 'folder'
-  )
-  const descendantIds = new Set<string>([folderId])
-  let added = true
+export function normalizeTab(tab: string | undefined): BlogTab {
+  return tab === 'articles' ? 'articles' : 'directories'
+}
 
-  while (added) {
-    added = false
+export function getBlogPathHref(path: string, tab: BlogTab, page = 1) {
+  const pathname = path ? `/blog/${path}` : '/blog'
+  const params = new URLSearchParams()
 
-    for (const folder of folders) {
-      if (
-        folder.parentId &&
-        descendantIds.has(folder.parentId) &&
-        !descendantIds.has(folder.id)
-      ) {
-        descendantIds.add(folder.id)
-        added = true
-      }
+  params.set('tab', tab)
+  params.set('page', String(page))
+
+  return `${pathname}?${params.toString()}`
+}
+
+function emptyPage<T>(page: number): PageResponse<T> {
+  return {
+    items: [],
+    pagination: {
+      page,
+      pageSize: PAGE_SIZE,
+      total: 0,
+      totalPages: 1,
+      hasPreviousPage: page > 1,
+      hasNextPage: false
     }
   }
-
-  return descendantIds
 }
 
-export function getActiveFolder(
-  tree: BlogTreeNode[],
-  folder: string | undefined
-) {
-  return getFolderById(tree, folder)?.id
-}
+async function readPage<T>(path: string, init?: { auth?: boolean }) {
+  const page = getPageFromPath(path)
 
-function getFolderPostCount(folderId: string, tree: BlogTreeNode[]) {
-  const folderIds = getDescendantFolderIds(folderId, tree)
+  try {
+    const response = await goApiFetch(path, init)
+    const result = await readApiResponse<PageResponse<T>>(response)
 
-  return tree.filter(
-    (node): node is BlogPostNode =>
-      node.type === 'post' && folderIds.has(node.folderId)
-  ).length
-}
-
-function toBlogTreeNodes(nodes: CategoryCatalogNode[]) {
-  const tree: BlogTreeNode[] = []
-
-  appendCatalogNodes(tree, nodes, undefined, 0)
-
-  return tree.map((node) =>
-    node.type === 'folder'
-      ? {
-          ...node,
-          count: getFolderPostCount(node.id, tree)
-        }
-      : node
-  )
-}
-
-function appendCatalogNodes(
-  tree: BlogTreeNode[],
-  nodes: CategoryCatalogNode[],
-  parentId: string | undefined,
-  depth: number
-) {
-  for (const node of nodes) {
-    if (node.type === 'category') {
-      const folderId = node.id
-
-      tree.push({
-        id: folderId,
-        label: node.title,
-        parentId,
-        slug: node.slug,
-        type: 'folder',
-        depth,
-        count: 0
-      })
-
-      appendCatalogNodes(tree, node.children ?? [], folderId, depth + 1)
-      continue
+    if (!response.ok || !result.data) {
+      return emptyPage<T>(page)
     }
 
-    if (node.categoryId) {
-      tree.push({
-        slug: node.slug,
-        title: node.title,
-        description: node.description,
-        publishedAt: formatPublishedAt(node.publishedAt),
-        folderId: node.categoryId,
-        type: 'post',
-        depth
-      })
-    }
+    return result.data
+  } catch {
+    return emptyPage<T>(page)
+  }
+}
+
+function getPageFromPath(path: string) {
+  const [, query = ''] = path.split('?')
+  const page = new URLSearchParams(query).get('page') ?? undefined
+
+  return normalizePage(page)
+}
+
+function normalizeArticle<T extends { publishedAt?: string | null }>(
+  article: T
+) {
+  return {
+    ...article,
+    publishedAt: formatPublishedAt(article.publishedAt)
   }
 }
 
@@ -198,29 +222,4 @@ function formatPublishedAt(value: string | null | undefined) {
   }
 
   return date.toISOString().slice(0, 10)
-}
-
-export function normalizePage(page: string | undefined, totalPages: number) {
-  const parsedPage = Number(page)
-
-  if (!Number.isInteger(parsedPage) || parsedPage < 1) {
-    return 1
-  }
-
-  return Math.min(parsedPage, Math.max(totalPages, 1))
-}
-
-export function paginatePosts(posts: BlogPost[], page: number) {
-  const totalPages = Math.max(Math.ceil(posts.length / PAGE_SIZE), 1)
-  const startIndex = (page - 1) * PAGE_SIZE
-
-  return {
-    posts: posts.slice(startIndex, startIndex + PAGE_SIZE),
-    pagination: {
-      page,
-      totalPages,
-      hasPreviousPage: page > 1,
-      hasNextPage: page < totalPages
-    } satisfies Pagination
-  }
 }

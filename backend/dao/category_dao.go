@@ -34,6 +34,33 @@ func (CategoryDAO) Create(ctx context.Context, category *entities.CategoryEntity
 	return config.PgDB.WithContext(ctx).Create(category).Error
 }
 
+func (CategoryDAO) FindChildren(ctx context.Context, parentID *uuid.UUID, page int, pageSize int) (PageResult[entities.CategoryEntity], error) {
+	var categories []entities.CategoryEntity
+	var total int64
+	query := config.PgDB.WithContext(ctx).Model(&entities.CategoryEntity{})
+
+	if parentID == nil {
+		query = query.Where("parent_id IS NULL")
+	} else {
+		query = query.Where("parent_id = ?", *parentID)
+	}
+
+	if err := query.Count(&total).Error; err != nil {
+		return PageResult[entities.CategoryEntity]{}, err
+	}
+
+	err := query.
+		Order("created_at DESC").
+		Offset(Offset(page, pageSize)).
+		Limit(pageSize).
+		Find(&categories).Error
+	if err != nil {
+		return PageResult[entities.CategoryEntity]{}, err
+	}
+
+	return NewPageResult(categories, page, pageSize, total), nil
+}
+
 func (CategoryDAO) FindAll(ctx context.Context) ([]entities.CategoryEntity, error) {
 	var categories []entities.CategoryEntity
 	err := config.PgDB.

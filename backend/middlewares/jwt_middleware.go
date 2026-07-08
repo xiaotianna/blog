@@ -21,46 +21,57 @@ type JWTClaims struct {
 }
 
 func JWTAuth(c *gin.Context) {
+	claims, message, status := authenticateJWT(c)
+	if status != http.StatusOK {
+		utils.AbortError(c, status, message)
+		return
+	}
+
+	c.Set(TokenUserInfoKey, claims)
+	c.Next()
+}
+
+func OptionalJWTAuth(c *gin.Context) {
+	claims, _, status := authenticateJWT(c)
+	if status == http.StatusOK {
+		c.Set(TokenUserInfoKey, claims)
+	}
+
+	c.Next()
+}
+
+func authenticateJWT(c *gin.Context) (JWTClaims, string, int) {
 	authHeader := c.GetHeader("Authorization")
 	if authHeader == "" {
-		utils.AbortError(c, http.StatusUnauthorized, "请先登录")
-		return
+		return JWTClaims{}, "请先登录", http.StatusUnauthorized
 	}
 
 	parts := strings.Fields(authHeader)
 	if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
-		utils.AbortError(c, http.StatusUnauthorized, "token格式错误")
-		return
+		return JWTClaims{}, "token格式错误", http.StatusUnauthorized
 	}
 
 	ok, claims := jwt.VerifyJWT[JWTClaims](parts[1])
 	if !ok {
-		utils.AbortError(c, http.StatusUnauthorized, "token无效或已过期")
-		return
+		return JWTClaims{}, "token无效或已过期", http.StatusUnauthorized
 	}
 
 	redisKey := rediskey.LoginUserToken(claims.UserID)
 
 	cacheToken, err := config.RedisClient.Get(c.Request.Context(), redisKey).Result()
 	if err != nil {
-		// redis不存在
 		if errors.Is(err, redis.Nil) {
-			utils.AbortError(c, http.StatusUnauthorized, "登录状态已失效，请重新登录")
-			return
+			return JWTClaims{}, "登录状态已失效，请重新登录", http.StatusUnauthorized
 		}
-		// redis错误
-		utils.AbortError(c, http.StatusInternalServerError, "登录状态校验失败")
-		return
+
+		return JWTClaims{}, "登录状态校验失败", http.StatusInternalServerError
 	}
 
-	// 和redis中缓存的不一样
 	if cacheToken != parts[1] {
-		utils.AbortError(c, http.StatusUnauthorized, "登录状态已失效，请重新登录")
-		return
+		return JWTClaims{}, "登录状态已失效，请重新登录", http.StatusUnauthorized
 	}
 
-	c.Set(TokenUserInfoKey, claims)
-	c.Next()
+	return claims, "", http.StatusOK
 }
 
 func CurrentUser(c *gin.Context) (JWTClaims, bool) {

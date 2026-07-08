@@ -1,15 +1,12 @@
 'use client'
 
 import { BlogDetailTableOfContentsContent } from '@/features/blog-details/blog-detail-table-of-contents'
-import { BlogCreateDialog } from '@/features/blog/blog-create-dialog'
 import { useBlogDetailTableOfContentsSnapshot } from '@/features/blog-details/blog-detail-table-of-contents-store'
-import { BlogFileTreeContent } from '@/features/blog/blog-file-tree-content'
-import { useBlogTreeSnapshot } from '@/features/blog/blog-tree-store'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { Dialog as DialogPrimitive } from 'radix-ui'
 import { TextAlignJustify, X } from 'lucide-react'
-import { usePathname, useSearchParams } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { useState, type ReactNode } from 'react'
 
 type BlogMobileNavigationContent = {
@@ -82,19 +79,13 @@ function BlogMobileNavigationDrawer({
 
 export function BlogMobileNavigationTrigger() {
   const pathname = usePathname()
-  const searchParams = useSearchParams()
   const [open, setOpen] = useState(false)
-  const { canShowActions, tree } = useBlogTreeSnapshot()
   const { items } = useBlogDetailTableOfContentsSnapshot()
-  const activeFolderId = searchParams.get('folder') ?? undefined
 
   const navigationContent = getBlogMobileNavigationContent({
-    activeFolderId,
-    canShowActions,
     items,
     onNavigate: () => setOpen(false),
-    pathname,
-    tree
+    pathname
   })
 
   if (!navigationContent) {
@@ -118,47 +109,15 @@ export function BlogMobileNavigationTrigger() {
 }
 
 function getBlogMobileNavigationContent({
-  activeFolderId,
-  canShowActions,
   items,
   onNavigate,
-  pathname,
-  tree
+  pathname
 }: {
-  activeFolderId?: string
-  canShowActions: boolean
   items: Parameters<typeof BlogDetailTableOfContentsContent>[0]['items']
   onNavigate: () => void
   pathname: string
-  tree: Parameters<typeof BlogFileTreeContent>[0]['tree']
 }): BlogMobileNavigationContent | null {
-  if (pathname === '/blog') {
-    return {
-      title: '博客目录树',
-      emptyMessage: '目录树为空。',
-      triggerClassName: 'lg:hidden',
-      content:
-        tree.length > 0 || canShowActions ? (
-          <BlogFileTreeContent
-            activeFolderId={activeFolderId}
-            className='h-full min-h-0'
-            idPrefix='blog-mobile-tree'
-            navClassName='max-h-none flex-1'
-            onNavigate={onNavigate}
-            tree={tree}
-          >
-            {canShowActions ? (
-              <BlogCreateDialog
-                activeFolderId={activeFolderId}
-                tree={tree}
-              />
-            ) : null}
-          </BlogFileTreeContent>
-        ) : null
-    }
-  }
-
-  if (pathname.startsWith('/blog/')) {
+  if (pathname.startsWith('/post/')) {
     return {
       title: '文章目录',
       emptyMessage: '文章目录为空。',

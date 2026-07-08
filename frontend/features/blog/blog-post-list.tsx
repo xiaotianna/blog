@@ -1,65 +1,127 @@
-import BlurFade from '@/components/magicui/blur-fade'
-import { ChevronLeft, ChevronRight, Newspaper } from 'lucide-react'
-import Link from 'next/link'
-
-import type { BlogPost, Pagination } from './blog-data'
-import { PAGE_SIZE } from './blog-data'
+import { Badge } from '@/components/ui/badge'
 import {
   Empty,
   EmptyDescription,
   EmptyHeader,
-  EmptyMedia,
+  EmptyMedia
 } from '@/components/ui/empty'
+import BlurFade from '@/components/magicui/blur-fade'
+import {
+  ChevronLeft,
+  ChevronRight,
+  FileText,
+  Folder,
+  Newspaper
+} from 'lucide-react'
+import Link from 'next/link'
 
-type BlogPostListProps = {
-  activeFolderId?: string
+import {
+  getBlogPathHref,
+  PAGE_SIZE,
+  type ArticleStatus,
+  type BlogArticle,
+  type BlogCategory,
+  type BlogTab,
+  type Pagination
+} from './blog-data'
+
+type BlogContentListProps = {
+  activeTab: BlogTab
+  articles: BlogArticle[]
+  articlePagination: Pagination
+  currentPath: string
   delay: number
-  pagination: Pagination
-  posts: BlogPost[]
+  directories: BlogCategory[]
+  directoryPagination: Pagination
 }
 
-export function BlogPostList({
-  activeFolderId,
+const ARTICLE_STATUS_LABEL: Record<ArticleStatus, string> = {
+  publish: '已发布',
+  private: '私密',
+  draft: '草稿'
+}
+
+export function BlogContentList({
+  activeTab,
+  articles,
+  articlePagination,
+  currentPath,
   delay,
-  pagination,
-  posts
-}: BlogPostListProps) {
+  directories,
+  directoryPagination
+}: BlogContentListProps) {
+  const isDirectoryTab = activeTab === 'directories'
+  const items = isDirectoryTab ? directories : articles
+  const pagination = isDirectoryTab ? directoryPagination : articlePagination
+
   return (
     <div className='flex min-h-0 flex-1 flex-col'>
-      {posts.length > 0 ? (
+      <BlurFade
+        className='mt-8'
+        delay={delay * 2}
+      >
+        <div className='flex items-center gap-8 border-b border-border'>
+          <BlogTabLink
+            active={isDirectoryTab}
+            currentPath={currentPath}
+            tab='directories'
+          >
+            目录
+          </BlogTabLink>
+          <BlogTabLink
+            active={!isDirectoryTab}
+            currentPath={currentPath}
+            tab='articles'
+          >
+            文章
+          </BlogTabLink>
+        </div>
+      </BlurFade>
+
+      {items.length > 0 ? (
         <BlurFade
           className='mt-8 min-h-0 flex-1'
-          delay={delay * 2}
+          delay={delay * 3}
         >
-          <div className='flex h-full max-h-[calc(100dvh-24rem)] flex-col gap-5 overflow-y-auto pr-2 max-lg:max-h-none'>
-            {posts.map((post, index) => (
-              <BlogPostListItem
-                index={(pagination.page - 1) * PAGE_SIZE + index + 1}
-                key={post.slug}
-                post={post}
-                delay={delay * 3 + index * 0.05}
-              />
-            ))}
+          <div className='flex h-full max-h-[calc(100dvh-25rem)] flex-col gap-5 overflow-y-auto pr-2 max-lg:max-h-none'>
+            {isDirectoryTab
+              ? directories.map((directory, index) => (
+                  <BlogDirectoryListItem
+                    directory={directory}
+                    index={(pagination.page - 1) * PAGE_SIZE + index + 1}
+                    key={directory.id}
+                  />
+                ))
+              : articles.map((article, index) => (
+                  <BlogArticleListItem
+                    article={article}
+                    index={(pagination.page - 1) * PAGE_SIZE + index + 1}
+                    key={article.id}
+                  />
+                ))}
           </div>
         </BlurFade>
       ) : (
         <BlurFade
-          className='mt-8 flex flex-col items-center justify-center rounded-xl border border-border px-4 py-12'
-          delay={delay * 2}
+          className='mt-8 flex flex-col items-center justify-center rounded-lg border border-border px-4 py-12'
+          delay={delay * 3}
         >
           <Empty>
             <EmptyHeader>
               <EmptyMedia variant='icon'>
-                <Newspaper />
+                {isDirectoryTab ? <Folder /> : <Newspaper />}
               </EmptyMedia>
-              <EmptyDescription>该目录还没有文章</EmptyDescription>
+              <EmptyDescription>
+                {isDirectoryTab ? '当前目录下暂无子目录' : '当前目录下暂无文章'}
+              </EmptyDescription>
             </EmptyHeader>
           </Empty>
         </BlurFade>
       )}
 
       <BlogPagination
-        activeFolderId={activeFolderId}
+        activeTab={activeTab}
+        currentPath={currentPath}
         delay={delay * 4}
         pagination={pagination}
       />
@@ -67,54 +129,133 @@ export function BlogPostList({
   )
 }
 
-function BlogPostListItem({
-  delay,
-  index,
-  post
+function BlogTabLink({
+  active,
+  children,
+  currentPath,
+  tab
 }: {
-  delay: number
+  active: boolean
+  children: string
+  currentPath: string
+  tab: BlogTab
+}) {
+  const stateClassName = active
+    ? 'text-foreground'
+    : 'text-muted-foreground hover:text-foreground'
+
+  return (
+    <Link
+      className={`relative -mb-px pb-3 text-base font-semibold transition-colors ${stateClassName}`}
+      href={getBlogPathHref(currentPath, tab)}
+    >
+      {children}
+      {active ? (
+        <span className='absolute inset-x-0 bottom-0 h-0.5 bg-foreground' />
+      ) : null}
+    </Link>
+  )
+}
+
+function BlogDirectoryListItem({
+  directory,
+  index
+}: {
+  directory: BlogCategory
   index: number
-  post: BlogPost
 }) {
   return (
-    <BlurFade delay={delay}>
-      <Link
-        className='group flex cursor-pointer items-start gap-x-2 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
-        href={`/blog/${post.slug}`}
-      >
-        <span className='mt-[5px] font-mono text-xs font-medium tabular-nums text-muted-foreground'>
-          {String(index).padStart(2, '0')}.
-        </span>
-        <div className='flex flex-1 flex-col gap-y-2'>
+    <Link
+      className='group flex cursor-pointer items-start gap-x-3 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
+      href={`/blog/${directory.path}`}
+    >
+      <span className='mt-[5px] font-mono text-xs font-medium tabular-nums text-muted-foreground'>
+        {String(index).padStart(2, '0')}.
+      </span>
+      <Folder className='mt-1 size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground' />
+      <div className='flex min-w-0 flex-1 flex-col gap-y-2'>
+        <p className='text-lg font-medium tracking-tight'>
+          <span className='transition-colors group-hover:text-foreground'>
+            {directory.name}
+            <ChevronRight
+              aria-hidden
+              className='ml-1 inline-block size-4 -translate-x-2 stroke-3 text-muted-foreground opacity-0 transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100'
+            />
+          </span>
+        </p>
+        {directory.description ? (
+          <p className='line-clamp-2 text-sm leading-6 text-muted-foreground'>
+            {directory.description}
+          </p>
+        ) : null}
+      </div>
+    </Link>
+  )
+}
+
+function BlogArticleListItem({
+  article,
+  index
+}: {
+  article: BlogArticle
+  index: number
+}) {
+  return (
+    <Link
+      className='group flex cursor-pointer items-start gap-x-3 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
+      href={`/post/${article.path}`}
+    >
+      <span className='mt-[5px] font-mono text-xs font-medium tabular-nums text-muted-foreground'>
+        {String(index).padStart(2, '0')}.
+      </span>
+      <FileText className='mt-1 size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground' />
+      <div className='flex min-w-0 flex-1 flex-col gap-y-2'>
+        <div className='flex flex-wrap items-center gap-2'>
           <p className='text-lg font-medium tracking-tight'>
             <span className='transition-colors group-hover:text-foreground'>
-              {post.title}
+              {article.title}
               <ChevronRight
                 aria-hidden
                 className='ml-1 inline-block size-4 -translate-x-2 stroke-3 text-muted-foreground opacity-0 transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100'
               />
             </span>
           </p>
-          {post.description ? (
-            <p className='line-clamp-2 text-sm leading-6 text-muted-foreground'>
-              {post.description}
-            </p>
-          ) : null}
-          {post.publishedAt ? (
-            <p className='text-xs text-muted-foreground'>{post.publishedAt}</p>
-          ) : null}
+          <ArticleStatusBadge status={article.status} />
         </div>
-      </Link>
-    </BlurFade>
+        {article.description ? (
+          <p className='line-clamp-2 text-sm leading-6 text-muted-foreground'>
+            {article.description}
+          </p>
+        ) : null}
+        {article.publishedAt ? (
+          <p className='text-xs text-muted-foreground'>{article.publishedAt}</p>
+        ) : null}
+      </div>
+    </Link>
+  )
+}
+
+function ArticleStatusBadge({ status }: { status: ArticleStatus }) {
+  const variant = status === 'publish' ? 'secondary' : 'outline'
+
+  return (
+    <Badge
+      className='shrink-0'
+      variant={variant}
+    >
+      {ARTICLE_STATUS_LABEL[status] ?? status}
+    </Badge>
   )
 }
 
 function BlogPagination({
-  activeFolderId,
+  activeTab,
+  currentPath,
   delay,
   pagination
 }: {
-  activeFolderId?: string
+  activeTab: BlogTab
+  currentPath: string
   delay: number
   pagination: Pagination
 }) {
@@ -133,7 +274,7 @@ function BlogPagination({
         {pagination.hasPreviousPage ? (
           <Link
             className='flex h-8 w-fit items-center justify-center gap-1 rounded-lg border border-border px-2 text-sm transition-colors hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
-            href={getBlogPageHref(pagination.page - 1, activeFolderId)}
+            href={getBlogPathHref(currentPath, activeTab, pagination.page - 1)}
           >
             <ChevronLeft
               aria-hidden
@@ -153,7 +294,7 @@ function BlogPagination({
         {pagination.hasNextPage ? (
           <Link
             className='flex h-8 w-fit items-center justify-center gap-1 rounded-lg border border-border px-2 text-sm transition-colors hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
-            href={getBlogPageHref(pagination.page + 1, activeFolderId)}
+            href={getBlogPathHref(currentPath, activeTab, pagination.page + 1)}
           >
             下一页
             <ChevronRight
@@ -173,12 +314,4 @@ function BlogPagination({
       </div>
     </BlurFade>
   )
-}
-
-function getBlogPageHref(page: number, folderId?: string) {
-  if (folderId) {
-    return `/blog?folder=${folderId}&page=${page}`
-  }
-
-  return `/blog?page=${page}`
 }

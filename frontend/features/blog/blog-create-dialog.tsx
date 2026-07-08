@@ -20,27 +20,25 @@ import {
 } from './blog-create-forms'
 import {
   getDefaultDirectoryPath,
-  getDirectoryPathOptions,
   ROOT_DIRECTORY_PATH,
   type BlogDirectoryPathOption
 } from './blog-directory-paths'
-import type { BlogTreeNode } from './blog-data'
 
 type BlogCreateDialogProps = {
-  activeFolderId?: string
+  activePath?: string
   directoryOptions?: BlogDirectoryPathOption[]
-  tree?: BlogTreeNode[]
 }
 
 export function BlogCreateDialog({
-  activeFolderId,
-  directoryOptions,
-  tree = []
+  activePath,
+  directoryOptions = []
 }: BlogCreateDialogProps) {
   const [open, setOpen] = useState(false)
-  const options = directoryOptions ?? getDirectoryPathOptions(tree)
+  const options = directoryOptions
   const defaultDirectoryPath =
-    getDefaultDirectoryPath(options, activeFolderId) || ROOT_DIRECTORY_PATH
+    getDefaultDirectoryPath(options, activePath) || ROOT_DIRECTORY_PATH
+  const defaultArticleDirectoryPath =
+    getDefaultDirectoryPath(options, activePath) || options[0]?.path || ''
   const hasDirectories = options.length > 0
 
   return (
@@ -116,7 +114,7 @@ export function BlogCreateDialog({
               value='article'
             >
               <BlogCreateArticleForm
-                defaultDirectoryPath={defaultDirectoryPath}
+                defaultDirectoryPath={defaultArticleDirectoryPath}
                 directoryOptions={options}
                 onDone={() => setOpen(false)}
               />

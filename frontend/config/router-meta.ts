@@ -33,12 +33,21 @@ export const routerMeta = {
   '/blog': {
     isBack: true,
     backPath: '/',
+    headerActions: ['back', 'menu', 'auth', 'search', 'theme'],
     showMenu: 'show',
     menuItems: baseMenuItems
   },
-  '/blog/[id]': {
+  '/blog/[[...slug]]': {
     isBack: true,
     backPath: '/blog',
+    headerActions: ['back', 'menu', 'auth', 'search', 'theme'],
+    showMenu: 'show',
+    menuItems: baseMenuItems
+  },
+  '/post/[...slug]': {
+    isBack: true,
+    backPath: '/blog',
+    headerActions: ['back', 'menu', 'blog-tree', 'auth', 'search', 'theme'],
     showMenu: 'show',
     menuItems: baseMenuItems
   },

@@ -9,6 +9,7 @@ import (
 	"errors"
 	"path"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -53,23 +54,85 @@ func (CategoryService) Create(ctx context.Context, req dto.CreateCategoryRequest
 		ID:          category.ID,
 		Name:        category.Name,
 		Slug:        category.Slug,
-		Path:        category.Path,
+		Path:        toPublicPath(category.Path),
 		Description: category.Description,
 		ParentID:    category.ParentID,
 	}, nil
 }
 
-func (CategoryService) Catalog(ctx context.Context) ([]vo.CategoryCatalogVO, error) {
+func (CategoryService) Detail(ctx context.Context, path string) (*vo.CategoryVO, error) {
+	category, err := dao.Category.FindByPath(ctx, toStoragePath(path))
+	if err != nil {
+		return nil, err
+	}
+
+	return categoryToVO(category), nil
+}
+
+func (CategoryService) Children(ctx context.Context, parentPath string, page int, pageSize int) (vo.PageVO[vo.CategoryListItemVO], error) {
+	var parentID *uuid.UUID
+
+	if toStoragePath(parentPath) != "" {
+		parent, err := dao.Category.FindByPath(ctx, toStoragePath(parentPath))
+		if err != nil {
+			return vo.PageVO[vo.CategoryListItemVO]{}, err
+		}
+
+		parentID = &parent.ID
+	}
+
+	res, err := dao.Category.FindChildren(ctx, parentID, page, pageSize)
+	if err != nil {
+		return vo.PageVO[vo.CategoryListItemVO]{}, err
+	}
+
+	items := make([]vo.CategoryListItemVO, 0, len(res.Items))
+	for _, category := range res.Items {
+		items = append(items, categoryToListItemVO(category))
+	}
+
+	return vo.PageVO[vo.CategoryListItemVO]{
+		Items:      items,
+		Pagination: vo.NewPaginationVO(res.Page, res.PageSize, res.Total, res.TotalPages),
+	}, nil
+}
+
+func (CategoryService) Options(ctx context.Context) ([]vo.CategoryOptionVO, error) {
 	categories, err := dao.Category.FindAll(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	// 查询所有发布的文章
-	articles, err := dao.Article.FindPublishedForCategoryCatalog(ctx)
-	if err != nil {
-		return nil, err
+	options := make([]vo.CategoryOptionVO, 0, len(categories))
+	for _, category := range categories {
+		options = append(options, vo.CategoryOptionVO{
+			ID:    category.ID,
+			Label: category.Name,
+			Path:  toPublicPath(category.Path),
+		})
 	}
 
-	return buildCategoryCatalog(categories, articles)
+	return options, nil
+}
+
+func categoryToVO(category *entities.CategoryEntity) *vo.CategoryVO {
+	return &vo.CategoryVO{
+		ID:          category.ID,
+		Name:        category.Name,
+		Slug:        category.Slug,
+		Path:        toPublicPath(category.Path),
+		Description: category.Description,
+		ParentID:    category.ParentID,
+	}
+}
+
+func categoryToListItemVO(category entities.CategoryEntity) vo.CategoryListItemVO {
+	return vo.CategoryListItemVO{
+		ID:          category.ID,
+		Name:        category.Name,
+		Slug:        category.Slug,
+		Path:        toPublicPath(category.Path),
+		Description: category.Description,
+		ParentID:    category.ParentID,
+	}
 }

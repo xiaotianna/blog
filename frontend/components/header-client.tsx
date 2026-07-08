@@ -69,6 +69,20 @@ const shouldRenderHeaderAction = (
   action: HeaderAction
 ) => (meta?.headerActions ?? defaultHeaderActions).includes(action)
 
+function getBlogBackPath(pathname: string) {
+  if (pathname === '/blog') {
+    return '/'
+  }
+
+  if (!pathname.startsWith('/blog/')) {
+    return undefined
+  }
+
+  const parentPath = pathname.split('/').filter(Boolean).slice(1, -1).join('/')
+
+  return parentPath ? `/blog/${parentPath}` : '/blog'
+}
+
 export function HeaderClient({ authAction }: HeaderClientProps) {
   const pathname = usePathname()
   const router = useRouter()
@@ -82,6 +96,13 @@ export function HeaderClient({ authAction }: HeaderClientProps) {
   const backPath = meta && 'backPath' in meta ? meta.backPath : undefined
 
   const handleBack = () => {
+    const blogBackPath = getBlogBackPath(pathname)
+
+    if (blogBackPath) {
+      router.push(blogBackPath)
+      return
+    }
+
     if (backPath) {
       router.push(backPath)
       return

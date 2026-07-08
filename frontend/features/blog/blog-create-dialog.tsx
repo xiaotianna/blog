@@ -48,7 +48,6 @@ export function BlogCreateDialog({
     >
       <DialogTrigger asChild>
         <Button
-          size='sm'
           type='button'
         >
           <Plus className='size-4' />

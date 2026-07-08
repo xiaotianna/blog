@@ -1,4 +1,5 @@
 import { Badge } from '@/components/ui/badge'
+import { PermissionGate } from '@/components/server/permission-gate'
 import {
   Empty,
   EmptyDescription,
@@ -29,10 +30,12 @@ type BlogContentListProps = {
   activeTab: BlogTab
   articles: BlogArticle[]
   articlePagination: Pagination
+  articleTotal: number
   currentPath: string
   delay: number
   directories: BlogCategory[]
   directoryPagination: Pagination
+  directoryTotal: number
 }
 
 const ARTICLE_STATUS_LABEL: Record<ArticleStatus, string> = {
@@ -45,10 +48,12 @@ export function BlogContentList({
   activeTab,
   articles,
   articlePagination,
+  articleTotal,
   currentPath,
   delay,
   directories,
-  directoryPagination
+  directoryPagination,
+  directoryTotal
 }: BlogContentListProps) {
   const isDirectoryTab = activeTab === 'directories'
   const items = isDirectoryTab ? directories : articles
@@ -57,24 +62,28 @@ export function BlogContentList({
   return (
     <div className='flex min-h-0 flex-1 flex-col'>
       <BlurFade
-        className='mt-8'
+        className='mt-4'
         delay={delay * 2}
       >
-        <div className='flex items-center gap-8 border-b border-border'>
+        <div className='inline-flex items-center gap-6 border-b border-border'>
           <BlogTabLink
             active={isDirectoryTab}
             currentPath={currentPath}
             tab='directories'
+            total={directoryTotal}
           >
             目录
           </BlogTabLink>
-          <BlogTabLink
-            active={!isDirectoryTab}
-            currentPath={currentPath}
-            tab='articles'
-          >
-            文章
-          </BlogTabLink>
+          {currentPath ? (
+            <BlogTabLink
+              active={!isDirectoryTab}
+              currentPath={currentPath}
+              tab='articles'
+              total={articleTotal}
+            >
+              文章
+            </BlogTabLink>
+          ) : null}
         </div>
       </BlurFade>
 
@@ -86,24 +95,32 @@ export function BlogContentList({
           <div className='flex h-full max-h-[calc(100dvh-25rem)] flex-col gap-5 overflow-y-auto pr-2 max-lg:max-h-none'>
             {isDirectoryTab
               ? directories.map((directory, index) => (
-                  <BlogDirectoryListItem
-                    directory={directory}
+                  <BlogListItem
+                    description={directory.description}
+                    icon='directory'
                     index={(pagination.page - 1) * PAGE_SIZE + index + 1}
                     key={directory.id}
+                    path={directory.path}
+                    title={directory.name}
                   />
                 ))
               : articles.map((article, index) => (
-                  <BlogArticleListItem
-                    article={article}
+                  <BlogListItem
+                    description={article.description}
+                    icon='article'
                     index={(pagination.page - 1) * PAGE_SIZE + index + 1}
                     key={article.id}
+                    path={article.path}
+                    publishedAt={article.publishedAt}
+                    status={article.status}
+                    title={article.title}
                   />
                 ))}
           </div>
         </BlurFade>
       ) : (
         <BlurFade
-          className='mt-8 flex flex-col items-center justify-center rounded-lg border border-border px-4 py-12'
+          className='mt-4 flex flex-col items-center justify-center rounded-lg px-4 py-12'
           delay={delay * 3}
         >
           <Empty>
@@ -133,102 +150,93 @@ function BlogTabLink({
   active,
   children,
   currentPath,
-  tab
+  tab,
+  total
 }: {
   active: boolean
   children: string
   currentPath: string
   tab: BlogTab
+  total: number
 }) {
   const stateClassName = active
     ? 'text-foreground'
     : 'text-muted-foreground hover:text-foreground'
+  const dotClassName = active
+    ? 'border-foreground/10 bg-foreground text-background'
+    : 'border-border bg-muted text-muted-foreground group-hover:border-foreground/10 group-hover:bg-foreground group-hover:text-background'
 
   return (
     <Link
-      className={`relative -mb-px pb-3 text-base font-semibold transition-colors ${stateClassName}`}
+      className={`group relative -mb-px inline-flex items-center gap-1.5 pb-2.5 text-sm font-semibold transition-colors ${stateClassName}`}
       href={getBlogPathHref(currentPath, tab)}
     >
       {children}
-      {active ? (
-        <span className='absolute inset-x-0 bottom-0 h-0.5 bg-foreground' />
-      ) : null}
+      <span
+        aria-label={`${children}数量 ${total}`}
+        className={`inline-flex h-4 min-w-4 items-center justify-center rounded-full border px-0 text-[9px] font-medium leading-none tabular-nums transition-colors ${dotClassName}`}
+      >
+        {total}
+      </span>
+      <span
+        className={`absolute inset-x-0 bottom-0 h-0.5 origin-left bg-foreground transition-all duration-200 ease-out ${active ? 'scale-x-100 opacity-100' : 'scale-x-0 opacity-0'}`}
+      />
     </Link>
   )
 }
 
-function BlogDirectoryListItem({
-  directory,
-  index
+function BlogListItem({
+  description,
+  icon,
+  index,
+  path,
+  publishedAt,
+  status,
+  title
 }: {
-  directory: BlogCategory
+  description?: string
+  icon: 'article' | 'directory'
   index: number
+  path: string
+  publishedAt?: string
+  status?: ArticleStatus
+  title: string
 }) {
-  return (
-    <Link
-      className='group flex cursor-pointer items-start gap-x-3 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
-      href={`/blog/${directory.path}`}
-    >
-      <span className='mt-[5px] font-mono text-xs font-medium tabular-nums text-muted-foreground'>
-        {String(index).padStart(2, '0')}.
-      </span>
-      <Folder className='mt-1 size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground' />
-      <div className='flex min-w-0 flex-1 flex-col gap-y-2'>
-        <p className='text-lg font-medium tracking-tight'>
-          <span className='transition-colors group-hover:text-foreground'>
-            {directory.name}
-            <ChevronRight
-              aria-hidden
-              className='ml-1 inline-block size-4 -translate-x-2 stroke-3 text-muted-foreground opacity-0 transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100'
-            />
-          </span>
-        </p>
-        {directory.description ? (
-          <p className='line-clamp-2 text-sm leading-6 text-muted-foreground'>
-            {directory.description}
-          </p>
-        ) : null}
-      </div>
-    </Link>
-  )
-}
+  const Icon = icon === 'directory' ? Folder : FileText
 
-function BlogArticleListItem({
-  article,
-  index
-}: {
-  article: BlogArticle
-  index: number
-}) {
   return (
     <Link
-      className='group flex cursor-pointer items-start gap-x-3 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
-      href={`/post/${article.path}`}
+      className='group flex cursor-pointer items-center gap-x-3 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
+      href={`/blog/${path}`}
     >
-      <span className='mt-[5px] font-mono text-xs font-medium tabular-nums text-muted-foreground'>
+      <span className='font-mono text-xs font-medium tabular-nums text-muted-foreground'>
         {String(index).padStart(2, '0')}.
       </span>
-      <FileText className='mt-1 size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground' />
+      <Icon className='size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground' />
       <div className='flex min-w-0 flex-1 flex-col gap-y-2'>
         <div className='flex flex-wrap items-center gap-2'>
-          <p className='text-lg font-medium tracking-tight'>
+          <p className='text-base font-medium tracking-tight'>
             <span className='transition-colors group-hover:text-foreground'>
-              {article.title}
+              {title}
               <ChevronRight
                 aria-hidden
                 className='ml-1 inline-block size-4 -translate-x-2 stroke-3 text-muted-foreground opacity-0 transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100'
               />
             </span>
           </p>
-          <ArticleStatusBadge status={article.status} />
+          {status ? (
+            <PermissionGate>
+              <ArticleStatusBadge status={status} />
+            </PermissionGate>
+          ) : null}
         </div>
-        {article.description ? (
+        {description ? (
           <p className='line-clamp-2 text-sm leading-6 text-muted-foreground'>
-            {article.description}
+            {description}
           </p>
         ) : null}
-        {article.publishedAt ? (
-          <p className='text-xs text-muted-foreground'>{article.publishedAt}</p>
+        {publishedAt ? (
+          <p className='text-xs text-muted-foreground'>{publishedAt}</p>
         ) : null}
       </div>
     </Link>

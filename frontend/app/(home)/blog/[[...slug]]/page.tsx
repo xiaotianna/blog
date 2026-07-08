@@ -10,6 +10,7 @@ import {
 } from '@/features/blog/blog-data'
 import { BlogPageAction } from '@/features/blog/blog-page-action'
 import { BlogContentList } from '@/features/blog/blog-post-list'
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 
@@ -60,42 +61,130 @@ export default async function BlogPage({
         id='blog'
       >
         <BlurFade delay={BLUR_FADE_DELAY}>
-          <div className='flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between'>
-            <div className='min-w-0'>
+          <div className='flex items-start justify-between gap-4'>
+            <div className='min-w-0 flex-1'>
               <div className='flex flex-wrap items-center gap-2'>
                 <h1 className='text-2xl font-semibold tracking-tight'>
                   {currentCategory.name}
                 </h1>
-                <span className='inline-flex rounded-md border border-border bg-card px-2 py-1 align-middle text-sm text-muted-foreground'>
-                  {activeTab === 'directories'
-                    ? `${directoryPage.pagination.total} 个目录`
-                    : `${articlePage.pagination.total} 篇文章`}
-                </span>
               </div>
               {currentCategory.description ? (
-                <p className='mt-3 max-w-2xl text-sm text-muted-foreground'>
+                <p className='mt-2 max-w-2xl text-sm text-muted-foreground'>
                   {currentCategory.description}
                 </p>
               ) : null}
+              {currentPath ? (
+                <BlogPathBreadcrumb
+                  currentCategoryName={currentCategory.name}
+                  currentPath={currentPath}
+                  directoryOptions={directoryOptions}
+                />
+              ) : null}
             </div>
 
-            <BlogPageAction
-              activePath={currentPath}
-              directoryOptions={directoryOptions}
-            />
+            <div className='shrink-0'>
+              <BlogPageAction
+                activePath={currentPath}
+                directoryOptions={directoryOptions}
+              />
+            </div>
           </div>
         </BlurFade>
 
         <BlogContentList
           activeTab={activeTab}
           articlePagination={articlePage.pagination}
+          articleTotal={articlePage.pagination.total}
           articles={articlePage.items}
           currentPath={currentPath}
           delay={BLUR_FADE_DELAY}
           directories={directoryPage.items}
           directoryPagination={directoryPage.pagination}
+          directoryTotal={directoryPage.pagination.total}
         />
       </section>
     </main>
+  )
+}
+
+function BlogPathBreadcrumb({
+  currentCategoryName,
+  currentPath,
+  directoryOptions
+}: {
+  currentCategoryName: string
+  currentPath: string
+  directoryOptions: Array<{ label: string; path: string }>
+}) {
+  const pathSegments = currentPath.split('/').filter(Boolean)
+  const directoryLabelByPath = new Map(
+    directoryOptions.map((option) => [option.path, option.label])
+  )
+  const breadcrumbs = [
+    { href: '/blog', label: 'Blog', path: '' },
+    ...pathSegments.map((segment, index) => {
+      const path = pathSegments.slice(0, index + 1).join('/')
+      const isCurrent = index === pathSegments.length - 1
+
+      return {
+        href: `/blog/${path}`,
+        label:
+          directoryLabelByPath.get(path) ??
+          (isCurrent ? currentCategoryName : segment),
+        path
+      }
+    })
+  ]
+  const firstBreadcrumb = breadcrumbs[0]
+  const currentBreadcrumb = breadcrumbs.at(-1)
+  const middleBreadcrumbs = breadcrumbs.slice(1, -1)
+
+  if (!currentBreadcrumb) {
+    return null
+  }
+
+  return (
+    <nav
+      aria-label='目录路径'
+      className='mt-2 flex max-w-full items-center overflow-hidden text-xs text-muted-foreground'
+    >
+      <Link
+        className='shrink-0 transition-colors hover:text-foreground'
+        href={firstBreadcrumb.href}
+      >
+        {firstBreadcrumb.label}
+      </Link>
+      {middleBreadcrumbs.length > 0 ? (
+        <span className='flex min-w-0 items-center overflow-hidden'>
+          {middleBreadcrumbs.map((breadcrumb) => (
+            <span
+              className='flex min-w-0 items-center'
+              key={breadcrumb.path}
+            >
+              <span className='mx-1.5 shrink-0 text-muted-foreground/60'>
+                /
+              </span>
+              <Link
+                className='truncate transition-colors hover:text-foreground'
+                href={breadcrumb.href}
+              >
+                {breadcrumb.label}
+              </Link>
+            </span>
+          ))}
+        </span>
+      ) : null}
+      {currentBreadcrumb.path ? (
+        <>
+          <span className='mx-1.5 shrink-0 text-muted-foreground/60'>/</span>
+          <span
+            aria-current='page'
+            className='shrink-0 text-foreground'
+          >
+            {currentBreadcrumb.label}
+          </span>
+        </>
+      ) : null}
+    </nav>
   )
 }

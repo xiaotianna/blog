@@ -49,7 +49,7 @@ export function LoginForm({ delay, redirectTo }: LoginFormProps) {
         throw new Error(result.message ?? '登录失败，请稍后重试')
       }
 
-      router.push(result.redirectTo ?? '/blog')
+      router.push(result.redirectTo ?? '/')
       router.refresh()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : '登录失败，请稍后重试')

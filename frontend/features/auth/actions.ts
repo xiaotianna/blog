@@ -4,7 +4,6 @@ import { clearAuthToken, setAuthToken } from '@/lib/server/auth'
 import { goApiFetch, readApiResponse } from '@/lib/server/go-api'
 import { normalizeInternalRedirect } from '@/lib/redirect'
 import { revalidatePath } from 'next/cache'
-import { redirect } from 'next/navigation'
 
 type LoginUser = {
   id: string
@@ -20,6 +19,11 @@ export type LoginActionResult = {
   ok: boolean
   message?: string
   redirectTo?: string
+}
+
+export type LogoutActionResult = {
+  ok: boolean
+  message?: string
 }
 
 const PHONE_PATTERN = /^1[3-9]\d{9}$/
@@ -79,9 +83,28 @@ export async function loginAction(
   }
 }
 
-export async function logoutAction() {
+export async function logoutAction(): Promise<LogoutActionResult> {
+  let message = '退出登录成功'
+
+  try {
+    const response = await goApiFetch('/auth/logout', {
+      method: 'POST'
+    })
+    const result = await readApiResponse<null>(response)
+
+    if (!response.ok) {
+      message = result.message || '登录状态已失效'
+    }
+  } catch {
+    message = '退出登录成功'
+  }
+
   await clearAuthToken()
   revalidatePath('/')
   revalidatePath('/blog')
-  redirect('/')
+
+  return {
+    ok: true,
+    message
+  }
 }

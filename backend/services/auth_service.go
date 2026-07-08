@@ -56,3 +56,12 @@ func (AuthService) Login(ctx context.Context, req dto.LoginRequest) (*vo.LoginVO
 		},
 	}, nil
 }
+
+func (AuthService) Logout(ctx context.Context, userID string) error {
+	rediskey := rediskey.LoginUserToken(userID)
+
+	if err := config.RedisClient.Del(ctx, rediskey).Err(); err != nil {
+		return err
+	}
+	return nil
+}

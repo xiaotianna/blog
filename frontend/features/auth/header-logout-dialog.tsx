@@ -2,10 +2,38 @@
 
 import { Button } from '@/components/ui/button'
 import { logoutAction } from '@/features/auth/actions'
-import { LogOut } from 'lucide-react'
+import { LoaderCircle, LogOut } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { Dialog as DialogPrimitive } from 'radix-ui'
+import { FormEvent, useState, useTransition } from 'react'
 
 export function HeaderLogoutDialog() {
+  const router = useRouter()
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [isPending, startTransition] = useTransition()
+  const isBusy = isSubmitting || isRefreshing || isPending
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+
+    if (isBusy) {
+      return
+    }
+
+    setIsSubmitting(true)
+
+    try {
+      await logoutAction()
+      setIsRefreshing(true)
+      startTransition(() => {
+        router.refresh()
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   return (
     <DialogPrimitive.Root>
       <DialogPrimitive.Trigger asChild>
@@ -32,17 +60,22 @@ export function HeaderLogoutDialog() {
           <div className='mt-5 flex justify-end gap-2'>
             <DialogPrimitive.Close asChild>
               <Button
+                disabled={isBusy}
                 type='button'
                 variant='ghost'
               >
                 取消
               </Button>
             </DialogPrimitive.Close>
-            <form action={logoutAction}>
+            <form onSubmit={handleSubmit}>
               <Button
+                disabled={isBusy}
                 type='submit'
                 variant='destructive'
               >
+                {isBusy ? (
+                  <LoaderCircle className='size-4 animate-spin' />
+                ) : null}
                 退出
               </Button>
             </form>

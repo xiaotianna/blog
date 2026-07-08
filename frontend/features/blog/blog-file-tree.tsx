@@ -28,7 +28,10 @@ export function BlogFileTree({
           idPrefix='blog-desktop-tree'
           tree={tree}
         >
-          <BlogFileTreeAction />
+          <BlogFileTreeAction
+            activeFolderId={activeFolderId}
+            tree={tree}
+          />
         </BlogFileTreeContent>
       </BlogFileTreeShell>
     </BlurFade>

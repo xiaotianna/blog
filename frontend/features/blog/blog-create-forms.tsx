@@ -1,0 +1,337 @@
+'use client'
+
+import { Button } from '@/components/ui/button'
+import {
+  FilePlus2,
+  FolderPlus,
+  LoaderCircle,
+  TextCursorInput
+} from 'lucide-react'
+import { FormEvent, useMemo, useState } from 'react'
+import { toast } from 'sonner'
+
+import { BlogDirectoryPathSelect } from './blog-directory-path-select'
+import {
+  ROOT_DIRECTORY_PATH,
+  type BlogDirectoryPathOption
+} from './blog-directory-paths'
+
+type BlogCreateFormProps = {
+  defaultDirectoryPath: string
+  directoryOptions: BlogDirectoryPathOption[]
+  onDone: () => void
+}
+
+const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+
+export function BlogCreateCategoryForm({
+  defaultDirectoryPath,
+  directoryOptions,
+  onDone
+}: BlogCreateFormProps) {
+  const [parentPath, setParentPath] = useState(
+    defaultDirectoryPath || ROOT_DIRECTORY_PATH
+  )
+  const [name, setName] = useState('')
+  const [slug, setSlug] = useState('')
+  const [description, setDescription] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSlugTouched, setIsSlugTouched] = useState(false)
+  const currentSlug = isSlugTouched ? slug : toSlug(name)
+
+  const previewPath = useMemo(() => {
+    if (!currentSlug) {
+      return ''
+    }
+
+    return parentPath && parentPath !== ROOT_DIRECTORY_PATH
+      ? `${parentPath}/${currentSlug}`
+      : currentSlug
+  }, [currentSlug, parentPath])
+
+  const canSubmit =
+    name.trim() && SLUG_PATTERN.test(currentSlug) && !isSubmitting
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+
+    if (!name.trim()) {
+      toast.error('请输入目录名称')
+      return
+    }
+
+    if (!SLUG_PATTERN.test(currentSlug)) {
+      toast.error('目录 slug 只能包含小写字母、数字和短横线')
+      return
+    }
+
+    setIsSubmitting(true)
+    window.setTimeout(() => {
+      setIsSubmitting(false)
+      toast.info('目录新增 UI 已就绪，接入后端后即可提交')
+      onDone()
+    }, 260)
+  }
+
+  return (
+    <form
+      className='space-y-4'
+      onSubmit={handleSubmit}
+    >
+      <BlogDirectoryPathSelect
+        allowRoot
+        description='新目录会创建在该路径下。'
+        id='blog-create-category-parent-path'
+        label='父级目录路径'
+        name='parentPath'
+        onChange={setParentPath}
+        options={directoryOptions}
+        value={parentPath}
+      />
+
+      <BlogTextField
+        id='blog-create-category-name'
+        label='目录名称'
+        name='name'
+        onChange={setName}
+        placeholder='例如：前端'
+        value={name}
+      />
+
+      <BlogTextField
+        description={previewPath ? `完整路径：${previewPath}` : undefined}
+        id='blog-create-category-slug'
+        label='目录 slug'
+        name='slug'
+        onChange={(value) => {
+          setIsSlugTouched(true)
+          setSlug(toSlug(value))
+        }}
+        placeholder='frontend'
+        value={currentSlug}
+      />
+
+      <BlogTextareaField
+        id='blog-create-category-description'
+        label='目录描述'
+        name='description'
+        onChange={setDescription}
+        placeholder='这个目录主要收录前端相关内容'
+        value={description}
+      />
+
+      <Button
+        className='w-full'
+        disabled={!canSubmit}
+        type='submit'
+      >
+        {isSubmitting ? (
+          <LoaderCircle className='size-4 animate-spin' />
+        ) : (
+          <FolderPlus className='size-4' />
+        )}
+        创建目录
+      </Button>
+    </form>
+  )
+}
+
+export function BlogCreateArticleForm({
+  defaultDirectoryPath,
+  directoryOptions,
+  onDone
+}: BlogCreateFormProps) {
+  const [categoryPath, setCategoryPath] = useState(defaultDirectoryPath)
+  const [title, setTitle] = useState('')
+  const [slug, setSlug] = useState('')
+  const [description, setDescription] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSlugTouched, setIsSlugTouched] = useState(false)
+  const currentSlug = isSlugTouched ? slug : toSlug(title)
+
+  const canSubmit =
+    categoryPath &&
+    title.trim() &&
+    SLUG_PATTERN.test(currentSlug) &&
+    !isSubmitting
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+
+    if (!categoryPath) {
+      toast.error('请选择文章所属目录路径')
+      return
+    }
+
+    if (!title.trim()) {
+      toast.error('请输入文章标题')
+      return
+    }
+
+    if (!SLUG_PATTERN.test(currentSlug)) {
+      toast.error('文章 slug 只能包含小写字母、数字和短横线')
+      return
+    }
+
+    setIsSubmitting(true)
+    window.setTimeout(() => {
+      setIsSubmitting(false)
+      toast.info('文章新增 UI 已就绪，接入后端后即可提交')
+      onDone()
+    }, 260)
+  }
+
+  return (
+    <form
+      className='space-y-4'
+      onSubmit={handleSubmit}
+    >
+      <BlogDirectoryPathSelect
+        description='文章草稿会归属到该目录。'
+        id='blog-create-article-category-path'
+        label='所属目录路径'
+        name='categoryPath'
+        onChange={setCategoryPath}
+        options={directoryOptions}
+        required
+        value={categoryPath}
+      />
+
+      <BlogTextField
+        id='blog-create-article-title'
+        label='文章标题'
+        name='title'
+        onChange={setTitle}
+        placeholder='例如：Server Actions 实战'
+        value={title}
+      />
+
+      <BlogTextField
+        description='创建后作为文章访问短标识。'
+        id='blog-create-article-slug'
+        label='文章 slug'
+        name='slug'
+        onChange={(value) => {
+          setIsSlugTouched(true)
+          setSlug(toSlug(value))
+        }}
+        placeholder='server-actions'
+        value={currentSlug}
+      />
+
+      <BlogTextareaField
+        id='blog-create-article-description'
+        label='文章摘要'
+        name='description'
+        onChange={setDescription}
+        placeholder='一句话描述这篇草稿'
+        value={description}
+      />
+
+      <Button
+        className='w-full'
+        disabled={!canSubmit}
+        type='submit'
+      >
+        {isSubmitting ? (
+          <LoaderCircle className='size-4 animate-spin' />
+        ) : (
+          <FilePlus2 className='size-4' />
+        )}
+        创建草稿
+      </Button>
+    </form>
+  )
+}
+
+function BlogTextField({
+  description,
+  id,
+  label,
+  name,
+  onChange,
+  placeholder,
+  value
+}: {
+  description?: string
+  id: string
+  label: string
+  name: string
+  onChange: (value: string) => void
+  placeholder: string
+  value: string
+}) {
+  return (
+    <div>
+      <label
+        className='mb-2 block text-sm font-medium'
+        htmlFor={id}
+      >
+        {label}
+      </label>
+      <div className='group flex h-10 items-center gap-2 rounded-lg border border-border bg-background px-3 transition-colors focus-within:border-foreground/50'>
+        <TextCursorInput
+          aria-hidden
+          className='size-4 shrink-0 text-muted-foreground transition-colors group-focus-within:text-foreground'
+        />
+        <input
+          className='h-full min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground'
+          id={id}
+          name={name}
+          onChange={(event) => onChange(event.target.value)}
+          placeholder={placeholder}
+          type='text'
+          value={value}
+        />
+      </div>
+      {description ? (
+        <p className='mt-1.5 text-xs text-muted-foreground'>{description}</p>
+      ) : null}
+    </div>
+  )
+}
+
+function BlogTextareaField({
+  id,
+  label,
+  name,
+  onChange,
+  placeholder,
+  value
+}: {
+  id: string
+  label: string
+  name: string
+  onChange: (value: string) => void
+  placeholder: string
+  value: string
+}) {
+  return (
+    <div>
+      <label
+        className='mb-2 block text-sm font-medium'
+        htmlFor={id}
+      >
+        {label}
+      </label>
+      <textarea
+        className='min-h-20 w-full resize-none rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-foreground/50'
+        id={id}
+        maxLength={300}
+        name={name}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        value={value}
+      />
+    </div>
+  )
+}
+
+function toSlug(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/['"]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}

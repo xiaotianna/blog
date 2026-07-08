@@ -1,6 +1,7 @@
 'use client'
 
 import { BlogDetailTableOfContentsContent } from '@/features/blog-details/blog-detail-table-of-contents'
+import { BlogCreateDialog } from '@/features/blog/blog-create-dialog'
 import { useBlogDetailTableOfContentsSnapshot } from '@/features/blog-details/blog-detail-table-of-contents-store'
 import { BlogFileTreeContent } from '@/features/blog/blog-file-tree-content'
 import { useBlogTreeSnapshot } from '@/features/blog/blog-tree-store'
@@ -146,7 +147,12 @@ function getBlogMobileNavigationContent({
             onNavigate={onNavigate}
             tree={tree}
           >
-            {canShowActions ? <Button className='mt-2'>新增</Button> : null}
+            {canShowActions ? (
+              <BlogCreateDialog
+                activeFolderId={activeFolderId}
+                tree={tree}
+              />
+            ) : null}
           </BlogFileTreeContent>
         ) : null
     }

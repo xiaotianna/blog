@@ -1,10 +1,27 @@
 import { PermissionGate } from '@/components/server/permission-gate'
-import { Button } from '@/components/ui/button'
 
-export function BlogFileTreeAction() {
+import type { BlogTreeNode } from './blog-data'
+import { BlogCreateDialog } from './blog-create-dialog'
+import { getDirectoryPathOptions } from './blog-directory-paths'
+
+type BlogFileTreeActionProps = {
+  activeFolderId?: string
+  tree: BlogTreeNode[]
+}
+
+export function BlogFileTreeAction({
+  activeFolderId,
+  tree
+}: BlogFileTreeActionProps) {
+  const directoryOptions = getDirectoryPathOptions(tree)
+
   return (
     <PermissionGate>
-      <Button className='mt-2'>新增</Button>
+      <BlogCreateDialog
+        activeFolderId={activeFolderId}
+        directoryOptions={directoryOptions}
+        tree={tree}
+      />
     </PermissionGate>
   )
 }

@@ -14,3 +14,7 @@ func (u *UserEntity) BeforeCreate(tx *gorm.DB) error {
 	u.Username = "user_" + u.PhoneNumber
 	return nil
 }
+
+func (UserEntity) TableName() string {
+	return "user"
+}

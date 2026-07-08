@@ -12,3 +12,7 @@ type CategoryEntity struct {
 	ParentID *uuid.UUID      // 最外层根目录为nil，数据库为null
 	Parent   *CategoryEntity `gorm:"foreignKey:ParentID"`
 }
+
+func (CategoryEntity) TableName() string {
+	return "category"
+}

@@ -24,8 +24,13 @@ type ArticleEntity struct {
 	Cover       string        `gorm:"size:500"` // 封面图
 	PublishedAt *time.Time    // 采用指针表示，因为time.Time会给一个零值，而指针的话零值是nil表示空
 
-	CategoryID *uuid.UUID      // 分类目录id，指针也是为了表示零值
+	// CategoryID *uuid.UUID      // 分类目录id，指针也是为了表示零值
+	CategoryID uuid.UUID       `gorm:"type:uuid;not null"`
 	Category   *CategoryEntity `gorm:"foreignKey:CategoryID"`
 
 	Tags []TagEntity `gorm:"many2many:article_tags;"`
+}
+
+func (ArticleEntity) TableName() string {
+	return "article"
 }

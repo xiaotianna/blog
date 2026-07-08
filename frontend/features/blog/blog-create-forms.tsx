@@ -1,6 +1,7 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
+import { DialogClose } from '@/components/ui/dialog'
 import {
   FilePlus2,
   FolderPlus,
@@ -8,11 +9,10 @@ import {
   TextCursorInput
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { FormEvent, useMemo, useState } from 'react'
+import { FormEvent, useState } from 'react'
 import { toast } from 'sonner'
 
 import { createArticleAction, createCategoryAction } from './actions'
-import { BlogDirectoryPathSelect } from './blog-directory-path-select'
 import {
   ROOT_DIRECTORY_PATH,
   type BlogDirectoryPathOption
@@ -32,25 +32,14 @@ export function BlogCreateCategoryForm({
   onDone
 }: BlogCreateFormProps) {
   const router = useRouter()
-  const [parentPath, setParentPath] = useState(
-    defaultDirectoryPath || ROOT_DIRECTORY_PATH
-  )
+  const parentPath = defaultDirectoryPath || ROOT_DIRECTORY_PATH
   const [name, setName] = useState('')
   const [slug, setSlug] = useState('')
   const [description, setDescription] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSlugTouched, setIsSlugTouched] = useState(false)
   const currentSlug = isSlugTouched ? slug : toSlug(name)
-
-  const previewPath = useMemo(() => {
-    if (!currentSlug) {
-      return ''
-    }
-
-    return parentPath && parentPath !== ROOT_DIRECTORY_PATH
-      ? `${parentPath}/${currentSlug}`
-      : currentSlug
-  }, [currentSlug, parentPath])
+  const previewPath = getPreviewPath(parentPath, currentSlug)
 
   const canSubmit =
     Boolean(name.trim()) && SLUG_PATTERN.test(currentSlug) && !isSubmitting
@@ -107,17 +96,6 @@ export function BlogCreateCategoryForm({
       className='space-y-4'
       onSubmit={handleSubmit}
     >
-      <BlogDirectoryPathSelect
-        allowRoot
-        description='新目录会创建在该路径下。'
-        id='blog-create-category-parent-path'
-        label='父级目录路径'
-        name='parentPath'
-        onChange={setParentPath}
-        options={directoryOptions}
-        value={parentPath}
-      />
-
       <BlogTextField
         id='blog-create-category-name'
         label='目录名称'
@@ -149,18 +127,28 @@ export function BlogCreateCategoryForm({
         value={description}
       />
 
-      <Button
-        className='w-full'
-        disabled={!canSubmit}
-        type='submit'
-      >
-        {isSubmitting ? (
-          <LoaderCircle className='size-4 animate-spin' />
-        ) : (
-          <FolderPlus className='size-4' />
-        )}
-        创建目录
-      </Button>
+      <div className='flex justify-end gap-2'>
+        <DialogClose asChild>
+          <Button
+            disabled={isSubmitting}
+            type='button'
+            variant='ghost'
+          >
+            取消
+          </Button>
+        </DialogClose>
+        <Button
+          disabled={!canSubmit}
+          type='submit'
+        >
+          {isSubmitting ? (
+            <LoaderCircle className='size-4 animate-spin' />
+          ) : (
+            <FolderPlus className='size-4' />
+          )}
+          {isSubmitting ? '正在新增' : '新增'}
+        </Button>
+      </div>
     </form>
   )
 }
@@ -171,7 +159,7 @@ export function BlogCreateArticleForm({
   onDone
 }: BlogCreateFormProps) {
   const router = useRouter()
-  const [categoryPath, setCategoryPath] = useState(defaultDirectoryPath)
+  const categoryPath = defaultDirectoryPath
   const [title, setTitle] = useState('')
   const [slug, setSlug] = useState('')
   const [description, setDescription] = useState('')
@@ -241,17 +229,6 @@ export function BlogCreateArticleForm({
       className='space-y-4'
       onSubmit={handleSubmit}
     >
-      <BlogDirectoryPathSelect
-        description='文章草稿会归属到该目录。'
-        id='blog-create-article-category-path'
-        label='所属目录路径'
-        name='categoryPath'
-        onChange={setCategoryPath}
-        options={directoryOptions}
-        required
-        value={categoryPath}
-      />
-
       <BlogTextField
         id='blog-create-article-title'
         label='文章标题'
@@ -283,23 +260,33 @@ export function BlogCreateArticleForm({
         value={description}
       />
 
-      <Button
-        className='w-full'
-        disabled={!canSubmit}
-        type='submit'
-      >
-        {isSubmitting ? (
-          <LoaderCircle className='size-4 animate-spin' />
-        ) : (
-          <FilePlus2 className='size-4' />
-        )}
-        创建草稿
-      </Button>
+      <div className='flex justify-end gap-2'>
+        <DialogClose asChild>
+          <Button
+            disabled={isSubmitting}
+            type='button'
+            variant='ghost'
+          >
+            取消
+          </Button>
+        </DialogClose>
+        <Button
+          disabled={!canSubmit}
+          type='submit'
+        >
+          {isSubmitting ? (
+            <LoaderCircle className='size-4 animate-spin' />
+          ) : (
+            <FilePlus2 className='size-4' />
+          )}
+          {isSubmitting ? '正在新增' : '新增'}
+        </Button>
+      </div>
     </form>
   )
 }
 
-function BlogTextField({
+export function BlogTextField({
   description,
   id,
   label,
@@ -346,7 +333,7 @@ function BlogTextField({
   )
 }
 
-function BlogTextareaField({
+export function BlogTextareaField({
   id,
   label,
   name,
@@ -382,11 +369,21 @@ function BlogTextareaField({
   )
 }
 
-function toSlug(value: string) {
+export function toSlug(value: string) {
   return value
     .trim()
     .toLowerCase()
     .replace(/['"]/g, '')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
+}
+
+function getPreviewPath(parentPath: string, slug: string) {
+  if (!slug) {
+    return ''
+  }
+
+  return parentPath && parentPath !== ROOT_DIRECTORY_PATH
+    ? `${parentPath}/${slug}`
+    : slug
 }

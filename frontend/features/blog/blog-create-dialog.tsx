@@ -37,9 +37,11 @@ export function BlogCreateDialog({
   const options = directoryOptions
   const defaultDirectoryPath =
     getDefaultDirectoryPath(options, activePath) || ROOT_DIRECTORY_PATH
-  const defaultArticleDirectoryPath =
-    getDefaultDirectoryPath(options, activePath) || options[0]?.path || ''
-  const hasDirectories = options.length > 0
+  const defaultArticleDirectoryPath = getDefaultDirectoryPath(
+    options,
+    activePath
+  )
+  const canCreateArticle = Boolean(defaultArticleDirectoryPath)
 
   return (
     <Dialog
@@ -64,7 +66,9 @@ export function BlogCreateDialog({
               新增内容
             </DialogTitle>
             <DialogDescription className='mt-1 text-sm text-muted-foreground'>
-              选择目录路径后创建目录或文章草稿
+              {canCreateArticle
+                ? '在当前路径下创建目录或文章草稿'
+                : '在当前路径下创建目录'}
             </DialogDescription>
           </div>
           <DialogClose asChild>
@@ -79,7 +83,7 @@ export function BlogCreateDialog({
           </DialogClose>
         </DialogHeader>
 
-        {hasDirectories ? (
+        {canCreateArticle ? (
           <TabsPrimitive.Root
             className='min-h-0'
             defaultValue='category'
@@ -121,7 +125,7 @@ export function BlogCreateDialog({
           </TabsPrimitive.Root>
         ) : (
           <BlogCreateCategoryForm
-            defaultDirectoryPath={ROOT_DIRECTORY_PATH}
+            defaultDirectoryPath={defaultDirectoryPath}
             directoryOptions={options}
             onDone={() => setOpen(false)}
           />

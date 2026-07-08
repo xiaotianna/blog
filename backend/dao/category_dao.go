@@ -4,6 +4,7 @@ import (
 	"blog/config"
 	"blog/entities"
 	"context"
+	"strings"
 
 	"github.com/google/uuid"
 )
@@ -32,6 +33,22 @@ func (CategoryDAO) FindByPath(ctx context.Context, path string) (*entities.Categ
 
 func (CategoryDAO) Create(ctx context.Context, category *entities.CategoryEntity) error {
 	return config.PgDB.WithContext(ctx).Create(category).Error
+}
+
+func (CategoryDAO) Save(ctx context.Context, category *entities.CategoryEntity) error {
+	return config.PgDB.WithContext(ctx).Save(category).Error
+}
+
+func (CategoryDAO) FindDescendantsByPath(ctx context.Context, categoryPath string) ([]entities.CategoryEntity, error) {
+	var categories []entities.CategoryEntity
+	storagePath := strings.TrimRight(categoryPath, "/")
+	err := config.PgDB.
+		WithContext(ctx).
+		Where("path LIKE ?", storagePath+"/%").
+		Order("path ASC").
+		Find(&categories).Error
+
+	return categories, err
 }
 
 func (CategoryDAO) FindChildren(ctx context.Context, parentID *uuid.UUID, page int, pageSize int) (PageResult[entities.CategoryEntity], error) {

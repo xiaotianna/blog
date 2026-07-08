@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -31,6 +32,52 @@ func (article ArticleController) Create(c *gin.Context) {
 	}
 
 	utils.Success(c, "新增文章成功", res)
+}
+
+func (article ArticleController) Update(c *gin.Context) {
+	ctx := c.Request.Context()
+	req := c.MustGet(middlewares.BodyKey).(dto.UpdateArticleRequest)
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		utils.Error(c, http.StatusBadRequest, "文章 ID 不合法")
+		return
+	}
+
+	res, err := article.service.Update(ctx, id, req)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			utils.Error(c, http.StatusNotFound, "文章不存在")
+			return
+		}
+
+		utils.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	utils.Success(c, "更新文章成功", res)
+}
+
+func (article ArticleController) Move(c *gin.Context) {
+	ctx := c.Request.Context()
+	req := c.MustGet(middlewares.BodyKey).(dto.MoveArticleRequest)
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		utils.Error(c, http.StatusBadRequest, "文章 ID 不合法")
+		return
+	}
+
+	res, err := article.service.Move(ctx, id, req)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			utils.Error(c, http.StatusNotFound, "文章不存在")
+			return
+		}
+
+		utils.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	utils.Success(c, "移动文章成功", res)
 }
 
 func (article ArticleController) List(c *gin.Context) {

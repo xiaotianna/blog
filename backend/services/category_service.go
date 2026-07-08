@@ -1,6 +1,7 @@
 package services
 
 import (
+	"blog/config"
 	"blog/dao"
 	"blog/dto"
 	"blog/entities"
@@ -8,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"path"
+	"strings"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -37,6 +39,11 @@ func (CategoryService) Create(ctx context.Context, req dto.CreateCategoryRequest
 	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, err
 	}
+	if _, err := dao.Article.FindByPath(ctx, categoryPath); err == nil {
+		return nil, errors.New("内容路径已存在")
+	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
 
 	category := &entities.CategoryEntity{
 		Name:        req.Name,
@@ -58,6 +65,150 @@ func (CategoryService) Create(ctx context.Context, req dto.CreateCategoryRequest
 		Description: category.Description,
 		ParentID:    category.ParentID,
 	}, nil
+}
+
+func (CategoryService) Update(ctx context.Context, id uuid.UUID, req dto.UpdateCategoryRequest) (*vo.CategoryVO, error) {
+	category, err := dao.Category.FindByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	oldPath := category.Path
+	newPath := path.Join(path.Dir(category.Path), req.Slug)
+
+	if existing, err := dao.Category.FindByPath(ctx, newPath); err == nil && existing.ID != category.ID {
+		return nil, errors.New("目录路径已存在")
+	} else if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
+	if _, err := dao.Article.FindByPath(ctx, newPath); err == nil {
+		return nil, errors.New("内容路径已存在")
+	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
+
+	descendants, err := dao.Category.FindDescendantsByPath(ctx, oldPath)
+	if err != nil {
+		return nil, err
+	}
+
+	articles, err := dao.Article.FindByPathPrefix(ctx, oldPath)
+	if err != nil {
+		return nil, err
+	}
+
+	category.Name = req.Name
+	category.Slug = req.Slug
+	category.Path = newPath
+	category.Description = req.Description
+
+	err = config.PgDB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Save(category).Error; err != nil {
+			return err
+		}
+
+		for _, descendant := range descendants {
+			descendant.Path = replacePathPrefix(descendant.Path, oldPath, newPath)
+			if err := tx.Save(&descendant).Error; err != nil {
+				return err
+			}
+		}
+
+		for _, article := range articles {
+			article.Path = replacePathPrefix(article.Path, oldPath, newPath)
+			if err := tx.Save(&article).Error; err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return categoryToVO(category), nil
+}
+
+func (CategoryService) Move(ctx context.Context, id uuid.UUID, req dto.MoveCategoryRequest) (*vo.CategoryVO, error) {
+	category, err := dao.Category.FindByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	oldPath := category.Path
+	newPath := "/" + category.Slug
+
+	if req.ParentID != nil {
+		if *req.ParentID == category.ID {
+			return nil, errors.New("目录不能移动到自身下")
+		}
+
+		parent, err := dao.Category.FindByID(ctx, *req.ParentID)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return nil, errors.New("父级目录不存在")
+			}
+			return nil, err
+		}
+
+		if isDescendantPath(parent.Path, category.Path) {
+			return nil, errors.New("目录不能移动到自己的子目录下")
+		}
+
+		newPath = path.Join(parent.Path, category.Slug)
+	}
+
+	if existing, err := dao.Category.FindByPath(ctx, newPath); err == nil && existing.ID != category.ID {
+		return nil, errors.New("目录路径已存在")
+	} else if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
+	if _, err := dao.Article.FindByPath(ctx, newPath); err == nil {
+		return nil, errors.New("内容路径已存在")
+	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
+
+	descendants, err := dao.Category.FindDescendantsByPath(ctx, oldPath)
+	if err != nil {
+		return nil, err
+	}
+
+	articles, err := dao.Article.FindByPathPrefix(ctx, oldPath)
+	if err != nil {
+		return nil, err
+	}
+
+	category.Path = newPath
+	category.ParentID = req.ParentID
+
+	err = config.PgDB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Save(category).Error; err != nil {
+			return err
+		}
+
+		for _, descendant := range descendants {
+			descendant.Path = replacePathPrefix(descendant.Path, oldPath, newPath)
+			if err := tx.Save(&descendant).Error; err != nil {
+				return err
+			}
+		}
+
+		for _, article := range articles {
+			article.Path = replacePathPrefix(article.Path, oldPath, newPath)
+			if err := tx.Save(&article).Error; err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return categoryToVO(category), nil
 }
 
 func (CategoryService) Detail(ctx context.Context, path string) (*vo.CategoryVO, error) {
@@ -135,4 +286,12 @@ func categoryToListItemVO(category entities.CategoryEntity) vo.CategoryListItemV
 		Description: category.Description,
 		ParentID:    category.ParentID,
 	}
+}
+
+func isDescendantPath(candidatePath string, parentPath string) bool {
+	return strings.HasPrefix(strings.TrimRight(candidatePath, "/"), strings.TrimRight(parentPath, "/")+"/")
+}
+
+func replacePathPrefix(value string, oldPrefix string, newPrefix string) string {
+	return newPrefix + strings.TrimPrefix(value, oldPrefix)
 }

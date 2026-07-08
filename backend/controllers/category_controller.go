@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -31,6 +32,52 @@ func (category CategoryController) Create(c *gin.Context) {
 	}
 
 	utils.Success(c, "新增目录成功", res)
+}
+
+func (category CategoryController) Update(c *gin.Context) {
+	ctx := c.Request.Context()
+	req := c.MustGet(middlewares.BodyKey).(dto.UpdateCategoryRequest)
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		utils.Error(c, http.StatusBadRequest, "目录 ID 不合法")
+		return
+	}
+
+	res, err := category.service.Update(ctx, id, req)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			utils.Error(c, http.StatusNotFound, "目录不存在")
+			return
+		}
+
+		utils.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	utils.Success(c, "更新目录成功", res)
+}
+
+func (category CategoryController) Move(c *gin.Context) {
+	ctx := c.Request.Context()
+	req := c.MustGet(middlewares.BodyKey).(dto.MoveCategoryRequest)
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		utils.Error(c, http.StatusBadRequest, "目录 ID 不合法")
+		return
+	}
+
+	res, err := category.service.Move(ctx, id, req)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			utils.Error(c, http.StatusNotFound, "目录不存在")
+			return
+		}
+
+		utils.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	utils.Success(c, "移动目录成功", res)
 }
 
 func (category CategoryController) Detail(c *gin.Context) {

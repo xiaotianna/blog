@@ -5,6 +5,7 @@ import (
 	"blog/entities"
 	"context"
 	"path"
+	"strings"
 
 	"github.com/google/uuid"
 )
@@ -16,6 +17,15 @@ var Article = ArticleDAO{}
 func (ArticleDAO) FindByPath(ctx context.Context, path string) (*entities.ArticleEntity, error) {
 	var article entities.ArticleEntity
 	err := config.PgDB.WithContext(ctx).First(&article, "path = ?", path).Error
+	if err != nil {
+		return nil, err
+	}
+	return &article, nil
+}
+
+func (ArticleDAO) FindByID(ctx context.Context, id uuid.UUID) (*entities.ArticleEntity, error) {
+	var article entities.ArticleEntity
+	err := config.PgDB.WithContext(ctx).First(&article, "id = ?", id).Error
 	if err != nil {
 		return nil, err
 	}
@@ -41,6 +51,22 @@ func (ArticleDAO) FindByCategoryPathAndSlug(ctx context.Context, articlePath str
 
 func (ArticleDAO) Create(ctx context.Context, article *entities.ArticleEntity) error {
 	return config.PgDB.WithContext(ctx).Create(article).Error
+}
+
+func (ArticleDAO) Save(ctx context.Context, article *entities.ArticleEntity) error {
+	return config.PgDB.WithContext(ctx).Save(article).Error
+}
+
+func (ArticleDAO) FindByPathPrefix(ctx context.Context, categoryPath string) ([]entities.ArticleEntity, error) {
+	var articles []entities.ArticleEntity
+	storagePath := strings.TrimRight(categoryPath, "/")
+	err := config.PgDB.
+		WithContext(ctx).
+		Where("path LIKE ?", storagePath+"/%").
+		Order("path ASC").
+		Find(&articles).Error
+
+	return articles, err
 }
 
 func (ArticleDAO) FindByCategory(ctx context.Context, categoryID uuid.UUID, includeAllStatuses bool, page int, pageSize int) (PageResult[entities.ArticleEntity], error) {

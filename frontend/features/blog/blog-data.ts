@@ -36,6 +36,16 @@ export type BlogArticleDetail = BlogArticle & {
   content: string
 }
 
+export type BlogNode =
+  | {
+      type: 'directory'
+      item: BlogCategory
+    }
+  | {
+      type: 'article'
+      item: BlogArticleDetail
+    }
+
 export type Pagination = {
   page: number
   pageSize: number
@@ -117,6 +127,32 @@ export async function getArticleDetail(path: string) {
     return normalizeArticle(result.data)
   } catch {
     return null
+  }
+}
+
+export async function getBlogNode(path: string): Promise<BlogNode | null> {
+  const category = await getCurrentCategory(path)
+
+  if (category) {
+    return {
+      type: 'directory',
+      item: category
+    }
+  }
+
+  if (!path) {
+    return null
+  }
+
+  const article = await getArticleDetail(path)
+
+  if (!article) {
+    return null
+  }
+
+  return {
+    type: 'article',
+    item: article
   }
 }
 

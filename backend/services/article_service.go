@@ -9,6 +9,7 @@ import (
 	"errors"
 	"path"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -30,6 +31,11 @@ func (ArticleService) Create(ctx context.Context, req dto.CreateArticleRequest) 
 
 	if _, err := dao.Article.FindByPath(ctx, articlePath); err == nil {
 		return nil, errors.New("文章路径已存在")
+	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
+	if _, err := dao.Category.FindByPath(ctx, articlePath); err == nil {
+		return nil, errors.New("内容路径已存在")
 	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, err
 	}
@@ -58,6 +64,80 @@ func (ArticleService) Create(ctx context.Context, req dto.CreateArticleRequest) 
 		CategoryID:  article.CategoryID,
 		PublishedAt: article.PublishedAt,
 	}, nil
+}
+
+func (ArticleService) Update(ctx context.Context, id uuid.UUID, req dto.UpdateArticleRequest) (*vo.ArticleVO, error) {
+	article, err := dao.Article.FindByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	category, err := dao.Category.FindByID(ctx, article.CategoryID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("所属目录不存在")
+		}
+		return nil, err
+	}
+
+	articlePath := path.Join(category.Path, req.Slug)
+	if existing, err := dao.Article.FindByPath(ctx, articlePath); err == nil && existing.ID != article.ID {
+		return nil, errors.New("文章路径已存在")
+	} else if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
+	if _, err := dao.Category.FindByPath(ctx, articlePath); err == nil {
+		return nil, errors.New("内容路径已存在")
+	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
+
+	article.Title = req.Title
+	article.Slug = req.Slug
+	article.Path = articlePath
+	article.Description = req.Description
+
+	if err := dao.Article.Save(ctx, article); err != nil {
+		return nil, err
+	}
+
+	return articleToVO(article), nil
+}
+
+func (ArticleService) Move(ctx context.Context, id uuid.UUID, req dto.MoveArticleRequest) (*vo.ArticleVO, error) {
+	article, err := dao.Article.FindByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	category, err := dao.Category.FindByID(ctx, req.CategoryID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("所属目录不存在")
+		}
+		return nil, err
+	}
+
+	articlePath := path.Join(category.Path, article.Slug)
+	if existing, err := dao.Article.FindByPath(ctx, articlePath); err == nil && existing.ID != article.ID {
+		return nil, errors.New("文章路径已存在")
+	} else if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
+	if _, err := dao.Category.FindByPath(ctx, articlePath); err == nil {
+		return nil, errors.New("内容路径已存在")
+	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
+
+	article.Path = articlePath
+	article.CategoryID = category.ID
+
+	if err := dao.Article.Save(ctx, article); err != nil {
+		return nil, err
+	}
+
+	return articleToVO(article), nil
 }
 
 func (ArticleService) List(ctx context.Context, categoryPath string, includeAllStatuses bool, page int, pageSize int) (vo.PageVO[vo.ArticleListItemVO], error) {
@@ -124,6 +204,19 @@ func articleToListItemVO(article entities.ArticleEntity, categoryPath string) vo
 		Title:       article.Title,
 		Slug:        article.Slug,
 		Path:        toPublicPath(articlePath),
+		Description: article.Description,
+		Status:      string(article.Status),
+		CategoryID:  article.CategoryID,
+		PublishedAt: article.PublishedAt,
+	}
+}
+
+func articleToVO(article *entities.ArticleEntity) *vo.ArticleVO {
+	return &vo.ArticleVO{
+		ID:          article.ID,
+		Title:       article.Title,
+		Slug:        article.Slug,
+		Path:        toPublicPath(article.Path),
 		Description: article.Description,
 		Status:      string(article.Status),
 		CategoryID:  article.CategoryID,

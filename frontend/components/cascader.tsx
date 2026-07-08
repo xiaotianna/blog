@@ -31,6 +31,7 @@ type CascaderProps = {
   emptyChildText?: string
   disabled?: boolean
   className?: string
+  contentHeightClassName?: string
   triggerClassName?: string
 }
 
@@ -108,6 +109,7 @@ export function Cascader({
   emptyChildText = '当前暂无可选项',
   disabled = false,
   className,
+  contentHeightClassName = 'h-80 min-h-56',
   triggerClassName
 }: CascaderProps) {
   const [open, setOpen] = useState(false)
@@ -262,7 +264,9 @@ export function Cascader({
         </PopoverTrigger>
         <PopoverContent
           align='start'
+          avoidCollisions={false}
           className='w-(--radix-popover-trigger-width) max-w-[calc(100vw-2rem)] gap-0 p-0'
+          side='bottom'
         >
           <div className='border-b border-border p-2'>
             <Input
@@ -285,8 +289,8 @@ export function Cascader({
                 <ChevronLeft className='size-4' />
               </button>
             ) : null}
-            <div className='max-h-80 min-h-56 overflow-hidden'>
-              <div className='flex min-h-56 w-full items-stretch'>
+            <div className={cn('overflow-hidden', contentHeightClassName)}>
+              <div className='flex h-full min-h-0 w-full items-stretch'>
                 {displayColumns.map((column, columnIndex) => {
                   const originalColumnIndex = columnWindowStart + columnIndex
                   const columnHasIcon = column.nodes.some(
@@ -298,12 +302,12 @@ export function Cascader({
                   return (
                     <div
                       className={cn(
-                        'flex min-h-56 min-w-0 flex-1 basis-1/2 flex-col self-stretch border-border',
+                        'flex min-h-0 min-w-0 flex-1 basis-1/2 flex-col self-stretch border-border',
                         columnIndex < displayColumns.length - 1 && 'border-r'
                       )}
                       key={column.key}
                     >
-                      <div className='flex-1 overflow-y-auto p-1'>
+                      <div className='min-h-0 flex-1 overflow-y-auto p-1'>
                         {column.nodes.length === 0 ? (
                           <div className='px-2 py-6 text-center text-sm text-muted-foreground'>
                             {originalColumnIndex === 0

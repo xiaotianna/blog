@@ -11,6 +11,7 @@ import {
 type BlogDirectoryPathSelectProps = {
   allowRoot?: boolean
   className?: string
+  contentHeightClassName?: string
   description?: string
   id: string
   label: string
@@ -25,6 +26,7 @@ type BlogDirectoryPathSelectProps = {
 export function BlogDirectoryPathSelect({
   allowRoot = false,
   className,
+  contentHeightClassName,
   description,
   id,
   label,
@@ -56,6 +58,7 @@ export function BlogDirectoryPathSelect({
         value={value}
       />
       <Cascader
+        contentHeightClassName={contentHeightClassName}
         emptyChildText='当前目录暂无子目录'
         emptyRootText='暂无可选目录'
         id={id}

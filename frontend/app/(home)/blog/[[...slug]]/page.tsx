@@ -1,13 +1,19 @@
 import BlurFade from '@/components/magicui/blur-fade'
+import { PermissionGate } from '@/components/server/permission-gate'
+import { BlogArticleManageDetail } from '@/features/blog/blog-article-manage-detail'
 import {
   getArticles,
+  getBlogNode,
   getChildDirectories,
-  getCurrentCategory,
   getDirectoryOptions,
   normalizeBlogPath,
   normalizePage,
   normalizeTab
 } from '@/features/blog/blog-data'
+import {
+  BlogCategoryEditDialog,
+  BlogCategoryMoveDialog
+} from '@/features/blog/blog-node-edit-dialog'
 import { BlogPageAction } from '@/features/blog/blog-page-action'
 import { BlogContentList } from '@/features/blog/blog-post-list'
 import Link from 'next/link'
@@ -37,21 +43,33 @@ export default async function BlogPage({
     searchParams
   ])
   const currentPath = normalizeBlogPath(slug)
-  const currentCategory = await getCurrentCategory(currentPath)
+  const [currentNode, directoryOptions] = await Promise.all([
+    getBlogNode(currentPath),
+    getDirectoryOptions()
+  ])
 
-  if (!currentCategory) {
+  if (!currentNode) {
     notFound()
   }
 
+  if (currentNode.type === 'article') {
+    return (
+      <BlogArticleManageDetail
+        article={currentNode.item}
+        directoryOptions={directoryOptions}
+      />
+    )
+  }
+
+  const currentCategory = currentNode.item
   const activeTab = normalizeTab(tabParam)
   const currentPage = normalizePage(pageParam)
-  const [directoryPage, articlePage, directoryOptions] = await Promise.all([
+  const [directoryPage, articlePage] = await Promise.all([
     getChildDirectories(
       currentPath,
       activeTab === 'directories' ? currentPage : 1
     ),
-    getArticles(currentPath, activeTab === 'articles' ? currentPage : 1),
-    getDirectoryOptions()
+    getArticles(currentPath, activeTab === 'articles' ? currentPage : 1)
   ])
 
   return (
@@ -82,7 +100,19 @@ export default async function BlogPage({
               ) : null}
             </div>
 
-            <div className='shrink-0'>
+            <div className='flex shrink-0 flex-wrap justify-end gap-2'>
+              {currentPath ? (
+                <PermissionGate>
+                  <BlogCategoryEditDialog
+                    category={currentCategory}
+                    directoryOptions={directoryOptions}
+                  />
+                  <BlogCategoryMoveDialog
+                    category={currentCategory}
+                    directoryOptions={directoryOptions}
+                  />
+                </PermissionGate>
+              ) : null}
               <BlogPageAction
                 activePath={currentPath}
                 directoryOptions={directoryOptions}

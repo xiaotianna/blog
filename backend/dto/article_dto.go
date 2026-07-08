@@ -8,3 +8,13 @@ type CreateArticleRequest struct {
 	Slug        string    `json:"slug" binding:"required,min=1,max=160,slug" message:"required=文章标识不能为空;min=文章标识不能为空;max=文章标识不能超过160个字符;slug=文章 slug 只能包含小写字母、数字和短横线"`
 	Description string    `json:"description" binding:"max=300" message:"max=文章摘要不能超过300个字符"`
 }
+
+type UpdateArticleRequest struct {
+	Title       string `json:"title" binding:"required,min=1,max=120" message:"required=文章标题不能为空;min=文章标题不能为空;max=文章标题不能超过120个字符"`
+	Slug        string `json:"slug" binding:"required,min=1,max=160,slug" message:"required=文章标识不能为空;min=文章标识不能为空;max=文章标识不能超过160个字符;slug=文章 slug 只能包含小写字母、数字和短横线"`
+	Description string `json:"description" binding:"max=300" message:"max=文章摘要不能超过300个字符"`
+}
+
+type MoveArticleRequest struct {
+	CategoryID uuid.UUID `json:"categoryId" binding:"required" message:"required=文章所属目录不能为空"`
+}

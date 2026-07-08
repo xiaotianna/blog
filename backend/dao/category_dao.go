@@ -33,3 +33,13 @@ func (CategoryDAO) FindByPath(ctx context.Context, path string) (*entities.Categ
 func (CategoryDAO) Create(ctx context.Context, category *entities.CategoryEntity) error {
 	return config.PgDB.WithContext(ctx).Create(category).Error
 }
+
+func (CategoryDAO) FindAll(ctx context.Context) ([]entities.CategoryEntity, error) {
+	var categories []entities.CategoryEntity
+	err := config.PgDB.
+		WithContext(ctx).
+		Order("path ASC").
+		Find(&categories).Error
+
+	return categories, err
+}

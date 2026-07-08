@@ -58,3 +58,18 @@ func (CategoryService) Create(ctx context.Context, req dto.CreateCategoryRequest
 		ParentID:    category.ParentID,
 	}, nil
 }
+
+func (CategoryService) Catalog(ctx context.Context) ([]vo.CategoryCatalogVO, error) {
+	categories, err := dao.Category.FindAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// 查询所有发布的文章
+	articles, err := dao.Article.FindPublishedForCategoryCatalog(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return buildCategoryCatalog(categories, articles)
+}

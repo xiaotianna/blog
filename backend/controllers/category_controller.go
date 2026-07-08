@@ -30,3 +30,15 @@ func (category CategoryController) Create(c *gin.Context) {
 
 	utils.Success(c, "新增目录成功", res)
 }
+
+func (category CategoryController) Catalog(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	res, err := category.service.Catalog(ctx)
+	if err != nil {
+		utils.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	utils.Success(c, "获取目录内容成功", res)
+}

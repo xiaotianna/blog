@@ -3,6 +3,7 @@ import BlurFade from '@/components/magicui/blur-fade'
 import type { BlogTreeNode } from './blog-data'
 import { BlogFileTreeAction } from './blog-file-tree-action'
 import { BlogFileTreeContent } from './blog-file-tree-content'
+import { BlogFileTreeShell } from './blog-file-tree-shell'
 
 type BlogFileTreeProps = {
   activeFolderId?: string
@@ -20,15 +21,16 @@ export function BlogFileTree({
       className='hidden lg:block'
       delay={delay}
     >
-      <aside className='h-fit lg:sticky lg:top-24'>
+      <BlogFileTreeShell>
         <BlogFileTreeContent
           activeFolderId={activeFolderId}
+          className='h-full max-h-full min-h-0 overflow-hidden'
           idPrefix='blog-desktop-tree'
           tree={tree}
         >
           <BlogFileTreeAction />
         </BlogFileTreeContent>
-      </aside>
+      </BlogFileTreeShell>
     </BlurFade>
   )
 }

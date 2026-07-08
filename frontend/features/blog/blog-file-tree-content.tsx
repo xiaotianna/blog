@@ -36,13 +36,13 @@ export function BlogFileTreeContent({
   const rootChildren = childrenByFolderId.get(ROOT_FOLDER_KEY)
 
   return (
-    <div className={cn('flex flex-col', className)}>
-      <div className='mb-3 pl-8 text-base font-medium tracking-normal text-muted-foreground'>
+    <div className={cn('flex min-h-0 flex-col', className)}>
+      <div className='mb-3 shrink-0 pl-8 text-base font-medium tracking-normal text-muted-foreground'>
         目录
       </div>
       <nav
         aria-label='博客文件夹'
-        className={cn('max-h-[420px] overflow-y-auto pr-1', navClassName)}
+        className={cn('min-h-0 flex-auto overflow-y-auto pr-1', navClassName)}
       >
         <div className='flex flex-col gap-1'>
           {rootChildren?.folders.map((folder) => (

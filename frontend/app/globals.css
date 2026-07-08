@@ -220,6 +220,20 @@
   }
 }
 
+/* <div data-scrollbar="hidden"> */
+[data-scrollbar='hidden'] {
+  scrollbar-width: none !important;
+  scrollbar-color: transparent transparent !important;
+  -ms-overflow-style: none !important;
+}
+
+[data-scrollbar='hidden']::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+}
+
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation: none;

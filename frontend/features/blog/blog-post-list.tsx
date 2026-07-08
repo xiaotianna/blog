@@ -126,7 +126,10 @@ function BlogPagination({
       <div className='text-sm text-muted-foreground'>
         第 {pagination.page} 页，共 {pagination.totalPages} 页
       </div>
-      <div className='flex gap-2 sm:justify-end'>
+      <div
+        className='flex gap-2 sm:justify-end'
+        data-blog-pagination-actions
+      >
         {pagination.hasPreviousPage ? (
           <Link
             className='flex h-8 w-fit items-center justify-center gap-1 rounded-lg border border-border px-2 text-sm transition-colors hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'

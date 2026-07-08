@@ -5,6 +5,7 @@ import (
 	"blog/middlewares"
 	"blog/services"
 	"blog/utils"
+	"blog/vo"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -46,4 +47,17 @@ func (auth AuthController) Logout(c *gin.Context) {
 	}
 
 	utils.Success(c, "退出登录成功", nil)
+}
+
+func (auth AuthController) Me(c *gin.Context) {
+	user, ok := middlewares.CurrentUser(c)
+	if !ok {
+		utils.Error(c, http.StatusUnauthorized, "请先登录")
+		return
+	}
+
+	utils.Success(c, "获取当前用户成功", vo.MeVO{
+		ID:    user.UserID,
+		Phone: user.Phone,
+	})
 }

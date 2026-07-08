@@ -1,12 +1,20 @@
+import { AuthSessionRefresh } from '@/features/auth/auth-session-refresh'
 import { HeaderLogoutDialog } from '@/features/auth/header-logout-dialog'
-import { hasAuthToken } from '@/lib/server/auth'
+import { getAuthToken } from '@/lib/server/auth'
+import { getCurrentUser } from '@/lib/server/current-user'
 
 export async function HeaderLogoutAction() {
-  const isLoggedIn = await hasAuthToken()
+  const currentUser = await getCurrentUser()
 
-  if (!isLoggedIn) {
-    return null
+  if (currentUser) {
+    return <HeaderLogoutDialog />
   }
 
-  return <HeaderLogoutDialog />
+  const token = await getAuthToken()
+
+  if (token) {
+    return <AuthSessionRefresh />
+  }
+
+  return null
 }

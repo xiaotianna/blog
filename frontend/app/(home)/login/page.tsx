@@ -1,7 +1,7 @@
 import BlurFade from '@/components/magicui/blur-fade'
 import { LoginForm } from '@/features/auth/login-form'
 import { normalizeInternalRedirect } from '@/lib/redirect'
-import { hasAuthToken } from '@/lib/server/auth'
+import { getCurrentUser } from '@/lib/server/current-user'
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 
@@ -22,7 +22,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const params = await searchParams
   const redirectTo = normalizeInternalRedirect(params?.redirect ?? null)
 
-  if (await hasAuthToken()) {
+  if (await getCurrentUser()) {
     redirect(redirectTo)
   }
 

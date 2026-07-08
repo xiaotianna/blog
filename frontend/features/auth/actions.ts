@@ -108,3 +108,13 @@ export async function logoutAction(): Promise<LogoutActionResult> {
     message
   }
 }
+
+export async function clearInvalidAuthAction() {
+  await clearAuthToken()
+  revalidatePath('/')
+  revalidatePath('/blog')
+
+  return {
+    ok: true
+  }
+}

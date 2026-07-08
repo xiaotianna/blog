@@ -71,16 +71,51 @@ Browser
 示例原则：
 
 ```tsx
-// Server Component
-export default async function Page() {
+// lib/server/permissions/check.ts
+export async function isAuthenticated() {
   const user = await getCurrentUser()
 
+  return Boolean(user)
+}
+```
+
+```tsx
+// components/server/permission-gate.tsx
+export async function PermissionGate({ children, fallback = null }) {
+  const allowed = await isAuthenticated()
+
+  return allowed ? children : fallback
+}
+```
+
+```tsx
+// features/blog/blog-file-tree-action.tsx
+export function BlogFileTreeAction() {
   return (
-    <main>
-      {user?.canCreatePost ? <CreatePostButton /> : null}
-    </main>
+    <PermissionGate>
+      <Button>新增</Button>
+    </PermissionGate>
   )
 }
+```
+
+### 服务端权限组件使用约定
+
+- 当前前端权限展示规则优先使用“是否已登录”判断，统一入口为 `lib/server/permissions/check.ts` 中的 `isAuthenticated()`
+- 页面或服务端组件中需要按登录态展示 UI 时，优先使用 `components/server/permission-gate.tsx` 中的 `PermissionGate`
+- 业务按钮建议抽成独立的服务端组件，例如 `features/blog/blog-file-tree-action.tsx`，由对应的服务端 UI 容器在固定位置渲染
+- 不要在页面中到处分散写 `getCurrentUser()` 或 `isAuthenticated()` 决定按钮展示；优先把按钮自身封装成服务端权限组件
+- Client Component 不得直接 import `PermissionGate`、`isAuthenticated()`、`getCurrentUser()` 或任何依赖 `next/headers`、`cookies()` 的模块
+- 如果 Client Component 需要复用某块 UI，应把纯展示内容拆到不依赖服务端认证的文件中；服务端 wrapper 再组合权限按钮
+- 如果 Client Component 确实需要知道是否展示普通交互按钮，只能接收服务端裁剪后的最小 boolean，例如 `canShowActions: boolean`
+- 服务端权限组件只负责“是否渲染按钮”，不能作为安全边界；Server Actions、Route Handlers 和 Go API 仍必须重新校验权限
+
+推荐拆分方式：
+
+```txt
+features/blog/blog-file-tree.tsx          # Server Component，组合数据、布局和权限按钮
+features/blog/blog-file-tree-content.tsx  # 纯展示组件，可被 Server 或 Client 壳复用
+features/blog/blog-file-tree-action.tsx   # Server Component，内部使用 PermissionGate
 ```
 
 ## proxy.ts 使用边界

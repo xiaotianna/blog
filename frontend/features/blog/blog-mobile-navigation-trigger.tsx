@@ -2,7 +2,7 @@
 
 import { BlogDetailTableOfContentsContent } from '@/features/blog-details/blog-detail-table-of-contents'
 import { useBlogDetailTableOfContentsSnapshot } from '@/features/blog-details/blog-detail-table-of-contents-store'
-import { BlogFileTreeContent } from '@/features/blog/blog-file-tree'
+import { BlogFileTreeContent } from '@/features/blog/blog-file-tree-content'
 import { useBlogTreeSnapshot } from '@/features/blog/blog-tree-store'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -83,12 +83,13 @@ export function BlogMobileNavigationTrigger() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const [open, setOpen] = useState(false)
-  const { tree } = useBlogTreeSnapshot()
+  const { canShowActions, tree } = useBlogTreeSnapshot()
   const { items } = useBlogDetailTableOfContentsSnapshot()
   const activeFolderId = searchParams.get('folder') ?? undefined
 
   const navigationContent = getBlogMobileNavigationContent({
     activeFolderId,
+    canShowActions,
     items,
     onNavigate: () => setOpen(false),
     pathname,
@@ -117,12 +118,14 @@ export function BlogMobileNavigationTrigger() {
 
 function getBlogMobileNavigationContent({
   activeFolderId,
+  canShowActions,
   items,
   onNavigate,
   pathname,
   tree
 }: {
   activeFolderId?: string
+  canShowActions: boolean
   items: Parameters<typeof BlogDetailTableOfContentsContent>[0]['items']
   onNavigate: () => void
   pathname: string
@@ -138,10 +141,13 @@ function getBlogMobileNavigationContent({
           <BlogFileTreeContent
             activeFolderId={activeFolderId}
             className='h-full min-h-0'
+            idPrefix='blog-mobile-tree'
             navClassName='max-h-none flex-1'
             onNavigate={onNavigate}
             tree={tree}
-          />
+          >
+            {canShowActions ? <Button className='mt-2'>新增</Button> : null}
+          </BlogFileTreeContent>
         ) : null
     }
   }

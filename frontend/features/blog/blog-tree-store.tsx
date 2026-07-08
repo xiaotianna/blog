@@ -4,10 +4,12 @@ import type { BlogTreeNode } from '@/features/blog/blog-data'
 import { useEffect, useSyncExternalStore } from 'react'
 
 type BlogTreeSnapshot = {
+  canShowActions: boolean
   tree: BlogTreeNode[]
 }
 
 const emptySnapshot: BlogTreeSnapshot = {
+  canShowActions: false,
   tree: []
 }
 
@@ -20,8 +22,8 @@ function emitChange() {
   }
 }
 
-function setBlogTree(tree: BlogTreeNode[]) {
-  snapshot = { tree }
+function setBlogTree(tree: BlogTreeNode[], canShowActions: boolean) {
+  snapshot = { canShowActions, tree }
   emitChange()
 }
 
@@ -50,14 +52,20 @@ export function useBlogTreeSnapshot() {
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
 }
 
-export function BlogTreeRegistry({ tree }: { tree: BlogTreeNode[] }) {
+export function BlogTreeRegistry({
+  canShowActions = false,
+  tree
+}: {
+  canShowActions?: boolean
+  tree: BlogTreeNode[]
+}) {
   useEffect(() => {
-    setBlogTree(tree)
+    setBlogTree(tree, canShowActions)
 
     return () => {
       clearBlogTree()
     }
-  }, [tree])
+  }, [canShowActions, tree])
 
   return null
 }

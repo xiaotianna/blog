@@ -12,6 +12,7 @@ import {
 import { BlogFileTree } from '@/features/blog/blog-file-tree'
 import { BlogPostList } from '@/features/blog/blog-post-list'
 import { BlogTreeRegistry } from '@/features/blog/blog-tree-store'
+import { isAuthenticated } from '@/lib/server/permissions/check'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -48,10 +49,14 @@ export default async function BlogPage({
     Math.ceil(folderPosts.length / PAGE_SIZE)
   )
   const { posts, pagination } = paginatePosts(folderPosts, currentPage)
+  const canShowBlogActions = await isAuthenticated()
 
   return (
     <main className='mx-auto flex min-h-[calc(100dvh-9rem)] w-full max-w-5xl flex-col pb-0 px-6 lg:px-0 lg:block lg:min-h-0 lg:pb-10'>
-      <BlogTreeRegistry tree={folderTree} />
+      <BlogTreeRegistry
+        canShowActions={canShowBlogActions}
+        tree={folderTree}
+      />
       <section
         className='grid min-h-0 flex-1 gap-10 lg:grid-cols-[220px_minmax(0,1fr)]'
         id='blog'

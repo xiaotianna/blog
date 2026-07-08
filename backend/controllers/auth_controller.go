@@ -24,6 +24,7 @@ var Auth = AuthController{
 func (auth AuthController) Login(c *gin.Context) {
 	// 用于接收停止请求的，可以直接用于gorm，如果前端中断请求，gorm可以监听到ctx.Done()来关闭连接的
 	ctx := c.Request.Context()
+	// c.MustGet(...) 返回的是 any，通过.(dto.LoginRequest)进行断言
 	req := c.MustGet(middlewares.BodyKey).(dto.LoginRequest)
 	res, err := auth.service.Login(ctx, req)
 	if err != nil {

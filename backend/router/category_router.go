@@ -1,8 +1,14 @@
 package router
 
-import "github.com/gin-gonic/gin"
+import (
+	"blog/controllers"
+	"blog/dto"
+	"blog/middlewares"
+
+	"github.com/gin-gonic/gin"
+)
 
 func CategoryRouter(r *gin.RouterGroup) {
 	// 新增目录接口
-	r.POST("/")
+	r.POST("/", middlewares.JWTAuth, middlewares.ValidateJSON[dto.CreateCategoryRequest], controllers.Category.Create)
 }

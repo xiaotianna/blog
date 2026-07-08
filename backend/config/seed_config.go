@@ -8,6 +8,11 @@ import (
 )
 
 func SeedConfig(db *gorm.DB) {
+	seedAdminUser(db)
+}
+
+// 初始化管理账户
+func seedAdminUser(db *gorm.DB) {
 	var count int64
 
 	db.Model(&entities.UserEntity{}).

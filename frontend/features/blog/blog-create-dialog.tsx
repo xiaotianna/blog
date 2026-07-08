@@ -21,6 +21,7 @@ import {
 import {
   getDefaultDirectoryPath,
   getDirectoryPathOptions,
+  ROOT_DIRECTORY_PATH,
   type BlogDirectoryPathOption
 } from './blog-directory-paths'
 import type { BlogTreeNode } from './blog-data'
@@ -38,7 +39,8 @@ export function BlogCreateDialog({
 }: BlogCreateDialogProps) {
   const [open, setOpen] = useState(false)
   const options = directoryOptions ?? getDirectoryPathOptions(tree)
-  const defaultDirectoryPath = getDefaultDirectoryPath(options, activeFolderId)
+  const defaultDirectoryPath =
+    getDefaultDirectoryPath(options, activeFolderId) || ROOT_DIRECTORY_PATH
   const hasDirectories = options.length > 0
 
   return (
@@ -48,7 +50,7 @@ export function BlogCreateDialog({
     >
       <DialogTrigger asChild>
         <Button
-          className='mt-2 w-full'
+          size='sm'
           type='button'
         >
           <Plus className='size-4' />
@@ -121,9 +123,11 @@ export function BlogCreateDialog({
             </TabsPrimitive.Content>
           </TabsPrimitive.Root>
         ) : (
-          <div className='rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground'>
-            当前没有可选目录，接入目录数据后即可新增文章或子目录。
-          </div>
+          <BlogCreateCategoryForm
+            defaultDirectoryPath={ROOT_DIRECTORY_PATH}
+            directoryOptions={options}
+            onDone={() => setOpen(false)}
+          />
         )}
       </DialogContent>
     </Dialog>

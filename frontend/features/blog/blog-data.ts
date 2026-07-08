@@ -1,12 +1,6 @@
-import { readdir, readFile } from 'node:fs/promises'
-import { extname, join, parse } from 'node:path'
-
-import { parseFrontmatter } from '@/components/markdown/parse-frontmatter'
+import { goApiFetch, readApiResponse } from '@/lib/server/go-api'
 
 export const PAGE_SIZE = 10
-
-const MARKDOWN_EXTENSIONS = ['.mdx', '.md'] as const
-const DEFAULT_FOLDER_ID = 'uncategorized'
 
 export type BlogPost = {
   slug: string
@@ -27,6 +21,7 @@ export type BlogFolder = {
   id: string
   label: string
   parentId?: string
+  slug?: string
 }
 
 export type BlogFolderNode = BlogFolder & {
@@ -42,84 +37,72 @@ export type BlogPostNode = BlogPost & {
 
 export type BlogTreeNode = BlogFolderNode | BlogPostNode
 
-export const BLOG_FOLDERS: BlogFolder[] = [
-  { id: 'frontend', label: '前端' },
-  { id: 'nextjs', label: 'Next.js', parentId: 'frontend' },
-  { id: 'bundler', label: '构建工具', parentId: 'frontend' },
-  { id: 'components', label: '组件', parentId: 'frontend' },
-  { id: DEFAULT_FOLDER_ID, label: '未分类' }
-]
-
-function isMarkdownFile(file: string) {
-  return MARKDOWN_EXTENSIONS.includes(
-    extname(file) as (typeof MARKDOWN_EXTENSIONS)[number]
-  )
+type CategoryCatalogNode = {
+  id: string
+  type: 'category' | 'article'
+  title: string
+  slug: string
+  description?: string
+  parentId?: string | null
+  categoryId?: string | null
+  publishedAt?: string | null
+  children?: CategoryCatalogNode[]
 }
 
-function getPublishedAt(metadata: Record<string, unknown>) {
-  if (typeof metadata.date === 'string') {
-    return metadata.date
-  }
-
-  if (typeof metadata.lastUpdated === 'string') {
-    return metadata.lastUpdated
-  }
-
-  return ''
-}
-
-function getFolderId(metadata: Record<string, unknown>) {
-  return typeof metadata.folderId === 'string' && metadata.folderId.trim()
-    ? metadata.folderId
-    : DEFAULT_FOLDER_ID
-}
-
-export async function getBlogPosts(): Promise<BlogPost[]> {
-  const publicDir = join(process.cwd(), 'public')
-  const entries = await readdir(publicDir, { withFileTypes: true })
-  const markdownFiles = entries
-    .filter((entry) => entry.isFile() && isMarkdownFile(entry.name))
-    .map((entry) => entry.name)
-
-  const posts = await Promise.all(
-    markdownFiles.map(async (file) => {
-      const slug = parse(file).name
-      const source = await readFile(join(publicDir, file), 'utf8')
-      const { metadata } = parseFrontmatter(source)
-
-      return {
-        slug,
-        title: String(metadata.title || slug),
-        description:
-          typeof metadata.description === 'string'
-            ? metadata.description
-            : undefined,
-        publishedAt: getPublishedAt(metadata),
-        folderId: getFolderId(metadata)
-      }
+export async function getFolderTree(): Promise<BlogTreeNode[]> {
+  try {
+    const response = await goApiFetch('/category/catalog', {
+      auth: false
     })
-  )
+    const result = await readApiResponse<CategoryCatalogNode[]>(response)
 
-  return posts.sort((a, b) => {
-    const timeA = new Date(a.publishedAt).getTime()
-    const timeB = new Date(b.publishedAt).getTime()
-
-    if (Number.isFinite(timeA) && Number.isFinite(timeB) && timeA !== timeB) {
-      return timeB - timeA
+    if (!response.ok || !result.data) {
+      return []
     }
 
-    return a.title.localeCompare(b.title)
-  })
+    return toBlogTreeNodes(result.data)
+  } catch {
+    return []
+  }
 }
 
-export function getDescendantFolderIds(folderId: string) {
+export function getBlogPosts(tree: BlogTreeNode[]): BlogPost[] {
+  return tree
+    .filter((node): node is BlogPostNode => node.type === 'post')
+    .sort((a, b) => {
+      const timeA = new Date(a.publishedAt).getTime()
+      const timeB = new Date(b.publishedAt).getTime()
+
+      if (Number.isFinite(timeA) && Number.isFinite(timeB) && timeA !== timeB) {
+        return timeB - timeA
+      }
+
+      return a.title.localeCompare(b.title)
+    })
+}
+
+export function getFolderById(tree: BlogTreeNode[], folderId?: string) {
+  if (!folderId) {
+    return undefined
+  }
+
+  return tree.find(
+    (node): node is BlogFolderNode =>
+      node.type === 'folder' && node.id === folderId
+  )
+}
+
+export function getDescendantFolderIds(folderId: string, tree: BlogTreeNode[]) {
+  const folders = tree.filter(
+    (node): node is BlogFolderNode => node.type === 'folder'
+  )
   const descendantIds = new Set<string>([folderId])
   let added = true
 
   while (added) {
     added = false
 
-    for (const folder of BLOG_FOLDERS) {
+    for (const folder of folders) {
       if (
         folder.parentId &&
         descendantIds.has(folder.parentId) &&
@@ -134,49 +117,87 @@ export function getDescendantFolderIds(folderId: string) {
   return descendantIds
 }
 
-function getFolderPostCount(folderId: string, posts: BlogPost[]) {
-  const folderIds = getDescendantFolderIds(folderId)
-
-  return posts.filter((post) => folderIds.has(post.folderId)).length
+export function getActiveFolder(
+  tree: BlogTreeNode[],
+  folder: string | undefined
+) {
+  return getFolderById(tree, folder)?.id
 }
 
-export function getFolderTree(posts: BlogPost[]) {
-  const nodes: BlogTreeNode[] = []
+function getFolderPostCount(folderId: string, tree: BlogTreeNode[]) {
+  const folderIds = getDescendantFolderIds(folderId, tree)
 
-  function appendChildren(parentId: string | undefined, depth: number) {
-    for (const folder of BLOG_FOLDERS.filter(
-      (item) => item.parentId === parentId
-    )) {
-      nodes.push({
-        ...folder,
+  return tree.filter(
+    (node): node is BlogPostNode =>
+      node.type === 'post' && folderIds.has(node.folderId)
+  ).length
+}
+
+function toBlogTreeNodes(nodes: CategoryCatalogNode[]) {
+  const tree: BlogTreeNode[] = []
+
+  appendCatalogNodes(tree, nodes, undefined, 0)
+
+  return tree.map((node) =>
+    node.type === 'folder'
+      ? {
+          ...node,
+          count: getFolderPostCount(node.id, tree)
+        }
+      : node
+  )
+}
+
+function appendCatalogNodes(
+  tree: BlogTreeNode[],
+  nodes: CategoryCatalogNode[],
+  parentId: string | undefined,
+  depth: number
+) {
+  for (const node of nodes) {
+    if (node.type === 'category') {
+      const folderId = node.id
+
+      tree.push({
+        id: folderId,
+        label: node.title,
+        parentId,
+        slug: node.slug,
         type: 'folder',
         depth,
-        count: getFolderPostCount(folder.id, posts)
+        count: 0
       })
 
-      appendChildren(folder.id, depth + 1)
+      appendCatalogNodes(tree, node.children ?? [], folderId, depth + 1)
+      continue
+    }
 
-      for (const post of posts.filter((item) => item.folderId === folder.id)) {
-        nodes.push({
-          ...post,
-          type: 'post',
-          depth: depth + 1
-        })
-      }
+    if (node.categoryId) {
+      tree.push({
+        slug: node.slug,
+        title: node.title,
+        description: node.description,
+        publishedAt: formatPublishedAt(node.publishedAt),
+        folderId: node.categoryId,
+        type: 'post',
+        depth
+      })
     }
   }
-
-  appendChildren(undefined, 0)
-
-  return nodes
 }
 
-export function getActiveFolder(folder: string | undefined) {
-  if (folder && BLOG_FOLDERS.some((item) => item.id === folder)) {
-    return folder
+function formatPublishedAt(value: string | null | undefined) {
+  if (!value) {
+    return ''
   }
 
-  return undefined
+  const date = new Date(value)
+
+  if (Number.isNaN(date.getTime())) {
+    return value
+  }
+
+  return date.toISOString().slice(0, 10)
 }
 
 export function normalizePage(page: string | undefined, totalPages: number) {

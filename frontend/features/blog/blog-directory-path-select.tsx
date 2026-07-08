@@ -83,7 +83,6 @@ function getDirectoryCascaderOptions(
 
   for (const option of options) {
     nodesByPath.set(option.path, {
-      badgeLabel: option.id,
       children: [],
       label: option.label,
       value: option.path

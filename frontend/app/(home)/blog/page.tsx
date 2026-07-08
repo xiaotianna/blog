@@ -1,9 +1,9 @@
 import BlurFade from '@/components/magicui/blur-fade'
 import {
-  BLOG_FOLDERS,
   getActiveFolder,
   getBlogPosts,
   getDescendantFolderIds,
+  getFolderById,
   getFolderTree,
   normalizePage,
   paginatePosts,
@@ -32,14 +32,12 @@ export default async function BlogPage({
   searchParams: Promise<{ folder?: string; page?: string }>
 }) {
   const { folder, page: pageParam } = await searchParams
-  const sortedPosts = await getBlogPosts()
-  const folderTree = getFolderTree(sortedPosts)
-  const activeFolderId = getActiveFolder(folder)
-  const activeFolder = activeFolderId
-    ? BLOG_FOLDERS.find((item) => item.id === activeFolderId)
-    : undefined
+  const folderTree = await getFolderTree()
+  const sortedPosts = getBlogPosts(folderTree)
+  const activeFolderId = getActiveFolder(folderTree, folder)
+  const activeFolder = getFolderById(folderTree, activeFolderId)
   const activeFolderIds = activeFolderId
-    ? getDescendantFolderIds(activeFolderId)
+    ? getDescendantFolderIds(activeFolderId, folderTree)
     : undefined
   const folderPosts = activeFolderIds
     ? sortedPosts.filter((post) => activeFolderIds.has(post.folderId))
@@ -52,7 +50,7 @@ export default async function BlogPage({
   const canShowBlogActions = await isAuthenticated()
 
   return (
-    <main className='mx-auto flex min-h-[calc(100dvh-9rem)] w-full max-w-5xl flex-col pb-0 px-6 lg:px-0 lg:block lg:min-h-0 lg:pb-10'>
+    <main className='mx-auto flex min-h-[calc(100dvh-9rem)] w-full max-w-5xl flex-col pb-0 px-6 lg:px-0 lg:block lg:min-h-0'>
       <BlogTreeRegistry
         canShowActions={canShowBlogActions}
         tree={folderTree}

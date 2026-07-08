@@ -138,7 +138,7 @@ function getBlogMobileNavigationContent({
       emptyMessage: '目录树为空。',
       triggerClassName: 'lg:hidden',
       content:
-        tree.length > 0 ? (
+        tree.length > 0 || canShowActions ? (
           <BlogFileTreeContent
             activeFolderId={activeFolderId}
             className='h-full min-h-0'

@@ -21,7 +21,7 @@ export function getDirectoryPathOptions(tree: BlogTreeNode[]) {
     let current: BlogFolderNode | undefined = folder
 
     while (current) {
-      segments.unshift(current.id)
+      segments.unshift(current.slug ?? current.id)
       current = current.parentId ? foldersById.get(current.parentId) : undefined
     }
 

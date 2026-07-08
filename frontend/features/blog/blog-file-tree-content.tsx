@@ -37,8 +37,11 @@ export function BlogFileTreeContent({
 
   return (
     <div className={cn('flex min-h-0 flex-col', className)}>
-      <div className='mb-3 shrink-0 pl-8 text-base font-medium tracking-normal text-muted-foreground'>
-        目录
+      <div className='mb-3 flex shrink-0 items-center justify-between gap-3'>
+        <div className='text-base pl-8 font-medium tracking-normal text-muted-foreground'>
+          目录
+        </div>
+        {children}
       </div>
       <nav
         aria-label='博客文件夹'
@@ -64,7 +67,6 @@ export function BlogFileTreeContent({
           ))}
         </div>
       </nav>
-      {children}
     </div>
   )
 }

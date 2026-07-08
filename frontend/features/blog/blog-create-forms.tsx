@@ -7,9 +7,11 @@ import {
   LoaderCircle,
   TextCursorInput
 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { FormEvent, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
+import { createArticleAction, createCategoryAction } from './actions'
 import { BlogDirectoryPathSelect } from './blog-directory-path-select'
 import {
   ROOT_DIRECTORY_PATH,
@@ -29,6 +31,7 @@ export function BlogCreateCategoryForm({
   directoryOptions,
   onDone
 }: BlogCreateFormProps) {
+  const router = useRouter()
   const [parentPath, setParentPath] = useState(
     defaultDirectoryPath || ROOT_DIRECTORY_PATH
   )
@@ -50,9 +53,9 @@ export function BlogCreateCategoryForm({
   }, [currentSlug, parentPath])
 
   const canSubmit =
-    name.trim() && SLUG_PATTERN.test(currentSlug) && !isSubmitting
+    Boolean(name.trim()) && SLUG_PATTERN.test(currentSlug) && !isSubmitting
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
     if (!name.trim()) {
@@ -65,12 +68,38 @@ export function BlogCreateCategoryForm({
       return
     }
 
-    setIsSubmitting(true)
-    window.setTimeout(() => {
-      setIsSubmitting(false)
-      toast.info('目录新增 UI 已就绪，接入后端后即可提交')
+    const parentOption =
+      parentPath === ROOT_DIRECTORY_PATH
+        ? undefined
+        : directoryOptions.find((option) => option.path === parentPath)
+
+    if (parentPath !== ROOT_DIRECTORY_PATH && !parentOption) {
+      toast.error('请选择有效的父级目录路径')
+      return
+    }
+
+    try {
+      setIsSubmitting(true)
+      const result = await createCategoryAction({
+        name,
+        slug: currentSlug,
+        description,
+        parentId: parentOption?.id
+      })
+
+      if (!result.ok) {
+        toast.error(result.message ?? '新增目录失败，请稍后重试')
+        return
+      }
+
+      toast.success(result.message ?? '新增目录成功')
+      router.refresh()
       onDone()
-    }, 260)
+    } catch {
+      toast.error('新增目录失败，请稍后重试')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -141,6 +170,7 @@ export function BlogCreateArticleForm({
   directoryOptions,
   onDone
 }: BlogCreateFormProps) {
+  const router = useRouter()
   const [categoryPath, setCategoryPath] = useState(defaultDirectoryPath)
   const [title, setTitle] = useState('')
   const [slug, setSlug] = useState('')
@@ -150,12 +180,12 @@ export function BlogCreateArticleForm({
   const currentSlug = isSlugTouched ? slug : toSlug(title)
 
   const canSubmit =
-    categoryPath &&
-    title.trim() &&
+    Boolean(categoryPath) &&
+    Boolean(title.trim()) &&
     SLUG_PATTERN.test(currentSlug) &&
     !isSubmitting
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
     if (!categoryPath) {
@@ -173,12 +203,37 @@ export function BlogCreateArticleForm({
       return
     }
 
-    setIsSubmitting(true)
-    window.setTimeout(() => {
-      setIsSubmitting(false)
-      toast.info('文章新增 UI 已就绪，接入后端后即可提交')
+    const categoryOption = directoryOptions.find(
+      (option) => option.path === categoryPath
+    )
+
+    if (!categoryOption) {
+      toast.error('请选择有效的文章所属目录路径')
+      return
+    }
+
+    try {
+      setIsSubmitting(true)
+      const result = await createArticleAction({
+        categoryId: categoryOption.id,
+        title,
+        slug: currentSlug,
+        description
+      })
+
+      if (!result.ok) {
+        toast.error(result.message ?? '新增文章失败，请稍后重试')
+        return
+      }
+
+      toast.success(result.message ?? '新增文章成功')
+      router.refresh()
       onDone()
-    }, 260)
+    } catch {
+      toast.error('新增文章失败，请稍后重试')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (

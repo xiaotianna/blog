@@ -87,38 +87,25 @@ func (CategoryService) Update(ctx context.Context, id uuid.UUID, req dto.UpdateC
 		return nil, err
 	}
 
-	descendants, err := dao.Category.FindDescendantsByPath(ctx, oldPath)
-	if err != nil {
-		return nil, err
-	}
-
-	articles, err := dao.Article.FindByPathPrefix(ctx, oldPath)
-	if err != nil {
-		return nil, err
-	}
-
 	category.Name = req.Name
 	category.Slug = req.Slug
 	category.Path = newPath
 	category.Description = req.Description
 
+	// 开始数据库事务操作，批量更新当前目录、后代目录和文章路径，确保操作的原子性
 	err = config.PgDB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if err := tx.Save(category).Error; err != nil {
 			return err
 		}
 
-		for _, descendant := range descendants {
-			descendant.Path = replacePathPrefix(descendant.Path, oldPath, newPath)
-			if err := tx.Save(&descendant).Error; err != nil {
-				return err
-			}
+		// 修改 slug 后，批量替换所有后代目录的路径前缀
+		if err := batchReplacePathPrefix(tx, &entities.CategoryEntity{}, oldPath, newPath); err != nil {
+			return err
 		}
 
-		for _, article := range articles {
-			article.Path = replacePathPrefix(article.Path, oldPath, newPath)
-			if err := tx.Save(&article).Error; err != nil {
-				return err
-			}
+		// 修改 slug 后，批量替换目录下所有文章的路径前缀
+		if err := batchReplacePathPrefix(tx, &entities.ArticleEntity{}, oldPath, newPath); err != nil {
+			return err
 		}
 
 		return nil
@@ -136,7 +123,9 @@ func (CategoryService) Move(ctx context.Context, id uuid.UUID, req dto.MoveCateg
 		return nil, err
 	}
 
+	// 找到当前目录
 	oldPath := category.Path
+	// 移动后路径（根路径，后面如果有子路径会重新赋值）
 	newPath := "/" + category.Slug
 
 	if req.ParentID != nil {
@@ -159,6 +148,7 @@ func (CategoryService) Move(ctx context.Context, id uuid.UUID, req dto.MoveCateg
 		newPath = path.Join(parent.Path, category.Slug)
 	}
 
+	// 查找新路径在某个目录是否存在
 	if existing, err := dao.Category.FindByPath(ctx, newPath); err == nil && existing.ID != category.ID {
 		return nil, errors.New("目录路径已存在")
 	} else if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -170,36 +160,27 @@ func (CategoryService) Move(ctx context.Context, id uuid.UUID, req dto.MoveCateg
 		return nil, err
 	}
 
-	descendants, err := dao.Category.FindDescendantsByPath(ctx, oldPath)
-	if err != nil {
-		return nil, err
-	}
-
-	articles, err := dao.Article.FindByPathPrefix(ctx, oldPath)
-	if err != nil {
-		return nil, err
-	}
-
 	category.Path = newPath
 	category.ParentID = req.ParentID
 
+	// 开始数据库事务操作，批量进行路径替换，确保操作的原子性
+	// ctx 用于处理超时、取消请求等情况
 	err = config.PgDB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		// ts就是事务里的数据库操作对象
 		if err := tx.Save(category).Error; err != nil {
 			return err
 		}
 
-		for _, descendant := range descendants {
-			descendant.Path = replacePathPrefix(descendant.Path, oldPath, newPath)
-			if err := tx.Save(&descendant).Error; err != nil {
-				return err
-			}
+		// Descendants（查找后代），找到所有的子目录，通过Like去匹配：Where("path LIKE ?", storagePath+"/%")
+		// 由数据库批量进行前缀拼接，避免循环逐条执行 Save 产生大量 SQL
+		if err := batchReplacePathPrefix(tx, &entities.CategoryEntity{}, oldPath, newPath); err != nil {
+			return err
 		}
 
-		for _, article := range articles {
-			article.Path = replacePathPrefix(article.Path, oldPath, newPath)
-			if err := tx.Save(&article).Error; err != nil {
-				return err
-			}
+		// 找到所有的文章
+		// 同一条 SQL 批量更新文章路径，并通过路径分隔符避免匹配相似前缀
+		if err := batchReplacePathPrefix(tx, &entities.ArticleEntity{}, oldPath, newPath); err != nil {
+			return err
 		}
 
 		return nil
@@ -292,6 +273,16 @@ func isDescendantPath(candidatePath string, parentPath string) bool {
 	return strings.HasPrefix(strings.TrimRight(candidatePath, "/"), strings.TrimRight(parentPath, "/")+"/")
 }
 
-func replacePathPrefix(value string, oldPrefix string, newPrefix string) string {
-	return newPrefix + strings.TrimPrefix(value, oldPrefix)
+func batchReplacePathPrefix(tx *gorm.DB, model any, oldPath string, newPath string) error {
+	return tx.Model(model).
+		Where(
+			"LEFT(path, CHAR_LENGTH(?)) = ? AND SUBSTRING(path FROM CHAR_LENGTH(?) + 1 FOR 1) = '/'",
+			oldPath,
+			oldPath,
+			oldPath,
+		).
+		Update(
+			"path",
+			gorm.Expr("? || SUBSTRING(path FROM CHAR_LENGTH(?) + 1)", newPath, oldPath),
+		).Error
 }

@@ -144,7 +144,10 @@ export function HeaderClient({ authAction }: HeaderClientProps) {
           : 'border-transparent bg-transparent shadow-none'
       )}
     >
-      <div className='flex min-w-0 items-center gap-2'>
+      <div
+        className='flex min-w-0 items-center gap-2'
+        data-header-actions
+      >
         {showBack && (
           <Button
             type='button'
@@ -159,7 +162,10 @@ export function HeaderClient({ authAction }: HeaderClientProps) {
         {showMenu && <Menu meta={meta} />}
       </div>
 
-      <div className='flex items-center gap-2'>
+      <div
+        className='flex items-center gap-2'
+        data-header-actions
+      >
         {shouldRenderHeaderAction(meta, 'blog-tree') && (
           <Suspense fallback={null}>
             <BlogMobileNavigationTrigger />

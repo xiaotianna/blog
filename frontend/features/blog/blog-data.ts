@@ -1,4 +1,7 @@
-import { goApiFetch, readApiResponse } from '@/lib/server/go-api'
+import {
+  isNotFoundApiError,
+  requestGoApiData
+} from '@/lib/server/go-api'
 
 export const PAGE_SIZE = 10
 
@@ -83,18 +86,15 @@ export async function getCurrentCategory(path: string) {
   }
 
   try {
-    const response = await goApiFetch(
+    return await requestGoApiData<BlogCategory>(
       `/category/detail?path=${encodeURIComponent(path)}`,
       { auth: false }
     )
-    const result = await readApiResponse<BlogCategory>(response)
-
-    if (!response.ok || !result.data) {
-      return null
+  } catch (error) {
+    if (!isNotFoundApiError(error)) {
+      throw error
     }
 
-    return result.data
-  } catch {
     return null
   }
 }
@@ -119,19 +119,18 @@ export async function getArticles(categoryPath: string, page: number) {
 
 export async function getArticleDetail(path: string) {
   try {
-    const response = await goApiFetch(
+    const article = await requestGoApiData<
+      Omit<ArticleApiResponse, 'content'> & { content: string }
+    >(
       `/article/detail?path=${encodeURIComponent(path)}`
     )
-    const result = await readApiResponse<
-      Omit<ArticleApiResponse, 'content'> & { content: string }
-    >(response)
 
-    if (!response.ok || !result.data) {
-      return null
+    return normalizeArticle(article)
+  } catch (error) {
+    if (!isNotFoundApiError(error)) {
+      throw error
     }
 
-    return normalizeArticle(result.data)
-  } catch {
     return null
   }
 }
@@ -164,15 +163,14 @@ export async function getBlogNode(path: string): Promise<BlogNode | null> {
 
 export async function getDirectoryOptions() {
   try {
-    const response = await goApiFetch('/category/options', { auth: false })
-    const result = await readApiResponse<BlogDirectoryOption[]>(response)
-
-    if (!response.ok || !result.data) {
-      return []
+    return await requestGoApiData<BlogDirectoryOption[]>('/category/options', {
+      auth: false
+    })
+  } catch (error) {
+    if (!isNotFoundApiError(error)) {
+      throw error
     }
 
-    return result.data
-  } catch {
     return []
   }
 }
@@ -223,15 +221,12 @@ async function readPage<T>(path: string, init?: { auth?: boolean }) {
   const page = getPageFromPath(path)
 
   try {
-    const response = await goApiFetch(path, init)
-    const result = await readApiResponse<PageResponse<T>>(response)
-
-    if (!response.ok || !result.data) {
-      return emptyPage<T>(page)
+    return await requestGoApiData<PageResponse<T>>(path, init)
+  } catch (error) {
+    if (!isNotFoundApiError(error)) {
+      throw error
     }
 
-    return result.data
-  } catch {
     return emptyPage<T>(page)
   }
 }

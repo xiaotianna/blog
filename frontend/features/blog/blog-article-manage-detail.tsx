@@ -38,7 +38,7 @@ export function BlogArticleManageDetail({
   directoryOptions
 }: BlogArticleManageDetailProps) {
   return (
-    <main className='mx-auto flex min-h-[calc(100dvh-9rem)] w-full max-w-4xl flex-col px-6 pb-0 lg:min-h-0 lg:px-0'>
+    <main className='flex min-h-[calc(100dvh-9rem)] w-full flex-col pb-0 lg:min-h-0 lg:px-0'>
       <section className='min-h-0 flex-1'>
         <div className='flex flex-col gap-6'>
           <div className='flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between'>

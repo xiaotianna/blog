@@ -13,6 +13,7 @@ export type ApiResponse<T> = {
 }
 
 const AUTH_INVALID_STATUS = 401
+const NOT_FOUND_STATUS = 404
 
 const AUTH_INVALID_MESSAGES = new Set([
   '请先登录',
@@ -66,6 +67,75 @@ export async function goApiFetch(
   return response
 }
 
+export class GoApiError extends Error {
+  code: number
+  status: number
+
+  constructor({
+    code,
+    message,
+    status
+  }: {
+    code: number
+    message: string
+    status: number
+  }) {
+    super(message)
+    this.name = 'GoApiError'
+    this.code = code
+    this.status = status
+  }
+}
+
+export class AuthInvalidError extends GoApiError {
+  constructor({
+    code,
+    message,
+    status
+  }: {
+    code: number
+    message: string
+    status: number
+  }) {
+    super({ code, message, status })
+    this.name = 'AuthInvalidError'
+  }
+}
+
+export function isGoApiError(error: unknown): error is GoApiError {
+  return error instanceof GoApiError
+}
+
+export function isNotFoundApiError(error: unknown) {
+  return isGoApiError(error) && error.status === NOT_FOUND_STATUS
+}
+
+export function isAuthInvalidError(error: unknown) {
+  return error instanceof AuthInvalidError
+}
+
+export async function requestGoApiData<T>(
+  path: string,
+  init?: GoApiFetchOptions
+) {
+  const response = await goApiFetch(path, init)
+  const result = await readApiResponse<T>(response)
+
+  if (!response.ok) {
+    throw createGoApiError(response.status, result)
+  }
+
+  if (typeof result.data === 'undefined') {
+    throw new GoApiError({
+      code: result.code,
+      message: result.message || '服务响应异常，请稍后重试',
+      status: response.status
+    })
+  }
+
+  return result.data
+}
+
 export async function readApiResponse<T>(
   response: Response
 ): Promise<ApiResponse<T>> {
@@ -106,6 +176,20 @@ async function readResponseMessage(response: Response) {
   } catch {
     return undefined
   }
+}
+
+function createGoApiError<T>(status: number, result: ApiResponse<T>) {
+  const errorProps = {
+    code: result.code,
+    message: result.message || '服务响应异常，请稍后重试',
+    status
+  }
+
+  if (status === AUTH_INVALID_STATUS) {
+    return new AuthInvalidError(errorProps)
+  }
+
+  return new GoApiError(errorProps)
 }
 
 async function clearExpiredAuthToken() {

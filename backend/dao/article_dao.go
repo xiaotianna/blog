@@ -16,7 +16,11 @@ var Article = ArticleDAO{}
 
 func (ArticleDAO) FindByPath(ctx context.Context, path string) (*entities.ArticleEntity, error) {
 	var article entities.ArticleEntity
-	err := config.PgDB.WithContext(ctx).First(&article, "path = ?", path).Error
+	err := config.PgDB.
+		WithContext(ctx).
+		Preload("Tags").
+		First(&article, "path = ?", path).
+		Error
 	if err != nil {
 		return nil, err
 	}
@@ -39,6 +43,7 @@ func (ArticleDAO) FindByCategoryPathAndSlug(ctx context.Context, articlePath str
 
 	err := config.PgDB.
 		WithContext(ctx).
+		Preload("Tags").
 		Joins("JOIN category ON category.id = article.category_id").
 		First(&article, "category.path = ? AND article.slug = ?", categoryPath, slug).
 		Error
@@ -86,6 +91,7 @@ func (ArticleDAO) FindByCategory(ctx context.Context, categoryID uuid.UUID, incl
 	}
 
 	err := query.
+		Preload("Tags").
 		Order("published_at DESC NULLS LAST").
 		Order("created_at DESC").
 		Offset(Offset(page, pageSize)).

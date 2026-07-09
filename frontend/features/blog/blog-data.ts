@@ -29,7 +29,15 @@ export type BlogArticle = {
   description: string
   status: ArticleStatus
   categoryId: string
+  createdAt: string
+  updatedAt: string
   publishedAt: string
+  tags: BlogArticleTag[]
+}
+
+export type BlogArticleTag = {
+  id: string
+  name: string
 }
 
 export type BlogArticleDetail = BlogArticle & {
@@ -99,9 +107,7 @@ export async function getChildDirectories(parentPath: string, page: number) {
 }
 
 export async function getArticles(categoryPath: string, page: number) {
-  const result = await readPage<Omit<BlogArticle, 'publishedAt'> & {
-    publishedAt?: string | null
-  }>(
+  const result = await readPage<ArticleApiResponse>(
     `/article/list?categoryPath=${encodeURIComponent(categoryPath)}&page=${page}&pageSize=${PAGE_SIZE}`
   )
 
@@ -117,7 +123,7 @@ export async function getArticleDetail(path: string) {
       `/article/detail?path=${encodeURIComponent(path)}`
     )
     const result = await readApiResponse<
-      Omit<BlogArticleDetail, 'publishedAt'> & { publishedAt?: string | null }
+      Omit<ArticleApiResponse, 'content'> & { content: string }
     >(response)
 
     if (!response.ok || !result.data) {
@@ -237,16 +243,27 @@ function getPageFromPath(path: string) {
   return normalizePage(page)
 }
 
-function normalizeArticle<T extends { publishedAt?: string | null }>(
-  article: T
-) {
+type ArticleApiResponse = Omit<
+  BlogArticle,
+  'createdAt' | 'updatedAt' | 'publishedAt' | 'tags'
+> & {
+  createdAt?: string | null
+  updatedAt?: string | null
+  publishedAt?: string | null
+  tags?: BlogArticleTag[] | null
+}
+
+function normalizeArticle<T extends ArticleApiResponse>(article: T) {
   return {
     ...article,
-    publishedAt: formatPublishedAt(article.publishedAt)
+    createdAt: formatArticleDate(article.createdAt),
+    updatedAt: formatArticleDate(article.updatedAt),
+    publishedAt: formatArticleDate(article.publishedAt),
+    tags: article.tags ?? []
   }
 }
 
-function formatPublishedAt(value: string | null | undefined) {
+function formatArticleDate(value: string | null | undefined) {
   if (!value) {
     return ''
   }

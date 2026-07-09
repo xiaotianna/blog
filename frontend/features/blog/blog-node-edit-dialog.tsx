@@ -32,30 +32,62 @@ import {
   ROOT_DIRECTORY_PATH,
   type BlogDirectoryPathOption
 } from './blog-directory-paths'
-import type { BlogArticleDetail, BlogCategory } from './blog-data'
+import type {
+  ArticleStatus,
+  BlogArticleDetail,
+  BlogCategory
+} from './blog-data'
 
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+const ARTICLE_STATUS_OPTIONS: {
+  label: string
+  value: ArticleStatus
+}[] = [
+  {
+    label: '草稿',
+    value: 'draft'
+  },
+  {
+    label: '私密',
+    value: 'private'
+  },
+  {
+    label: '已发布',
+    value: 'publish'
+  }
+]
 
 type BlogCategoryDialogProps = {
   category: BlogCategory
   directoryOptions: BlogDirectoryPathOption[]
+  onOpenChange?: (open: boolean) => void
+  open?: boolean
+  trigger?: ReactNode
 }
 
 type BlogArticleDialogProps = {
   article: BlogArticleDetail
   directoryOptions: BlogDirectoryPathOption[]
+  onOpenChange?: (open: boolean) => void
+  open?: boolean
+  trigger?: ReactNode
 }
 
 export function BlogCategoryEditDialog({
   category,
-  directoryOptions
+  directoryOptions,
+  onOpenChange,
+  open,
+  trigger
 }: BlogCategoryDialogProps) {
   const router = useRouter()
-  const [open, setOpen] = useState(false)
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false)
   const [name, setName] = useState(category.name)
   const [slug, setSlug] = useState(category.slug)
   const [description, setDescription] = useState(category.description)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const isOpen = open ?? uncontrolledOpen
+  const setOpen = onOpenChange ?? setUncontrolledOpen
   const parentPath = getParentPathById(
     directoryOptions,
     category.parentId,
@@ -113,8 +145,9 @@ export function BlogCategoryEditDialog({
       description='修改目录名称和描述。'
       icon={<Pencil className='size-4' />}
       onOpenChange={setOpen}
-      open={open}
+      open={isOpen}
       title='编辑目录'
+      trigger={trigger}
       triggerLabel='修改'
       variant='default'
     >
@@ -164,14 +197,19 @@ export function BlogCategoryEditDialog({
 
 export function BlogCategoryMoveDialog({
   category,
-  directoryOptions
+  directoryOptions,
+  onOpenChange,
+  open,
+  trigger
 }: BlogCategoryDialogProps) {
   const router = useRouter()
-  const [open, setOpen] = useState(false)
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false)
   const [parentPath, setParentPath] = useState(() =>
     getParentPathById(directoryOptions, category.parentId, category.path)
   )
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const isOpen = open ?? uncontrolledOpen
+  const setOpen = onOpenChange ?? setUncontrolledOpen
   const filteredOptions = useMemo(
     () =>
       directoryOptions.filter(
@@ -226,8 +264,9 @@ export function BlogCategoryMoveDialog({
       description='选择新的父级目录路径。'
       icon={<FolderInput className='size-4' />}
       onOpenChange={setOpen}
-      open={open}
+      open={isOpen}
       title='移动目录'
+      trigger={trigger}
       triggerLabel='移动'
       variant='outline'
     >
@@ -261,14 +300,21 @@ export function BlogCategoryMoveDialog({
 
 export function BlogArticleEditDialog({
   article,
-  directoryOptions
+  directoryOptions,
+  onOpenChange,
+  open,
+  trigger
 }: BlogArticleDialogProps) {
   const router = useRouter()
-  const [open, setOpen] = useState(false)
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false)
   const [title, setTitle] = useState(article.title)
   const [slug, setSlug] = useState(article.slug)
   const [description, setDescription] = useState(article.description)
+  const [status, setStatus] = useState<ArticleStatus>(article.status)
+  const [content, setContent] = useState(article.content)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const isOpen = open ?? uncontrolledOpen
+  const setOpen = onOpenChange ?? setUncontrolledOpen
   const categoryPath =
     directoryOptions.find((option) => option.id === article.categoryId)?.path ??
     getParentPath(article.path)
@@ -296,7 +342,10 @@ export function BlogArticleEditDialog({
         id: article.id,
         title,
         slug: currentSlug,
-        description
+        description,
+        status,
+        content,
+        tagIds: article.tags.map((tag) => tag.id)
       })
 
       if (!result.ok) {
@@ -324,8 +373,9 @@ export function BlogArticleEditDialog({
       description='修改文章标题和摘要。'
       icon={<FilePenLine className='size-4' />}
       onOpenChange={setOpen}
-      open={open}
+      open={isOpen}
       title='编辑文章信息'
+      trigger={trigger}
       triggerLabel='修改'
       variant='default'
     >
@@ -361,6 +411,16 @@ export function BlogArticleEditDialog({
           value={description}
         />
 
+        <BlogStatusField
+          onChange={setStatus}
+          value={status}
+        />
+
+        <BlogArticleContentField
+          onChange={setContent}
+          value={content}
+        />
+
         <BlogDialogFooter
           buttonLabel='修改'
           icon={<FilePenLine className='size-4' />}
@@ -375,15 +435,20 @@ export function BlogArticleEditDialog({
 
 export function BlogArticleMoveDialog({
   article,
-  directoryOptions
+  directoryOptions,
+  onOpenChange,
+  open,
+  trigger
 }: BlogArticleDialogProps) {
   const router = useRouter()
-  const [open, setOpen] = useState(false)
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false)
   const [categoryPath, setCategoryPath] = useState(
     directoryOptions.find((option) => option.id === article.categoryId)?.path ??
       ''
   )
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const isOpen = open ?? uncontrolledOpen
+  const setOpen = onOpenChange ?? setUncontrolledOpen
   const categoryOption = directoryOptions.find(
     (option) => option.path === categoryPath
   )
@@ -429,8 +494,9 @@ export function BlogArticleMoveDialog({
       description='选择新的文章所属目录。'
       icon={<FolderInput className='size-4' />}
       onOpenChange={setOpen}
-      open={open}
+      open={isOpen}
       title='移动文章'
+      trigger={trigger}
       triggerLabel='移动'
       variant='outline'
     >
@@ -501,6 +567,64 @@ function BlogDialogFooter({
   )
 }
 
+function BlogStatusField({
+  onChange,
+  value
+}: {
+  onChange: (value: ArticleStatus) => void
+  value: ArticleStatus
+}) {
+  return (
+    <fieldset>
+      <legend className='mb-2 block text-sm font-medium'>文章状态</legend>
+      <div className='grid grid-cols-3 gap-2'>
+        {ARTICLE_STATUS_OPTIONS.map((option) => (
+          <button
+            aria-pressed={value === option.value}
+            className={`rounded-lg border px-3 py-2 text-sm transition-colors ${
+              value === option.value
+                ? 'border-foreground bg-foreground text-background'
+                : 'border-border bg-background text-muted-foreground hover:text-foreground'
+            }`}
+            key={option.value}
+            onClick={() => onChange(option.value)}
+            type='button'
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
+    </fieldset>
+  )
+}
+
+function BlogArticleContentField({
+  onChange,
+  value
+}: {
+  onChange: (value: string) => void
+  value: string
+}) {
+  return (
+    <div>
+      <label
+        className='mb-2 block text-sm font-medium'
+        htmlFor='blog-article-edit-content'
+      >
+        正文内容
+      </label>
+      <textarea
+        className='min-h-56 w-full resize-y rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm leading-6 outline-none transition-colors placeholder:text-muted-foreground focus:border-foreground/50'
+        id='blog-article-edit-content'
+        name='content'
+        onChange={(event) => onChange(event.target.value)}
+        placeholder='输入文章正文内容'
+        value={value}
+      />
+    </div>
+  )
+}
+
 function BlogNodeDialog({
   children,
   description,
@@ -508,6 +632,7 @@ function BlogNodeDialog({
   onOpenChange,
   open,
   title,
+  trigger,
   triggerLabel,
   variant
 }: {
@@ -517,6 +642,7 @@ function BlogNodeDialog({
   onOpenChange: (open: boolean) => void
   open: boolean
   title: string
+  trigger?: ReactNode
   triggerLabel: string
   variant: 'default' | 'outline'
 }) {
@@ -525,15 +651,19 @@ function BlogNodeDialog({
       open={open}
       onOpenChange={onOpenChange}
     >
-      <DialogTrigger asChild>
-        <Button
-          type='button'
-          variant={variant}
-        >
-          {icon}
-          {triggerLabel}
-        </Button>
-      </DialogTrigger>
+      {trigger === null ? null : (
+        <DialogTrigger asChild>
+          {trigger ?? (
+            <Button
+              type='button'
+              variant={variant}
+            >
+              {icon}
+              {triggerLabel}
+            </Button>
+          )}
+        </DialogTrigger>
+      )}
       <DialogContent
         className='flex max-h-[min(42rem,calc(100dvh-2rem))] w-[min(30rem,calc(100vw-2rem))] max-w-[min(30rem,calc(100vw-2rem))] flex-col gap-0 p-5 sm:max-w-[min(30rem,calc(100vw-2rem))]'
         showCloseButton={false}

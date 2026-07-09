@@ -62,7 +62,10 @@ func (ArticleService) Create(ctx context.Context, req dto.CreateArticleRequest) 
 		Description: article.Description,
 		Status:      string(article.Status),
 		CategoryID:  article.CategoryID,
+		CreatedAt:   article.CreatedAt,
+		UpdatedAt:   article.UpdatedAt,
 		PublishedAt: article.PublishedAt,
+		Tags:        articleTagsToVO(article.Tags),
 	}, nil
 }
 
@@ -207,7 +210,10 @@ func articleToListItemVO(article entities.ArticleEntity, categoryPath string) vo
 		Description: article.Description,
 		Status:      string(article.Status),
 		CategoryID:  article.CategoryID,
+		CreatedAt:   article.CreatedAt,
+		UpdatedAt:   article.UpdatedAt,
 		PublishedAt: article.PublishedAt,
+		Tags:        articleTagsToVO(article.Tags),
 	}
 }
 
@@ -220,7 +226,10 @@ func articleToVO(article *entities.ArticleEntity) *vo.ArticleVO {
 		Description: article.Description,
 		Status:      string(article.Status),
 		CategoryID:  article.CategoryID,
+		CreatedAt:   article.CreatedAt,
+		UpdatedAt:   article.UpdatedAt,
 		PublishedAt: article.PublishedAt,
+		Tags:        articleTagsToVO(article.Tags),
 	}
 }
 
@@ -234,6 +243,21 @@ func articleToDetailVO(article *entities.ArticleEntity) *vo.ArticleDetailVO {
 		Content:     article.Content,
 		Status:      string(article.Status),
 		CategoryID:  article.CategoryID,
+		CreatedAt:   article.CreatedAt,
+		UpdatedAt:   article.UpdatedAt,
 		PublishedAt: article.PublishedAt,
+		Tags:        articleTagsToVO(article.Tags),
 	}
+}
+
+func articleTagsToVO(tags []entities.TagEntity) []vo.TagVO {
+	res := make([]vo.TagVO, 0, len(tags))
+	for _, tag := range tags {
+		res = append(res, vo.TagVO{
+			ID:   tag.ID,
+			Name: tag.Name,
+		})
+	}
+
+	return res
 }

@@ -5,15 +5,17 @@ import { BlogCreateDialog } from './blog-create-dialog'
 
 type BlogPageActionProps = {
   activePath?: string
+  allowed?: boolean
   directoryOptions: BlogDirectoryOption[]
 }
 
 export function BlogPageAction({
   activePath,
+  allowed,
   directoryOptions
 }: BlogPageActionProps) {
   return (
-    <PermissionGate>
+    <PermissionGate allowed={allowed}>
       <BlogCreateDialog
         activePath={activePath}
         directoryOptions={directoryOptions}

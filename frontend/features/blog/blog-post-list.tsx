@@ -1,5 +1,4 @@
 import { Badge } from '@/components/ui/badge'
-import { PermissionGate } from '@/components/server/permission-gate'
 import {
   Empty,
   EmptyDescription,
@@ -31,6 +30,7 @@ type BlogContentListProps = {
   articles: BlogArticle[]
   articlePagination: Pagination
   articleTotal: number
+  canManageArticles: boolean
   currentPath: string
   delay: number
   directories: BlogCategory[]
@@ -49,6 +49,7 @@ export function BlogContentList({
   articles,
   articlePagination,
   articleTotal,
+  canManageArticles,
   currentPath,
   delay,
   directories,
@@ -100,7 +101,7 @@ export function BlogContentList({
                     icon='directory'
                     index={(pagination.page - 1) * PAGE_SIZE + index + 1}
                     key={directory.id}
-                    path={directory.path}
+                    href={`/blog/${directory.path}`}
                     title={directory.name}
                   />
                 ))
@@ -110,8 +111,9 @@ export function BlogContentList({
                     icon='article'
                     index={(pagination.page - 1) * PAGE_SIZE + index + 1}
                     key={article.id}
-                    path={article.path}
+                    href={`/${canManageArticles ? 'blog' : 'post'}/${article.path}`}
                     publishedAt={article.publishedAt}
+                    showStatus={canManageArticles}
                     status={article.status}
                     title={article.title}
                   />
@@ -187,18 +189,20 @@ function BlogTabLink({
 
 function BlogListItem({
   description,
+  href,
   icon,
   index,
-  path,
   publishedAt,
+  showStatus,
   status,
   title
 }: {
   description?: string
+  href: string
   icon: 'article' | 'directory'
   index: number
-  path: string
   publishedAt?: string
+  showStatus?: boolean
   status?: ArticleStatus
   title: string
 }) {
@@ -207,7 +211,7 @@ function BlogListItem({
   return (
     <Link
       className='group flex cursor-pointer items-center gap-x-3 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
-      href={`/blog/${path}`}
+      href={href}
     >
       <span className='font-mono text-xs font-medium tabular-nums text-muted-foreground'>
         {String(index).padStart(2, '0')}.
@@ -224,11 +228,7 @@ function BlogListItem({
               />
             </span>
           </p>
-          {status ? (
-            <PermissionGate>
-              <ArticleStatusBadge status={status} />
-            </PermissionGate>
-          ) : null}
+          {showStatus && status ? <ArticleStatusBadge status={status} /> : null}
         </div>
         {description ? (
           <p className='line-clamp-2 text-sm leading-6 text-muted-foreground'>

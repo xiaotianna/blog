@@ -14,7 +14,10 @@ type ArticleVO struct {
 	Description string     `json:"description"`
 	Status      string     `json:"status"`
 	CategoryID  uuid.UUID  `json:"categoryId"`
+	CreatedAt   time.Time  `json:"createdAt"`
+	UpdatedAt   time.Time  `json:"updatedAt"`
 	PublishedAt *time.Time `json:"publishedAt"`
+	Tags        []TagVO    `json:"tags"`
 }
 
 type ArticleListItemVO struct {
@@ -25,7 +28,10 @@ type ArticleListItemVO struct {
 	Description string     `json:"description"`
 	Status      string     `json:"status"`
 	CategoryID  uuid.UUID  `json:"categoryId"`
+	CreatedAt   time.Time  `json:"createdAt"`
+	UpdatedAt   time.Time  `json:"updatedAt"`
 	PublishedAt *time.Time `json:"publishedAt"`
+	Tags        []TagVO    `json:"tags"`
 }
 
 type ArticleDetailVO struct {
@@ -37,5 +43,13 @@ type ArticleDetailVO struct {
 	Content     string     `json:"content"`
 	Status      string     `json:"status"`
 	CategoryID  uuid.UUID  `json:"categoryId"`
+	CreatedAt   time.Time  `json:"createdAt"`
+	UpdatedAt   time.Time  `json:"updatedAt"`
 	PublishedAt *time.Time `json:"publishedAt"`
+	Tags        []TagVO    `json:"tags"`
+}
+
+type TagVO struct {
+	ID   uuid.UUID `json:"id"`
+	Name string    `json:"name"`
 }

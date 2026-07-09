@@ -1,6 +1,7 @@
 'use server'
 
 import { goApiFetch, readApiResponse } from '@/lib/server/go-api'
+import { isAuthenticated } from '@/lib/server/permissions/check'
 import { revalidatePath } from 'next/cache'
 
 export type BlogMutationActionResult = {
@@ -25,6 +26,12 @@ export async function createCategoryAction(input: {
   parentId?: string
   slug: string
 }): Promise<BlogMutationActionResult> {
+  const authError = await ensureAuthenticated()
+
+  if (authError) {
+    return authError
+  }
+
   const name = input.name.trim()
   const slug = input.slug.trim()
   const description = input.description.trim()
@@ -79,6 +86,12 @@ export async function updateCategoryAction(input: {
   name: string
   slug: string
 }): Promise<BlogMutationActionResult> {
+  const authError = await ensureAuthenticated()
+
+  if (authError) {
+    return authError
+  }
+
   const id = input.id.trim()
   const name = input.name.trim()
   const slug = input.slug.trim()
@@ -136,6 +149,12 @@ export async function moveCategoryAction(input: {
   id: string
   parentId?: string | null
 }): Promise<BlogMutationActionResult> {
+  const authError = await ensureAuthenticated()
+
+  if (authError) {
+    return authError
+  }
+
   const id = input.id.trim()
 
   if (!id) {
@@ -185,6 +204,12 @@ export async function createArticleAction(input: {
   slug: string
   title: string
 }): Promise<BlogMutationActionResult> {
+  const authError = await ensureAuthenticated()
+
+  if (authError) {
+    return authError
+  }
+
   const categoryId = input.categoryId.trim()
   const title = input.title.trim()
   const slug = input.slug.trim()
@@ -239,15 +264,27 @@ export async function createArticleAction(input: {
 }
 
 export async function updateArticleAction(input: {
+  content: string
   description: string
   id: string
   slug: string
+  status: string
+  tagIds: string[]
   title: string
 }): Promise<BlogMutationActionResult> {
+  const authError = await ensureAuthenticated()
+
+  if (authError) {
+    return authError
+  }
+
   const id = input.id.trim()
   const slug = input.slug.trim()
   const title = input.title.trim()
   const description = input.description.trim()
+  const content = input.content
+  const status = input.status.trim()
+  const tagIds = input.tagIds
 
   if (!id) {
     return { ok: false, message: '文章 ID 不存在' }
@@ -261,6 +298,10 @@ export async function updateArticleAction(input: {
     return { ok: false, message: '请输入文章 slug' }
   }
 
+  if (!['publish', 'private', 'draft'].includes(status)) {
+    return { ok: false, message: '请选择有效的文章状态' }
+  }
+
   try {
     const response = await goApiFetch(`/article/${encodeURIComponent(id)}`, {
       method: 'PATCH',
@@ -270,7 +311,10 @@ export async function updateArticleAction(input: {
       body: JSON.stringify({
         title,
         slug,
-        description
+        description,
+        content,
+        status,
+        tagIds
       })
     })
     const result = await readApiResponse<ArticleData>(response)
@@ -301,6 +345,12 @@ export async function moveArticleAction(input: {
   categoryId: string
   id: string
 }): Promise<BlogMutationActionResult> {
+  const authError = await ensureAuthenticated()
+
+  if (authError) {
+    return authError
+  }
+
   const id = input.id.trim()
   const categoryId = input.categoryId.trim()
 
@@ -346,5 +396,16 @@ export async function moveArticleAction(input: {
       ok: false,
       message: '文章服务暂不可用，请稍后重试'
     }
+  }
+}
+
+async function ensureAuthenticated(): Promise<BlogMutationActionResult | null> {
+  if (await isAuthenticated()) {
+    return null
+  }
+
+  return {
+    ok: false,
+    message: '请先登录后再操作'
   }
 }

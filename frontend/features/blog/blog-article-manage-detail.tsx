@@ -1,14 +1,9 @@
 import { PermissionGate } from '@/components/server/permission-gate'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ArrowUpRight, FileText, Folder, Lock, Newspaper } from 'lucide-react'
+import { ArrowUpRight, CalendarClock } from 'lucide-react'
 import Link from 'next/link'
-import type { ReactNode } from 'react'
 
-import {
-  BlogArticleEditDialog,
-  BlogArticleMoveDialog
-} from './blog-node-edit-dialog'
+import { BlogArticleActionsMenu } from './blog-article-actions-menu'
 import type {
   ArticleStatus,
   BlogArticleDetail,
@@ -17,42 +12,42 @@ import type {
 
 type BlogArticleManageDetailProps = {
   article: BlogArticleDetail
+  canManageArticle: boolean
   directoryOptions: BlogDirectoryOption[]
 }
 
-const ARTICLE_STATUS_LABEL: Record<ArticleStatus, string> = {
-  publish: '已发布',
-  private: '私密',
-  draft: '草稿'
-}
+const ARTICLE_STATUS_META: Record<ArticleStatus, { label: string; dot: string }> =
+  {
+    publish: {
+      label: '已发布',
+      dot: 'bg-emerald-400'
+    },
+    private: {
+      label: '私密',
+      dot: 'bg-amber-400'
+    },
+    draft: {
+      label: '草稿',
+      dot: 'bg-muted-foreground'
+    }
+  }
 
 export function BlogArticleManageDetail({
   article,
+  canManageArticle,
   directoryOptions
 }: BlogArticleManageDetailProps) {
-  const category = directoryOptions.find(
-    (option) => option.id === article.categoryId
-  )
-
   return (
-    <main className='mx-auto flex min-h-[calc(100dvh-9rem)] w-full max-w-5xl flex-col px-6 pb-0 lg:min-h-0 lg:px-0'>
+    <main className='mx-auto flex min-h-[calc(100dvh-9rem)] w-full max-w-4xl flex-col px-6 pb-0 lg:min-h-0 lg:px-0'>
       <section className='min-h-0 flex-1'>
-        <div className='flex flex-col gap-8'>
+        <div className='flex flex-col gap-6'>
           <div className='flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between'>
             <div className='min-w-0 flex-1'>
-              <div className='mb-3 flex flex-wrap items-center gap-2'>
-                <Badge
-                  className='gap-1.5'
-                  variant='outline'
-                >
-                  <FileText className='size-3.5' />
-                  文章
-                </Badge>
-                <ArticleStatusBadge status={article.status} />
+              <div className='flex flex-wrap items-center gap-2'>
+                <h1 className='text-2xl font-semibold leading-none tracking-tight'>
+                  {article.title}
+                </h1>
               </div>
-              <h1 className='text-2xl font-semibold tracking-tight'>
-                {article.title}
-              </h1>
               {article.description ? (
                 <p className='mt-2 max-w-2xl text-sm leading-6 text-muted-foreground'>
                   {article.description}
@@ -70,12 +65,8 @@ export function BlogArticleManageDetail({
                   阅读正文
                 </Link>
               </Button>
-              <PermissionGate>
-                <BlogArticleEditDialog
-                  article={article}
-                  directoryOptions={directoryOptions}
-                />
-                <BlogArticleMoveDialog
+              <PermissionGate allowed={canManageArticle}>
+                <BlogArticleActionsMenu
                   article={article}
                   directoryOptions={directoryOptions}
                 />
@@ -83,22 +74,9 @@ export function BlogArticleManageDetail({
             </div>
           </div>
 
-          <div className='grid gap-3 border-y border-border py-5 sm:grid-cols-3'>
-            <ArticleMetaItem
-              icon={<Newspaper className='size-4' />}
-              label='访问路径'
-              value={`/blog/${article.path}`}
-            />
-            <ArticleMetaItem
-              icon={<Folder className='size-4' />}
-              label='所属目录'
-              value={category?.label ?? '未匹配目录'}
-            />
-            <ArticleMetaItem
-              icon={<Lock className='size-4' />}
-              label='阅读入口'
-              value={`/post/${article.path}`}
-            />
+          <div className='grid gap-5 lg:grid-cols-[minmax(0,0.95fr)_minmax(280px,0.72fr)] lg:items-start'>
+            <ArticleThumbnail article={article} />
+            <ArticleInfoPanel article={article} />
           </div>
         </div>
       </section>
@@ -106,32 +84,85 @@ export function BlogArticleManageDetail({
   )
 }
 
-function ArticleStatusBadge({ status }: { status: ArticleStatus }) {
-  const variant = status === 'publish' ? 'secondary' : 'outline'
-
+function ArticleThumbnail({ article }: { article: BlogArticleDetail }) {
   return (
-    <Badge variant={variant}>
-      {ARTICLE_STATUS_LABEL[status] ?? status}
-    </Badge>
+    <div className='overflow-hidden rounded-lg border border-border bg-muted/30'>
+      <div className='relative aspect-16/9 w-full'>
+        <div className='flex size-full items-center justify-center bg-[radial-gradient(circle_at_1px_1px,var(--border)_1px,transparent_0)] bg-size-[14px_14px] p-6'>
+          <div className='max-w-xs text-center'>
+            <p className='text-[0.7rem] font-medium uppercase text-muted-foreground'>
+              Preview
+            </p>
+            <p className='mt-2 text-lg font-semibold tracking-tight text-foreground'>
+              {article.title}
+            </p>
+            {article.description ? (
+              <p className='mt-2 line-clamp-2 text-xs leading-5 text-muted-foreground'>
+                {article.description}
+              </p>
+            ) : null}
+          </div>
+        </div>
+      </div>
+    </div>
   )
 }
 
-function ArticleMetaItem({
-  icon,
-  label,
-  value
-}: {
-  icon: ReactNode
-  label: string
-  value: string
-}) {
+function ArticleInfoPanel({ article }: { article: BlogArticleDetail }) {
+  const statusMeta = ARTICLE_STATUS_META[article.status]
+  const createdAt = article.createdAt || article.publishedAt || '未记录'
+  const updatedAt = article.updatedAt || article.publishedAt || '未记录'
+
   return (
-    <div className='min-w-0'>
-      <div className='mb-1.5 flex items-center gap-1.5 text-xs font-medium text-muted-foreground'>
-        {icon}
-        {label}
+    <div className='min-w-0 space-y-4 py-0.5'>
+      <div>
+        <p className='text-xs text-muted-foreground'>状态</p>
+        <div className='mt-2 flex items-center gap-2.5'>
+          <span
+            aria-hidden='true'
+            className={`size-2.5 rounded-full ${statusMeta.dot}`}
+          />
+          <span className='text-sm font-semibold text-foreground'>
+            {statusMeta.label}
+          </span>
+        </div>
       </div>
-      <p className='truncate text-sm text-foreground'>{value}</p>
+
+      <div className='grid gap-x-6 gap-y-4 sm:grid-cols-2'>
+        <div>
+          <p className='text-xs text-muted-foreground'>创建时间</p>
+          <p className='mt-2 flex items-center gap-2 text-sm font-semibold text-foreground'>
+            <CalendarClock className='size-4 text-muted-foreground' />
+            {createdAt}
+          </p>
+        </div>
+
+        <div>
+          <p className='text-xs text-muted-foreground'>更新时间</p>
+          <p className='mt-2 flex items-center gap-2 text-sm font-semibold text-foreground'>
+            <CalendarClock className='size-4 text-muted-foreground' />
+            {updatedAt}
+          </p>
+        </div>
+      </div>
+
+      <div className='space-y-2'>
+        <p className='text-xs text-muted-foreground'>标签</p>
+        <div className='flex flex-wrap gap-1.5 text-sm text-foreground'>
+          {article.tags.length > 0 ? (
+            article.tags.map((tag) => (
+              <span
+                className='rounded-md bg-muted px-2 py-0.5 text-sm'
+                key={tag.id}
+              >
+                {tag.name}
+              </span>
+            ))
+          ) : (
+            <span className='text-xs text-muted-foreground'>暂无标签</span>
+          )}
+        </div>
+      </div>
     </div>
   )
 }

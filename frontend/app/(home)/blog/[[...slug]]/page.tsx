@@ -1,6 +1,7 @@
 import BlurFade from '@/components/magicui/blur-fade'
 import { PermissionGate } from '@/components/server/permission-gate'
 import { BlogArticleManageDetail } from '@/features/blog/blog-article-manage-detail'
+import { BlogCategoryActionsMenu } from '@/features/blog/blog-category-actions-menu'
 import {
   getArticles,
   getBlogNode,
@@ -10,14 +11,11 @@ import {
   normalizePage,
   normalizeTab
 } from '@/features/blog/blog-data'
-import {
-  BlogCategoryEditDialog,
-  BlogCategoryMoveDialog
-} from '@/features/blog/blog-node-edit-dialog'
 import { BlogPageAction } from '@/features/blog/blog-page-action'
 import { BlogContentList } from '@/features/blog/blog-post-list'
+import { isAuthenticated } from '@/lib/server/permissions/check'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -43,9 +41,10 @@ export default async function BlogPage({
     searchParams
   ])
   const currentPath = normalizeBlogPath(slug)
-  const [currentNode, directoryOptions] = await Promise.all([
+  const [currentNode, directoryOptions, canManageArticles] = await Promise.all([
     getBlogNode(currentPath),
-    getDirectoryOptions()
+    getDirectoryOptions(),
+    isAuthenticated()
   ])
 
   if (!currentNode) {
@@ -53,9 +52,14 @@ export default async function BlogPage({
   }
 
   if (currentNode.type === 'article') {
+    if (!canManageArticles) {
+      redirect(`/post/${currentPath}`)
+    }
+
     return (
       <BlogArticleManageDetail
         article={currentNode.item}
+        canManageArticle={canManageArticles}
         directoryOptions={directoryOptions}
       />
     )
@@ -101,22 +105,19 @@ export default async function BlogPage({
             </div>
 
             <div className='flex shrink-0 flex-wrap justify-end gap-2'>
+              <BlogPageAction
+                activePath={currentPath}
+                allowed={canManageArticles}
+                directoryOptions={directoryOptions}
+              />
               {currentPath ? (
-                <PermissionGate>
-                  <BlogCategoryEditDialog
-                    category={currentCategory}
-                    directoryOptions={directoryOptions}
-                  />
-                  <BlogCategoryMoveDialog
+                <PermissionGate allowed={canManageArticles}>
+                  <BlogCategoryActionsMenu
                     category={currentCategory}
                     directoryOptions={directoryOptions}
                   />
                 </PermissionGate>
               ) : null}
-              <BlogPageAction
-                activePath={currentPath}
-                directoryOptions={directoryOptions}
-              />
             </div>
           </div>
         </BlurFade>
@@ -126,6 +127,7 @@ export default async function BlogPage({
           articlePagination={articlePage.pagination}
           articleTotal={articlePage.pagination.total}
           articles={articlePage.items}
+          canManageArticles={canManageArticles}
           currentPath={currentPath}
           delay={BLUR_FADE_DELAY}
           directories={directoryPage.items}

@@ -4,11 +4,14 @@ import {
   SandpackCodeEditor,
   SandpackLayout,
   SandpackProvider,
-  useActiveCode
+  useActiveCode,
+  type SandpackTheme
 } from '@codesandbox/sandpack-react'
 import { CodeBlockHeader } from '@/components/markdown/markdown-components/code/code-block-header'
 import { CodeTheme } from '@/components/markdown/markdown-components/code/extension/code-theme'
+import { MarkdownBlockquote } from '@/components/markdown/markdown-components/alert'
 import { remarkCodeMeta } from '@/components/markdown/markdown-components/code/extension'
+import { useTheme } from 'next-themes'
 import {
   forwardRef,
   useEffect,
@@ -37,7 +40,10 @@ const CONTENT_FILE = '/content.mdx'
 
 export const MdxSourceEditor = forwardRef<EditorCommandHandle, MdxSourceEditorProps>(
   function MdxSourceEditor({ content, onChange }, ref) {
+    const { resolvedTheme } = useTheme()
     const initialContentRef = useRef(content)
+    const sandpackTheme =
+      resolvedTheme === 'dark' ? sandpackDarkTheme : sandpackLightTheme
     const files = useMemo(
       () => ({
         [CONTENT_FILE]: {
@@ -56,7 +62,7 @@ export const MdxSourceEditor = forwardRef<EditorCommandHandle, MdxSourceEditorPr
           visibleFiles: [CONTENT_FILE]
         }}
         template='react'
-        theme='auto'
+        theme={sandpackTheme}
       >
         <SandpackMdxBody
           content={content}
@@ -315,6 +321,7 @@ function MdxPreview({ content }: { content: string }) {
         strong: ({ children }) => (
           <strong className='font-semibold'>{children}</strong>
         ),
+        blockquote: MarkdownBlockquote,
         pre: ({ children }) => <>{children}</>,
         code: ({ children, className, node }) => {
           const language = /language-([^\s]+)/.exec(className ?? '')?.[1]
@@ -466,6 +473,62 @@ const codeThemeVariables = {
   '--shiki-token-punctuation': 'var(--ds-gray-1000)',
   '--shiki-token-link': 'var(--ds-green-900)'
 } as CSSProperties
+
+const sandpackBaseTheme = {
+  font: {
+    body: 'var(--font-geist-sans)',
+    mono: 'var(--font-mono)',
+    size: '14px',
+    lineHeight: '1.7'
+  },
+  syntax: {
+    plain: 'var(--ds-gray-1000)',
+    comment: 'var(--ds-gray-900)',
+    keyword: 'var(--ds-pink-900)',
+    definition: 'var(--ds-purple-900)',
+    punctuation: 'var(--ds-gray-1000)',
+    property: 'var(--ds-blue-900)',
+    tag: 'var(--ds-blue-900)',
+    static: 'var(--ds-amber-900)',
+    string: 'var(--ds-green-900)'
+  }
+} satisfies Pick<SandpackTheme, 'font' | 'syntax'>
+
+const sandpackLightTheme = {
+  ...sandpackBaseTheme,
+  colors: {
+    surface1: 'var(--background)',
+    surface2: 'var(--card)',
+    surface3: 'var(--muted)',
+    disabled: 'var(--muted-foreground)',
+    base: 'var(--foreground)',
+    clickable: 'var(--foreground)',
+    hover: 'var(--muted)',
+    accent: 'var(--foreground)',
+    error: 'var(--destructive)',
+    errorSurface: 'color-mix(in oklch, var(--destructive), transparent 88%)',
+    warning: 'var(--ds-amber-900)',
+    warningSurface: 'var(--ds-amber-300)'
+  }
+} satisfies SandpackTheme
+
+const sandpackDarkTheme = {
+  ...sandpackBaseTheme,
+  colors: {
+    surface1: 'var(--background)',
+    surface2: 'var(--card)',
+    surface3: 'var(--muted)',
+    disabled: 'var(--muted-foreground)',
+    base: 'var(--foreground)',
+    clickable: 'var(--foreground)',
+    hover: 'var(--muted)',
+    accent: 'var(--foreground)',
+    error: 'var(--destructive)',
+    errorSurface: 'color-mix(in oklch, var(--destructive), transparent 82%)',
+    warning: 'var(--ds-amber-900)',
+    warningSurface: 'var(--ds-amber-300)'
+  }
+} satisfies SandpackTheme
 
 function stripMdxRuntimeOnlyBlocks(content: string) {
   let fence: string | null = null

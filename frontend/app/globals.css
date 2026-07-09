@@ -254,21 +254,6 @@ html[data-magicui-theme-vt='active']::view-transition-group(root) {
   color: var(--muted-foreground);
 }
 
-.tiptap ul[data-type='taskList'] {
-  list-style: none;
-  padding-left: 0;
-}
-
-.tiptap ul[data-type='taskList'] li {
-  display: flex;
-  gap: 0.65rem;
-  align-items: flex-start;
-}
-
-.tiptap ul[data-type='taskList'] li > label {
-  margin-top: 0.35rem;
-}
-
 .tiptap table {
   width: 100%;
   border-collapse: collapse;

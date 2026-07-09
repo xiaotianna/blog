@@ -3,6 +3,7 @@ import { type Components } from 'react-markdown'
 
 import { cn } from '@/lib/utils'
 
+import { MarkdownBlockquote } from './alert'
 import { Code } from './code'
 import { Link } from './link'
 
@@ -36,16 +37,7 @@ export const MarkdownComponents: Components = {
       {children}
     </ol>
   ),
-  blockquote: ({ children, className }) => (
-    <blockquote
-      className={cn(
-        'p-3 text-sm [&>p]:leading-[1.5] [&>p:first-child]:mt-0 [&>p:last-child]:mb-0',
-        className
-      )}
-    >
-      {children}
-    </blockquote>
-  ),
+  blockquote: MarkdownBlockquote,
   table: ({ children, className, ...props }) => (
     <div className='my-8 w-full max-w-full overflow-x-auto overscroll-x-contain'>
       <table

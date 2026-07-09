@@ -155,6 +155,7 @@ export function ArticleEditorShell({ article }: ArticleEditorShellProps) {
           setCommandRevision((value) => value + 1)
         }}
         saveState={saveState}
+        title={article.title}
       />
 
       <main data-command-revision={commandRevision}>

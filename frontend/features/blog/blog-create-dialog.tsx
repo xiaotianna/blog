@@ -50,10 +50,12 @@ export function BlogCreateDialog({
     >
       <DialogTrigger asChild>
         <Button
+          aria-label='新增'
+          className='max-sm:size-9 max-sm:px-0'
           type='button'
         >
           <Plus className='size-4' />
-          新增
+          <span className='max-sm:sr-only'>新增</span>
         </Button>
       </DialogTrigger>
       <DialogContent

@@ -4,6 +4,7 @@ import { AnimatedThemeToggler } from '@/components/ui/animated-theme-toggler'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import {
+  ChevronLeft,
   CheckCircle2,
   Code2,
   FileText,
@@ -14,6 +15,7 @@ import {
   TriangleAlert,
   Undo2
 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 export type EditorMode = 'rich' | 'mdx'
 export type SaveState = 'dirty' | 'error' | 'idle' | 'saving' | 'saved'
@@ -28,6 +30,7 @@ type EditorHeaderProps = {
   onUndo: () => void
   onModeChange: (mode: EditorMode) => void
   saveState: SaveState
+  title: string
 }
 
 const saveStateMeta: Record<
@@ -70,27 +73,46 @@ export function EditorHeader({
   onSave,
   onUndo,
   onModeChange,
-  saveState
+  saveState,
+  title
 }: EditorHeaderProps) {
+  const router = useRouter()
   const status = saveStateMeta[saveState]
   const StatusIcon = status.icon
 
   return (
     <header className='sticky top-0 z-50 border-b border-border/70 bg-background/80 backdrop-blur-xl'>
-      <div className='mx-auto flex h-14 w-full max-w-7xl items-center justify-end gap-3 px-4 max-md:h-auto max-md:items-stretch max-md:py-3'>
-        <div className='relative z-70 flex flex-wrap items-center justify-end gap-2'>
-          <span
-            className={cn(
-              'inline-flex h-8 items-center gap-1.5 rounded-lg px-2 text-xs',
-              status.tone
-            )}
+      <div className='mx-auto flex h-14 w-full max-w-7xl items-center justify-between gap-3 px-4 max-md:h-auto max-md:items-stretch max-md:py-3'>
+        <div className='flex min-w-0 flex-1 items-center gap-3'>
+          <Button
+            aria-label='返回'
+            onClick={() => router.back()}
+            size='icon'
+            type='button'
+            variant='ghost'
           >
-            <StatusIcon
-              className={cn('size-3.5', saveState === 'saving' && 'animate-spin')}
-            />
-            {status.label}
-          </span>
+            <ChevronLeft className='size-4' />
+          </Button>
 
+          <div className='flex min-w-0 items-center gap-2'>
+            <h1 className='truncate text-sm font-medium text-foreground'>
+              {title}
+            </h1>
+            <span
+              className={cn(
+                'inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg px-2 text-xs',
+                status.tone
+              )}
+            >
+              <StatusIcon
+                className={cn('size-3.5', saveState === 'saving' && 'animate-spin')}
+              />
+              {status.label}
+            </span>
+          </div>
+        </div>
+
+        <div className='relative z-70 flex flex-wrap items-center justify-end gap-2'>
           <div className='flex items-center rounded-lg border border-border bg-background p-0.5'>
             <Button
               aria-label='切换到富文本编辑'

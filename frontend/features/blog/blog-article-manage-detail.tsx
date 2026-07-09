@@ -60,17 +60,27 @@ export function BlogArticleManageDetail({
             <div className='flex shrink-0 flex-wrap justify-end gap-2'>
               <Button
                 asChild
+                className='max-sm:size-9 max-sm:px-0'
                 variant='outline'
               >
-                <Link href={`/post/${article.path}`}>
+                <Link
+                  aria-label='阅读正文'
+                  href={`/post/${article.path}`}
+                >
                   <ArrowUpRight className='size-4' />
-                  阅读正文
+                  <span className='max-sm:sr-only'>阅读正文</span>
                 </Link>
               </Button>
-              <Button asChild>
-                <Link href={`/edit/${article.id}`}>
+              <Button
+                asChild
+                className='max-sm:size-9 max-sm:px-0'
+              >
+                <Link
+                  aria-label='编辑正文'
+                  href={`/edit/${article.id}`}
+                >
                   <FilePenLine className='size-4' />
-                  编辑正文
+                  <span className='max-sm:sr-only'>编辑正文</span>
                 </Link>
               </Button>
               <PermissionGate allowed={canManageArticle}>

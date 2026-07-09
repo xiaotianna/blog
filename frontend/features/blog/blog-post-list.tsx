@@ -107,6 +107,7 @@ export function BlogContentList({
                 ))
               : articles.map((article, index) => (
                   <BlogListItem
+                    description={article.description}
                     icon='article'
                     index={(pagination.page - 1) * PAGE_SIZE + index + 1}
                     key={article.id}
@@ -209,13 +210,13 @@ function BlogListItem({
 
   return (
     <Link
-      className='group flex cursor-pointer items-center gap-x-3 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
+      className='group flex cursor-pointer items-start gap-x-3 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
       href={href}
     >
-      <span className='font-mono text-xs font-medium tabular-nums text-muted-foreground'>
+      <span className='mt-1 font-mono text-xs font-medium tabular-nums text-muted-foreground'>
         {String(index).padStart(2, '0')}.
       </span>
-      <Icon className='size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground' />
+      <Icon className='mt-1 size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground' />
       <div className='flex min-w-0 flex-1 flex-col gap-y-2'>
         <div className='flex flex-wrap items-center gap-2'>
           <p className='text-base font-medium tracking-tight'>

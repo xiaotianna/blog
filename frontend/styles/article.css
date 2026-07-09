@@ -22,4 +22,12 @@
     @apply prose-thead:border-b prose-thead:border-(--ds-gray-200) prose-th:px-[0.6em] prose-th:pb-[0.8em] prose-th:text-left prose-th:align-bottom prose-th:font-semibold prose-th:text-(--ds-gray-1000);
     @apply prose-tr:border-b prose-tr:border-(--ds-gray-200) last:prose-tr:border-b-0 prose-td:px-[0.6em] prose-td:py-[0.8em] prose-td:align-baseline prose-td:text-(--ds-gray-900);
   }
+
+  .rich-editor-content > pre {
+    @apply my-4 overflow-x-auto rounded-md border border-(--ds-gray-400) bg-(--ds-background-100) px-5 py-5 font-mono text-[13px] leading-5 text-(--ds-gray-1000);
+  }
+
+  .rich-editor-content > pre code {
+    @apply block rounded-none border-0 bg-transparent p-0 text-[13px]! leading-5 whitespace-pre text-(--ds-gray-1000) [font-variant-ligatures:none] break-normal hyphens-none;
+  }
 }

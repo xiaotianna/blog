@@ -25,4 +25,6 @@ func ArticleRouter(r *gin.RouterGroup) {
 	r.GET("/list", middlewares.OptionalJWTAuth, controllers.Article.List)
 	// 获取文章详情接口
 	r.GET("/detail", middlewares.OptionalJWTAuth, controllers.Article.Detail)
+	// 根据 ID 获取文章详情接口
+	r.GET("/by-id/:id", middlewares.JWTAuth, controllers.Article.DetailByID)
 }

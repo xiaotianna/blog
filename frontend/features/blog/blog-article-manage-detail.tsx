@@ -1,7 +1,7 @@
 import { PermissionGate } from '@/components/server/permission-gate'
 import { Button } from '@/components/ui/button'
 import { getPublicArticleCoverUrl } from '@/lib/article-cover-url'
-import { ArrowUpRight, CalendarClock } from 'lucide-react'
+import { ArrowUpRight, CalendarClock, FilePenLine } from 'lucide-react'
 import Link from 'next/link'
 
 import { BlogArticleCover } from './blog-article-cover'
@@ -65,6 +65,12 @@ export function BlogArticleManageDetail({
                 <Link href={`/post/${article.path}`}>
                   <ArrowUpRight className='size-4' />
                   阅读正文
+                </Link>
+              </Button>
+              <Button asChild>
+                <Link href={`/edit/${article.id}`}>
+                  <FilePenLine className='size-4' />
+                  编辑正文
                 </Link>
               </Button>
               <PermissionGate allowed={canManageArticle}>

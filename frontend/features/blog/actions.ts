@@ -252,6 +252,28 @@ export async function updateArticleAction(input: {
   return result
 }
 
+export async function updateArticleContentAction(input: {
+  article: {
+    description: string
+    id: string
+    slug: string
+    status: string
+    tagIds: string[]
+    title: string
+  }
+  content: string
+}): Promise<BlogMutationActionResult> {
+  return updateArticleAction({
+    id: input.article.id,
+    title: input.article.title,
+    slug: input.article.slug,
+    description: input.article.description,
+    status: input.article.status,
+    content: input.content,
+    tagIds: input.article.tagIds
+  })
+}
+
 export async function updateArticleCoverAction(input: {
   id: string
   path: string

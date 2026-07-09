@@ -245,6 +245,57 @@ html[data-magicui-theme-vt='active']::view-transition-group(root) {
   animation-duration: var(--magicui-theme-toggle-vt-duration);
 }
 
+.tiptap p.is-editor-empty:first-child::before,
+.tiptap .is-empty::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  color: var(--muted-foreground);
+}
+
+.tiptap ul[data-type='taskList'] {
+  list-style: none;
+  padding-left: 0;
+}
+
+.tiptap ul[data-type='taskList'] li {
+  display: flex;
+  gap: 0.65rem;
+  align-items: flex-start;
+}
+
+.tiptap ul[data-type='taskList'] li > label {
+  margin-top: 0.35rem;
+}
+
+.tiptap table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tiptap th,
+.tiptap td {
+  border: 1px solid var(--border);
+  padding: 0.5rem 0.65rem;
+}
+
+.tiptap th {
+  background: var(--muted);
+  font-weight: 600;
+}
+
+.sp-wrapper,
+.sp-layout,
+.sp-stack {
+  height: 100%;
+}
+
+.sp-code-editor,
+.sp-preview-container {
+  height: 100%;
+}
+
 @property --c5-x1 {
   syntax: '<percentage>';
   inherits: false;

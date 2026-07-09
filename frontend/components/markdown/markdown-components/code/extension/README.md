@@ -19,10 +19,11 @@ export default function Page() {}
 
 ```ts
 node.meta -> data-meta
+code block -> data-code-block
 ```
 
 这样代码块组件就能从 `node.properties['data-meta']` 读取原始 meta 字符串，并解析出
-`filename` 等 UI 信息。
+`filename` 等 UI 信息；同时通过 `data-code-block` 区分 fenced code block 和 inline code。
 
 ## 默认用法
 
@@ -55,6 +56,7 @@ import { createRemarkCodeMetaPlugin } from './markdown-components/code/extennal'
 const remarkCodeBlockProps = createRemarkCodeMetaPlugin({
   properties: {
     'data-meta': 'meta',
+    'data-code-block': () => true,
     'data-language': 'lang',
     'data-code-length': (node) => node.value?.length
   }

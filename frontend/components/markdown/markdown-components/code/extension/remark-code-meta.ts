@@ -62,7 +62,8 @@ function visitMarkdownNode(
 export function createRemarkCodeMetaPlugin(options: RemarkCodeMetaOptions = {}) {
   const {
     properties = {
-      'data-meta': 'meta'
+      'data-meta': 'meta',
+      'data-code-block': () => true
     },
     shouldTransform = (node) => node.type === 'code'
   } = options

@@ -36,6 +36,19 @@ func (ArticleDAO) FindByID(ctx context.Context, id uuid.UUID) (*entities.Article
 	return &article, nil
 }
 
+func (ArticleDAO) FindDetailByID(ctx context.Context, id uuid.UUID) (*entities.ArticleEntity, error) {
+	var article entities.ArticleEntity
+	err := config.PgDB.
+		WithContext(ctx).
+		Preload("Tags").
+		First(&article, "id = ?", id).
+		Error
+	if err != nil {
+		return nil, err
+	}
+	return &article, nil
+}
+
 func (ArticleDAO) FindByCategoryPathAndSlug(ctx context.Context, articlePath string) (*entities.ArticleEntity, error) {
 	var article entities.ArticleEntity
 	categoryPath := path.Dir(articlePath)

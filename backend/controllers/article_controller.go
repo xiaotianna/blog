@@ -187,6 +187,28 @@ func (article ArticleController) Detail(c *gin.Context) {
 	utils.Success(c, "获取文章详情成功", res)
 }
 
+func (article ArticleController) DetailByID(c *gin.Context) {
+	ctx := c.Request.Context()
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		utils.Error(c, http.StatusBadRequest, "文章 ID 不合法")
+		return
+	}
+
+	res, err := article.service.DetailByID(ctx, id)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			utils.Error(c, http.StatusNotFound, "文章不存在")
+			return
+		}
+
+		utils.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	utils.Success(c, "获取文章详情成功", res)
+}
+
 func articleCoverErrorStatus(err error) int {
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return http.StatusNotFound

@@ -136,6 +136,14 @@ export async function getArticleDetail(path: string) {
   }
 }
 
+export async function getArticleDetailById(id: string) {
+  const article = await requestGoApiData<
+    Omit<ArticleApiResponse, 'content'> & { content: string }
+  >(`/article/by-id/${encodeURIComponent(id)}`)
+
+  return normalizeArticle(article)
+}
+
 export async function getBlogNode(path: string): Promise<BlogNode | null> {
   const category = await getCurrentCategory(path)
 

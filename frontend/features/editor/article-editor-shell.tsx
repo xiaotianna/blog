@@ -1,0 +1,151 @@
+'use client'
+
+import { updateArticleContentAction } from '@/features/blog/actions'
+import type { BlogArticleDetail } from '@/features/blog/blog-data'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { toast } from 'sonner'
+
+import {
+  EditorHeader,
+  type EditorMode,
+  type SaveState
+} from './editor-header'
+import { MdxSourceEditor } from './mdx-source-editor'
+import {
+  RichTextEditor,
+  type EditorCommandHandle
+} from './rich-text-editor'
+
+type ArticleEditorShellProps = {
+  article: BlogArticleDetail
+}
+
+const AUTOSAVE_DELAY = 1500
+
+export function ArticleEditorShell({ article }: ArticleEditorShellProps) {
+  const editorRef = useRef<EditorCommandHandle>(null)
+  const latestContentRef = useRef(article.content)
+  const lastSavedContentRef = useRef(article.content)
+  const [content, setContent] = useState(article.content)
+  const [mode, setMode] = useState<EditorMode>('rich')
+  const [saveState, setSaveState] = useState<SaveState>('idle')
+  const [commandRevision, setCommandRevision] = useState(0)
+
+  const saveContent = useCallback(
+    (nextContent: string, silent = false) => {
+      if (nextContent === lastSavedContentRef.current) {
+        setSaveState('saved')
+        return
+      }
+
+      setSaveState('saving')
+      void (async () => {
+        try {
+          const result = await updateArticleContentAction({
+            article: {
+              id: article.id,
+              title: article.title,
+              slug: article.slug,
+              description: article.description,
+              status: article.status,
+              tagIds: article.tags.map((tag) => tag.id)
+            },
+            content: nextContent
+          })
+
+          if (!result.ok) {
+            setSaveState('error')
+            if (!silent) {
+              toast.error(result.message ?? '保存失败，请稍后重试')
+            }
+            return
+          }
+
+          lastSavedContentRef.current = nextContent
+          setSaveState(
+            latestContentRef.current === nextContent ? 'saved' : 'dirty'
+          )
+          if (!silent) {
+            toast.success(result.message ?? '文章已保存')
+          }
+        } catch {
+          setSaveState('error')
+          if (!silent) {
+            toast.error('保存失败，请稍后重试')
+          }
+        }
+      })()
+    },
+    [article.description, article.id, article.slug, article.status, article.tags, article.title]
+  )
+
+  const handleChange = useCallback((nextContent: string) => {
+    latestContentRef.current = nextContent
+    setContent(nextContent)
+    setSaveState((current) => (current === 'saving' ? current : 'dirty'))
+    setCommandRevision((value) => value + 1)
+  }, [])
+
+  const handleManualSave = useCallback(() => {
+    const nextContent = editorRef.current?.getContent() ?? content
+    latestContentRef.current = nextContent
+    setContent(nextContent)
+    saveContent(nextContent)
+  }, [content, saveContent])
+
+  useEffect(() => {
+    if (content === lastSavedContentRef.current || saveState !== 'dirty') {
+      return
+    }
+
+    const timer = window.setTimeout(() => saveContent(content, true), AUTOSAVE_DELAY)
+
+    return () => window.clearTimeout(timer)
+  }, [content, saveContent, saveState])
+
+  const canUndo = editorRef.current?.canUndo() ?? false
+  const canRedo = editorRef.current?.canRedo() ?? false
+
+  return (
+    <div className='min-h-screen bg-background text-foreground'>
+      <EditorHeader
+        canRedo={canRedo}
+        canUndo={canUndo}
+        mode={mode}
+        onModeChange={(nextMode) => {
+          const nextContent = editorRef.current?.getContent() ?? content
+          latestContentRef.current = nextContent
+          setContent(nextContent)
+          setMode(nextMode)
+          setCommandRevision((value) => value + 1)
+        }}
+        onRedo={() => {
+          editorRef.current?.redo()
+          setCommandRevision((value) => value + 1)
+        }}
+        onSave={handleManualSave}
+        onUndo={() => {
+          editorRef.current?.undo()
+          setCommandRevision((value) => value + 1)
+        }}
+        saveState={saveState}
+      />
+
+      <main data-command-revision={commandRevision}>
+        {mode === 'rich' ? (
+          <RichTextEditor
+            content={content}
+            onChange={handleChange}
+            ref={editorRef}
+          />
+        ) : (
+          <MdxSourceEditor
+            content={content}
+            onChange={handleChange}
+            ref={editorRef}
+          />
+        )}
+      </main>
+    </div>
+  )
+}

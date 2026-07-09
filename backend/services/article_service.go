@@ -353,6 +353,15 @@ func (ArticleService) Detail(ctx context.Context, articlePath string, includeAll
 	return articleToDetailVO(article), nil
 }
 
+func (ArticleService) DetailByID(ctx context.Context, id uuid.UUID) (*vo.ArticleDetailVO, error) {
+	article, err := dao.Article.FindDetailByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return articleToDetailVO(article), nil
+}
+
 func articleToListItemVO(article entities.ArticleEntity, categoryPath string) vo.ArticleListItemVO {
 	articlePath := article.Path
 	if articlePath == "" {

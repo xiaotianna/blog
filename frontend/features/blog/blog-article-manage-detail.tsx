@@ -40,24 +40,24 @@ export function BlogArticleManageDetail({
   directoryOptions
 }: BlogArticleManageDetailProps) {
   return (
-    <main className='flex min-h-[calc(100dvh-9rem)] w-full flex-col pb-0 lg:min-h-0 lg:px-0'>
+    <main className='mx-auto flex min-h-[calc(100dvh-9rem)] w-full max-w-5xl flex-col px-6 pb-0 lg:min-h-0 lg:px-0'>
       <section className='min-h-0 flex-1'>
-        <div className='flex flex-col gap-6'>
-          <div className='flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between'>
+        <div className='flex flex-col gap-8'>
+          <div className='flex items-start justify-between gap-4'>
             <div className='min-w-0 flex-1'>
               <div className='flex flex-wrap items-center gap-2'>
-                <h1 className='text-2xl font-semibold leading-none tracking-tight'>
+                <h1 className='text-2xl font-semibold tracking-tight'>
                   {article.title}
                 </h1>
               </div>
               {article.description ? (
-                <p className='mt-2 max-w-2xl text-sm leading-6 text-muted-foreground'>
+                <p className='mt-2 max-w-2xl text-sm text-muted-foreground'>
                   {article.description}
                 </p>
               ) : null}
             </div>
 
-            <div className='flex shrink-0 flex-wrap gap-2'>
+            <div className='flex shrink-0 flex-wrap justify-end gap-2'>
               <Button
                 asChild
                 variant='outline'
@@ -76,7 +76,7 @@ export function BlogArticleManageDetail({
             </div>
           </div>
 
-          <div className='grid gap-5 lg:grid-cols-[minmax(0,0.95fr)_minmax(280px,0.72fr)] lg:items-start'>
+          <div className='grid gap-8 lg:grid-cols-[minmax(0,0.95fr)_minmax(280px,0.72fr)] lg:items-start'>
             <ArticleThumbnail
               article={article}
               canManageArticle={canManageArticle}

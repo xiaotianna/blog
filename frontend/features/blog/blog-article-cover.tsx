@@ -8,6 +8,7 @@ import {
   DialogTitle
 } from '@/components/ui/dialog'
 import { Eye, LoaderCircle, RefreshCw, Trash2, Upload } from 'lucide-react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import type { ChangeEvent, ReactNode } from 'react'
@@ -51,6 +52,7 @@ export function BlogArticleCover({
   const [coverJobId, setCoverJobId] = useState('')
   const [isCoverJobRunning, setIsCoverJobRunning] = useState(false)
   const isBusy = isUpdating || isUploading || isDeleting || isCoverJobRunning
+  const shouldSkipImageOptimization = isExternalImageUrl(coverUrl)
 
   useEffect(() => {
     if (!coverJobId || !isCoverJobRunning) {
@@ -195,14 +197,17 @@ export function BlogArticleCover({
 
   return (
     <>
-      <div className='group relative overflow-hidden rounded-lg border border-border bg-muted/30'>
-        <div className='relative aspect-16/9 w-full'>
+      <div className='group relative overflow-hidden rounded-lg border border-border bg-muted/30 max-sm:rounded-md'>
+        <div className='relative aspect-16/9 w-full max-sm:max-h-44'>
           <div className='size-full transition duration-200 group-hover:scale-[1.015] group-hover:blur-[2px] group-focus-within:scale-[1.015] group-focus-within:blur-[2px]'>
             {coverUrl ? (
-              <img
+              <Image
                 alt={`${title} 封面`}
                 className='size-full object-cover'
+                fill
+                sizes='(min-width: 1024px) 54vw, calc(100vw - 3rem)'
                 src={coverUrl}
+                unoptimized={shouldSkipImageOptimization}
               />
             ) : (
               <ArticleCoverPlaceholder
@@ -279,11 +284,16 @@ export function BlogArticleCover({
             查看当前文章封面大图
           </DialogDescription>
           {coverUrl ? (
-            <img
-              alt={`${title} 封面预览`}
-              className='aspect-16/9 w-full rounded-lg object-cover'
-              src={coverUrl}
-            />
+            <div className='relative aspect-16/9 w-full overflow-hidden rounded-lg'>
+              <Image
+                alt={`${title} 封面预览`}
+                className='object-cover'
+                fill
+                sizes='(min-width: 768px) 56rem, calc(100vw - 2rem)'
+                src={coverUrl}
+                unoptimized={shouldSkipImageOptimization}
+              />
+            </div>
           ) : null}
         </DialogContent>
       </Dialog>
@@ -331,6 +341,10 @@ export function BlogArticleCover({
   )
 }
 
+function isExternalImageUrl(src: string) {
+  return /^https?:\/\//.test(src)
+}
+
 function ArticleCoverPlaceholder({
   description,
   title
@@ -339,12 +353,12 @@ function ArticleCoverPlaceholder({
   title: string
 }) {
   return (
-    <div className='flex size-full items-center justify-center bg-[radial-gradient(circle_at_1px_1px,var(--border)_1px,transparent_0)] bg-size-[14px_14px] p-6'>
+    <div className='flex size-full items-center justify-center bg-[radial-gradient(circle_at_1px_1px,var(--border)_1px,transparent_0)] bg-size-[14px_14px] p-6 max-sm:p-5'>
       <div className='max-w-xs text-center'>
         <p className='text-[0.7rem] font-medium uppercase text-muted-foreground'>
           Preview
         </p>
-        <p className='mt-2 text-lg font-semibold tracking-tight text-foreground'>
+        <p className='mt-2 text-lg font-semibold tracking-tight text-foreground max-sm:text-base'>
           {title}
         </p>
         {description ? (

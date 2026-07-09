@@ -1,6 +1,14 @@
 'use server'
 
-import { generateAndUploadArticleCover } from '@/lib/server/article-cover'
+import {
+  enqueueArticleCoverJob,
+  getArticleCoverJobStatus,
+  processArticleCoverJobQueue
+} from '@/lib/server/article-cover-jobs'
+import type {
+  ArticleCoverJobSnapshot,
+  ArticleCoverJobStatus
+} from '@/lib/server/article-cover-jobs'
 import { getAuthToken } from '@/lib/server/auth'
 import { goApiFetch, readApiResponse } from '@/lib/server/go-api'
 import { revalidatePath } from 'next/cache'
@@ -20,6 +28,17 @@ type CategoryData = {
 type ArticleData = {
   id: string
   path?: string
+}
+
+type ArticleCoverJobActionResult = BlogMutationActionResult & {
+  job?: ArticleCoverJobSnapshot
+}
+
+type ArticleCoverJobStatusActionResult = {
+  ok: boolean
+  job?: ArticleCoverJobSnapshot
+  message?: string
+  status?: ArticleCoverJobStatus
 }
 
 export async function createCategoryAction(input: {
@@ -211,7 +230,7 @@ export async function updateArticleAction(input: {
 export async function updateArticleCoverAction(input: {
   id: string
   path: string
-}): Promise<BlogMutationActionResult> {
+}): Promise<ArticleCoverJobActionResult> {
   const id = input.id.trim()
   const path = input.path.trim()
 
@@ -230,31 +249,67 @@ export async function updateArticleCoverAction(input: {
   }
 
   const cookieHeader = (await cookies()).toString()
+  const job = enqueueArticleCoverJob({
+    authToken,
+    cookieHeader,
+    id,
+    path
+  })
 
   after(async () => {
     try {
-      const result = await generateAndUploadArticleCover({
-        authToken,
-        cookieHeader,
-        id,
-        path
-      })
-
-      if (!result.ok) {
-        console.error(result.message ?? '更新文章封面失败')
-        return
-      }
-
-      revalidatePath(`/blog/${path}`)
-      revalidatePath(`/post/${path}`)
+      await processArticleCoverJobQueue()
     } catch (error) {
-      console.error('更新文章封面任务异常', error)
+      console.error('文章封面任务队列异常', error)
     }
   })
 
   return {
     ok: true,
-    message: '封面更新任务已开始，稍后刷新页面查看结果'
+    job,
+    message:
+      job.status === 'running'
+        ? '封面正在生成中'
+        : '封面更新任务已加入队列'
+  }
+}
+
+export async function getArticleCoverJobStatusAction(
+  jobId: string
+): Promise<ArticleCoverJobStatusActionResult> {
+  const id = jobId.trim()
+
+  if (!id) {
+    return {
+      ok: false,
+      message: '封面任务不存在'
+    }
+  }
+
+  const job = getArticleCoverJobStatus(id)
+
+  if (!job) {
+    return {
+      ok: false,
+      message: '封面任务已过期'
+    }
+  }
+
+  if (job.status === 'queued') {
+    after(async () => {
+      try {
+        await processArticleCoverJobQueue()
+      } catch (error) {
+        console.error('文章封面任务队列异常', error)
+      }
+    })
+  }
+
+  return {
+    ok: true,
+    job,
+    message: job.message,
+    status: job.status
   }
 }
 

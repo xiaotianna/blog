@@ -9,18 +9,20 @@ import {
 } from '@/components/ui/dialog'
 import { Eye, LoaderCircle, RefreshCw, Trash2, Upload } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { ChangeEvent, ReactNode } from 'react'
 import { toast } from 'sonner'
 
 import {
   deleteArticleCoverAction,
+  getArticleCoverJobStatusAction,
   uploadArticleCoverAction,
   updateArticleCoverAction
 } from './actions'
 
 const MAX_COVER_FILE_SIZE = 5 * 1024 * 1024
 const COVER_FILE_TYPES = new Set(['image/png', 'image/jpeg', 'image/webp'])
+const COVER_JOB_POLL_INTERVAL = 1500
 
 type BlogArticleCoverProps = {
   articleId: string
@@ -46,9 +48,52 @@ export function BlogArticleCover({
   const [isUpdating, setIsUpdating] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
-  const isBusy = isUpdating || isUploading || isDeleting
+  const [coverJobId, setCoverJobId] = useState('')
+  const [isCoverJobRunning, setIsCoverJobRunning] = useState(false)
+  const isBusy = isUpdating || isUploading || isDeleting || isCoverJobRunning
+
+  useEffect(() => {
+    if (!coverJobId || !isCoverJobRunning) {
+      return
+    }
+
+    const intervalId = window.setInterval(async () => {
+      const result = await getArticleCoverJobStatusAction(coverJobId)
+
+      if (!result.ok || !result.job) {
+        window.clearInterval(intervalId)
+        setCoverJobId('')
+        setIsCoverJobRunning(false)
+        toast.error(result.message ?? '封面任务状态获取失败')
+        return
+      }
+
+      if (result.job.status === 'queued' || result.job.status === 'running') {
+        return
+      }
+
+      window.clearInterval(intervalId)
+      setCoverJobId('')
+      setIsCoverJobRunning(false)
+
+      if (result.job.status === 'succeeded') {
+        toast.success(result.job.message ?? '文章封面已更新')
+        router.refresh()
+        return
+      }
+
+      toast.error(result.job.message ?? '更新文章封面失败，请稍后重试')
+    }, COVER_JOB_POLL_INTERVAL)
+
+    return () => window.clearInterval(intervalId)
+  }, [coverJobId, isCoverJobRunning, router])
 
   const handleUpdate = async () => {
+    if (isCoverJobRunning) {
+      toast.info('封面正在生成中，请稍后查看结果')
+      return
+    }
+
     try {
       setIsUpdating(true)
       const result = await updateArticleCoverAction({
@@ -61,7 +106,14 @@ export function BlogArticleCover({
         return
       }
 
-      toast.success(result.message ?? '更新文章封面成功')
+      if (result.job) {
+        setCoverJobId(result.job.id)
+        setIsCoverJobRunning(
+          result.job.status === 'queued' || result.job.status === 'running'
+        )
+      }
+
+      toast.info(result.message ?? '封面更新任务已加入队列')
     } catch {
       toast.error('更新文章封面失败，请稍后重试')
     } finally {
@@ -182,7 +234,7 @@ export function BlogArticleCover({
                   label='更新封面'
                   onClick={handleUpdate}
                 >
-                  {isUpdating ? (
+                  {isUpdating || isCoverJobRunning ? (
                     <LoaderCircle className='size-4 animate-spin' />
                   ) : (
                     <RefreshCw className='size-4' />

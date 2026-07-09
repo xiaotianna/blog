@@ -7,6 +7,7 @@ import {
   getBlogNode,
   getChildDirectories,
   getDirectoryOptions,
+  getTagOptions,
   normalizeBlogPath,
   normalizePage,
   normalizeTab
@@ -56,11 +57,14 @@ export default async function BlogPage({
       redirect(`/post/${currentPath}`)
     }
 
+    const tagOptions = await getTagOptions()
+
     return (
       <BlogArticleManageDetail
         article={currentNode.item}
         canManageArticle={canManageArticles}
         directoryOptions={directoryOptions}
+        tagOptions={tagOptions}
       />
     )
   }

@@ -6,9 +6,11 @@ import Link from 'next/link'
 
 import { BlogArticleCover } from './blog-article-cover'
 import { BlogArticleActionsMenu } from './blog-article-actions-menu'
+import { BlogArticleTagsEditor } from './blog-article-tags-editor'
 import type {
   ArticleStatus,
   BlogArticleDetail,
+  BlogArticleTag,
   BlogDirectoryOption
 } from './blog-data'
 
@@ -16,6 +18,7 @@ type BlogArticleManageDetailProps = {
   article: BlogArticleDetail
   canManageArticle: boolean
   directoryOptions: BlogDirectoryOption[]
+  tagOptions: BlogArticleTag[]
 }
 
 const ARTICLE_STATUS_META: Record<ArticleStatus, { label: string; dot: string }> =
@@ -37,7 +40,8 @@ const ARTICLE_STATUS_META: Record<ArticleStatus, { label: string; dot: string }>
 export function BlogArticleManageDetail({
   article,
   canManageArticle,
-  directoryOptions
+  directoryOptions,
+  tagOptions
 }: BlogArticleManageDetailProps) {
   return (
     <main className='mx-auto flex min-h-[calc(100dvh-9rem)] w-full max-w-5xl flex-col px-6 pb-0 lg:min-h-0 lg:px-0'>
@@ -97,7 +101,11 @@ export function BlogArticleManageDetail({
               article={article}
               canManageArticle={canManageArticle}
             />
-            <ArticleInfoPanel article={article} />
+            <ArticleInfoPanel
+              article={article}
+              canManageArticle={canManageArticle}
+              tagOptions={tagOptions}
+            />
           </div>
         </div>
       </section>
@@ -126,7 +134,15 @@ function ArticleThumbnail({
   )
 }
 
-function ArticleInfoPanel({ article }: { article: BlogArticleDetail }) {
+function ArticleInfoPanel({
+  article,
+  canManageArticle,
+  tagOptions
+}: {
+  article: BlogArticleDetail
+  canManageArticle: boolean
+  tagOptions: BlogArticleTag[]
+}) {
   const statusMeta = ARTICLE_STATUS_META[article.status]
   const createdAt = article.createdAt || article.publishedAt || '未记录'
   const updatedAt = article.updatedAt || article.publishedAt || '未记录'
@@ -164,23 +180,11 @@ function ArticleInfoPanel({ article }: { article: BlogArticleDetail }) {
         </div>
       </div>
 
-      <div className='space-y-2'>
-        <p className='text-xs text-muted-foreground'>标签</p>
-        <div className='flex flex-wrap gap-1.5 text-sm text-foreground'>
-          {article.tags.length > 0 ? (
-            article.tags.map((tag) => (
-              <span
-                className='rounded-md bg-muted px-2 py-0.5 text-sm'
-                key={tag.id}
-              >
-                {tag.name}
-              </span>
-            ))
-          ) : (
-            <span className='text-xs text-muted-foreground'>暂无标签</span>
-          )}
-        </div>
-      </div>
+      <BlogArticleTagsEditor
+        article={article}
+        canManageArticle={canManageArticle}
+        tagOptions={tagOptions}
+      />
     </div>
   )
 }

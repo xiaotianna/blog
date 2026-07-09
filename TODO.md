@@ -1,14 +1,15 @@
 ## P0 必做
 
-- [ ] 补全标签功能
+- [x] 补全标签功能
   - 现状：后端已有 `TagEntity`，文章 DTO 也接收 `tagIds`，但缺少 tag 路由、控制器、服务、DAO 和前端标签选择/创建入口。
   - 参考：`backend/entities/tag_entity.go`、`backend/dto/article_dto.go`
 
-- [ ] 实现文章标签持久化
+- [x] 实现文章标签持久化
   - 现状：`UpdateArticleRequest.TagIDs` 未在 `ArticleService.Update` 中更新多对多关系。
   - 参考：`backend/services/article_service.go`
 
-- [] 移动端文章预览页面
+- [] 移动端文章预览页面（编辑器）
+- [] og
 
 ## P1 重要
 

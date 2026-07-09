@@ -1,6 +1,7 @@
 package services
 
 import (
+	"blog/config"
 	"blog/dao"
 	"blog/dto"
 	"blog/entities"
@@ -132,7 +133,23 @@ func (ArticleService) Update(ctx context.Context, id uuid.UUID, req dto.UpdateAr
 	article.Content = req.Content
 	article.Status = entities.ArticleStatus(req.Status)
 
-	if err := dao.Article.Save(ctx, article); err != nil {
+	tags, err := findArticleTagsByIDs(ctx, req.TagIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	err = config.PgDB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Save(article).Error; err != nil {
+			return err
+		}
+
+		return tx.Model(article).Association("Tags").Replace(tags)
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if err := config.PgDB.WithContext(ctx).Preload("Tags").First(article, "id = ?", article.ID).Error; err != nil {
 		return nil, err
 	}
 
@@ -486,11 +503,45 @@ func articleToDetailVO(article *entities.ArticleEntity) *vo.ArticleDetailVO {
 func articleTagsToVO(tags []entities.TagEntity) []vo.TagVO {
 	res := make([]vo.TagVO, 0, len(tags))
 	for _, tag := range tags {
+		color := tag.Color
+		if color == "" {
+			color = defaultTagColor
+		}
+
 		res = append(res, vo.TagVO{
-			ID:   tag.ID,
-			Name: tag.Name,
+			ID:    tag.ID,
+			Name:  tag.Name,
+			Color: color,
 		})
 	}
 
 	return res
+}
+
+func findArticleTagsByIDs(ctx context.Context, ids []uuid.UUID) ([]entities.TagEntity, error) {
+	if len(ids) == 0 {
+		return []entities.TagEntity{}, nil
+	}
+
+	uniqueIDs := make([]uuid.UUID, 0, len(ids))
+	seen := make(map[uuid.UUID]struct{}, len(ids))
+	for _, id := range ids {
+		if _, ok := seen[id]; ok {
+			continue
+		}
+
+		seen[id] = struct{}{}
+		uniqueIDs = append(uniqueIDs, id)
+	}
+
+	tags, err := dao.Tag.FindByIDs(ctx, uniqueIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(tags) != len(uniqueIDs) {
+		return nil, errors.New("标签不存在")
+	}
+
+	return tags, nil
 }

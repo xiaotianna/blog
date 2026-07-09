@@ -3,6 +3,7 @@ import { isAuthenticated } from '@/lib/server/permissions/check'
 import { revalidatePath } from 'next/cache'
 
 export type BlogMutationActionResult = {
+  id?: string
   ok: boolean
   message?: string
   path?: string
@@ -63,6 +64,7 @@ export async function runBlogMutation<T extends BlogMutationData>({
     revalidatePath('/blog')
 
     return {
+      id: result.data.id,
       ok: true,
       message: result.message || successMessage,
       path: result.data.path

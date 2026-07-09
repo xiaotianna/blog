@@ -30,6 +30,10 @@ type ArticleData = {
   path?: string
 }
 
+type TagData = {
+  id: string
+}
+
 type ArticleImageData = {
   url?: string
 }
@@ -209,6 +213,76 @@ export async function createArticleAction(input: {
     failureMessage: '新增文章失败，请稍后重试',
     serviceUnavailableMessage: '文章服务暂不可用，请稍后重试',
     successMessage: '新增文章成功'
+  })
+}
+
+export async function createTagAction(input: {
+  color: string
+  name: string
+}): Promise<BlogMutationActionResult> {
+  const color = input.color.trim()
+  const name = input.name.trim()
+
+  if (!name) {
+    return { ok: false, message: '请输入标签名称' }
+  }
+
+  if (name.length > 40) {
+    return { ok: false, message: '标签名称不能超过 40 个字符' }
+  }
+
+  if (!/^#[0-9a-fA-F]{6}$/.test(color)) {
+    return { ok: false, message: '请选择有效的标签颜色' }
+  }
+
+  return runBlogMutation<TagData>({
+    path: '/tag/',
+    method: 'POST',
+    body: {
+      color,
+      name
+    },
+    failureMessage: '新增标签失败，请稍后重试',
+    serviceUnavailableMessage: '标签服务暂不可用，请稍后重试',
+    successMessage: '新增标签成功'
+  })
+}
+
+export async function updateTagAction(input: {
+  color: string
+  id: string
+  name: string
+}): Promise<BlogMutationActionResult> {
+  const id = input.id.trim()
+  const color = input.color.trim()
+  const name = input.name.trim()
+
+  if (!id) {
+    return { ok: false, message: '标签 ID 不存在' }
+  }
+
+  if (!name) {
+    return { ok: false, message: '请输入标签名称' }
+  }
+
+  if (name.length > 40) {
+    return { ok: false, message: '标签名称不能超过 40 个字符' }
+  }
+
+  if (!/^#[0-9a-fA-F]{6}$/.test(color)) {
+    return { ok: false, message: '请选择有效的标签颜色' }
+  }
+
+  return runBlogMutation<TagData>({
+    path: `/tag/${encodeURIComponent(id)}`,
+    method: 'PATCH',
+    body: {
+      color,
+      name
+    },
+    failureMessage: '更新标签失败，请稍后重试',
+    serviceUnavailableMessage: '标签服务暂不可用，请稍后重试',
+    successMessage: '更新标签成功'
   })
 }
 

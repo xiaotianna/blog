@@ -57,6 +57,7 @@ type ArticleImageVO struct {
 }
 
 type TagVO struct {
-	ID   uuid.UUID `json:"id"`
-	Name string    `json:"name"`
+	ID    uuid.UUID `json:"id"`
+	Name  string    `json:"name"`
+	Color string    `json:"color"`
 }

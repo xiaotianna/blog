@@ -40,6 +40,7 @@ export type BlogArticle = {
 }
 
 export type BlogArticleTag = {
+  color: string
   id: string
   name: string
 }
@@ -173,6 +174,20 @@ export async function getBlogNode(path: string): Promise<BlogNode | null> {
 export async function getDirectoryOptions() {
   try {
     return await requestGoApiData<BlogDirectoryOption[]>('/category/options', {
+      auth: false
+    })
+  } catch (error) {
+    if (!isNotFoundApiError(error)) {
+      throw error
+    }
+
+    return []
+  }
+}
+
+export async function getTagOptions() {
+  try {
+    return await requestGoApiData<BlogArticleTag[]>('/tag/options', {
       auth: false
     })
   } catch (error) {

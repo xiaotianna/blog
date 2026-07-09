@@ -31,6 +31,7 @@ import {
   Code2,
   Heading1,
   Heading2,
+  ImagePlus,
   Info,
   Italic,
   Link2,
@@ -48,16 +49,19 @@ import {
   useState
 } from 'react'
 
+import type { EditorImageInput } from './editor-image-markdown'
 import { protectMdxForRichText, restoreMdxFromRichText } from './mdx-content'
 import { RichTextAlertBlockquote } from './rich-text-alert-blockquote'
 import { RichTextBlockControls } from './rich-text-block-controls'
 import { RichTextCodeBlock } from './rich-text-code-block'
+import { RichTextImage } from './rich-text-image'
 
 export type EditorCommandHandle = {
   canRedo: () => boolean
   canUndo: () => boolean
   focus: () => void
   getContent: () => string
+  insertImage: (image: EditorImageInput) => string | void
   redo: () => void
   undo: () => void
 }
@@ -97,6 +101,7 @@ type OpenLinkDialogEvent = CustomEvent<PendingLinkCommand>
 
 const slashCommandPluginKey = new PluginKey('slash-command')
 const openLinkDialogEventName = 'rich-text-editor:open-link-dialog'
+export const openImageDialogEventName = 'article-editor:open-image-dialog'
 const slashCommandMenuMaxHeight = 384
 const slashCommandMenuWidth = 288
 const slashCommandViewportPadding = 12
@@ -184,6 +189,16 @@ const slashCommandItems: SlashCommandItem[] = [
           detail: { editor, range }
         })
       )
+    }
+  },
+  {
+    icon: ImagePlus,
+    label: '图片',
+    searchTerms: ['image', 'img', 'photo', 'tupian'],
+    description: '插入图片',
+    command: ({ editor, range }) => {
+      editor.chain().focus().deleteRange(range).run()
+      window.dispatchEvent(new CustomEvent(openImageDialogEventName))
     }
   },
   {
@@ -349,6 +364,7 @@ export const RichTextEditor = forwardRef<EditorCommandHandle, RichTextEditorProp
         TableRow,
         TableHeader,
         TableCell,
+        RichTextImage,
         SlashCommand,
         RichTextBlockControls,
         Placeholder.configure({
@@ -390,6 +406,33 @@ export const RichTextEditor = forwardRef<EditorCommandHandle, RichTextEditorProp
           editor
             ? restoreMdxFromRichText((editor as MarkdownEditor).getMarkdown())
             : content,
+        insertImage: (image) => {
+          editor
+            ?.chain()
+            .focus()
+            .insertContent([
+              {
+                type: 'paragraph',
+                content: [
+                  {
+                    type: 'image',
+                    attrs: {
+                      alt: image.alt.trim(),
+                      src: image.src.trim()
+                    }
+                  }
+                ]
+              },
+              {
+                type: 'paragraph'
+              }
+            ])
+            .run()
+
+          return editor
+            ? restoreMdxFromRichText((editor as MarkdownEditor).getMarkdown())
+            : content
+        },
         redo: () => editor?.chain().focus().redo().run(),
         undo: () => editor?.chain().focus().undo().run()
       }),

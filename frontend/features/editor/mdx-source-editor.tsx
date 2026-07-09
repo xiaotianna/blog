@@ -29,6 +29,7 @@ import { codeToHtml } from 'shiki'
 import { cn } from '@/lib/utils'
 import { getStringProperty } from '@/utils/get-string-property'
 
+import { createMarkdownImage } from './editor-image-markdown'
 import type { EditorCommandHandle } from './rich-text-editor'
 
 type MdxSourceEditorProps = {
@@ -117,6 +118,16 @@ const SandpackMdxBody = forwardRef<EditorCommandHandle, MdxSourceEditorProps>(
             ?.focus()
         },
         getContent: () => currentCode,
+        insertImage: (image) => {
+          const markdown = `\n\n${createMarkdownImage(image)}\n\n`
+          const nextContent = insertTextAtActiveEditorSelection(currentCode, markdown)
+
+          updateCode(nextContent)
+          emitChange(nextContent)
+          pushHistory(nextContent)
+
+          return nextContent
+        },
         redo: () => {
           if (historyIndexRef.current >= historyRef.current.length - 1) return
           historyIndexRef.current += 1
@@ -293,6 +304,22 @@ const SandpackMdxBody = forwardRef<EditorCommandHandle, MdxSourceEditorProps>(
     )
   }
 )
+
+function insertTextAtActiveEditorSelection(content: string, text: string) {
+  const activeElement = document.activeElement
+
+  if (
+    activeElement instanceof HTMLTextAreaElement &&
+    activeElement.closest('.sp-code-editor')
+  ) {
+    const start = activeElement.selectionStart
+    const end = activeElement.selectionEnd
+
+    return `${content.slice(0, start)}${text}${content.slice(end)}`
+  }
+
+  return `${content}${text}`
+}
 
 function getSyncedScrollTop(source: HTMLElement, target: HTMLElement) {
   const sourceRange = source.scrollHeight - source.clientHeight

@@ -30,6 +30,14 @@ type ArticleData = {
   path?: string
 }
 
+type ArticleImageData = {
+  url?: string
+}
+
+type UploadArticleImageActionResult = BlogMutationActionResult & {
+  url?: string
+}
+
 type ArticleCoverJobActionResult = BlogMutationActionResult & {
   job?: ArticleCoverJobSnapshot
 }
@@ -40,6 +48,14 @@ type ArticleCoverJobStatusActionResult = {
   message?: string
   status?: ArticleCoverJobStatus
 }
+
+const ARTICLE_IMAGE_FILE_TYPES = new Set([
+  'image/png',
+  'image/jpeg',
+  'image/webp',
+  'image/gif'
+])
+const ARTICLE_IMAGE_MAX_SIZE = 10 * 1024 * 1024
 
 export async function createCategoryAction(input: {
   description: string
@@ -395,6 +411,41 @@ export async function uploadArticleCoverAction(
   }
 }
 
+export async function uploadArticleImageAction(
+  formData: FormData
+): Promise<UploadArticleImageActionResult> {
+  const id = String(formData.get('id') ?? '').trim()
+  const image = formData.get('image')
+
+  if (!id) {
+    return { ok: false, message: '文章 ID 不存在' }
+  }
+
+  if (!(image instanceof File) || image.size === 0) {
+    return { ok: false, message: '请选择要上传的图片' }
+  }
+
+  if (image.size > ARTICLE_IMAGE_MAX_SIZE) {
+    return { ok: false, message: '图片不能超过 10MB' }
+  }
+
+  if (!ARTICLE_IMAGE_FILE_TYPES.has(image.type)) {
+    return { ok: false, message: '图片仅支持 PNG、JPEG、WebP 或 GIF' }
+  }
+
+  const uploadFormData = new FormData()
+  uploadFormData.set('image', image)
+
+  try {
+    return await fetchArticleImageUpload(id, uploadFormData)
+  } catch {
+    return {
+      ok: false,
+      message: '文章服务暂不可用，请稍后重试'
+    }
+  }
+}
+
 export async function deleteArticleCoverAction(input: {
   id: string
   path: string
@@ -533,6 +584,33 @@ async function fetchArticleCoverDelete(
     ok: true,
     message: result.message || '删除文章封面成功',
     path: result.data.path
+  }
+}
+
+async function fetchArticleImageUpload(
+  id: string,
+  formData: FormData
+): Promise<UploadArticleImageActionResult> {
+  const response = await goApiFetch(
+    `/article/${encodeURIComponent(id)}/assets/images`,
+    {
+      method: 'POST',
+      body: formData
+    }
+  )
+  const result = await readApiResponse<ArticleImageData>(response)
+
+  if (!response.ok || !result.data?.url) {
+    return {
+      ok: false,
+      message: result.message || '上传文章图片失败，请稍后重试'
+    }
+  }
+
+  return {
+    ok: true,
+    message: result.message || '上传文章图片成功',
+    url: result.data.url
   }
 }
 

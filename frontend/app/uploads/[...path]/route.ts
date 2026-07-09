@@ -17,7 +17,8 @@ const IMAGE_CONTENT_TYPES: Record<string, string> = {
   '.jpg': 'image/jpeg',
   '.jpeg': 'image/jpeg',
   '.png': 'image/png',
-  '.webp': 'image/webp'
+  '.webp': 'image/webp',
+  '.gif': 'image/gif'
 }
 
 export async function GET(
@@ -52,7 +53,7 @@ export async function GET(
 }
 
 function resolveUploadPath(path: string[]) {
-  if (!path.length || path[0] !== 'covers') {
+  if (!path.length || !['article-images', 'covers'].includes(path[0])) {
     return ''
   }
 

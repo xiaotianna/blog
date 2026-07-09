@@ -10,9 +10,12 @@ import {
   type EditorMode,
   type SaveState
 } from './editor-header'
+import { EditorImageDialog } from './editor-image-dialog'
+import type { EditorImageInput } from './editor-image-markdown'
 import { MdxSourceEditor } from './mdx-source-editor'
 import {
   RichTextEditor,
+  openImageDialogEventName,
   type EditorCommandHandle
 } from './rich-text-editor'
 
@@ -30,6 +33,7 @@ export function ArticleEditorShell({ article }: ArticleEditorShellProps) {
   const [mode, setMode] = useState<EditorMode>('rich')
   const [saveState, setSaveState] = useState<SaveState>('idle')
   const [commandRevision, setCommandRevision] = useState(0)
+  const [imageDialogOpen, setImageDialogOpen] = useState(false)
 
   const saveContent = useCallback(
     (nextContent: string, silent = false) => {
@@ -93,6 +97,17 @@ export function ArticleEditorShell({ article }: ArticleEditorShellProps) {
     saveContent(nextContent)
   }, [content, saveContent])
 
+  const handleInsertImage = useCallback((image: EditorImageInput) => {
+    const insertedContent = editorRef.current?.insertImage(image)
+    const nextContent =
+      insertedContent ?? editorRef.current?.getContent() ?? latestContentRef.current
+
+    latestContentRef.current = nextContent
+    setContent(nextContent)
+    setSaveState((current) => (current === 'saving' ? current : 'dirty'))
+    setCommandRevision((value) => value + 1)
+  }, [])
+
   useEffect(() => {
     if (content === lastSavedContentRef.current || saveState !== 'dirty') {
       return
@@ -102,6 +117,16 @@ export function ArticleEditorShell({ article }: ArticleEditorShellProps) {
 
     return () => window.clearTimeout(timer)
   }, [content, saveContent, saveState])
+
+  useEffect(() => {
+    const handleOpenImageDialog = () => setImageDialogOpen(true)
+
+    window.addEventListener(openImageDialogEventName, handleOpenImageDialog)
+
+    return () => {
+      window.removeEventListener(openImageDialogEventName, handleOpenImageDialog)
+    }
+  }, [])
 
   const canUndo = editorRef.current?.canUndo() ?? false
   const canRedo = editorRef.current?.canRedo() ?? false
@@ -119,6 +144,7 @@ export function ArticleEditorShell({ article }: ArticleEditorShellProps) {
           setMode(nextMode)
           setCommandRevision((value) => value + 1)
         }}
+        onImage={() => setImageDialogOpen(true)}
         onRedo={() => {
           editorRef.current?.redo()
           setCommandRevision((value) => value + 1)
@@ -146,6 +172,13 @@ export function ArticleEditorShell({ article }: ArticleEditorShellProps) {
           />
         )}
       </main>
+
+      <EditorImageDialog
+        articleId={article.id}
+        onInsert={handleInsertImage}
+        onOpenChange={setImageDialogOpen}
+        open={imageDialogOpen}
+      />
     </div>
   )
 }

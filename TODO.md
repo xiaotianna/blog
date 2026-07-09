@@ -1,9 +1,5 @@
 ## P0 必做
 
-- [ ] 补文章正文编辑器/写作入口
-  - 现状：文章编辑弹窗只修改标题、slug、摘要、状态，提交时把旧的 `article.content` 原样带回。
-  - 参考：`frontend/features/blog/blog-node-edit-dialog.tsx`
-
 - [ ] 补全标签功能
   - 现状：后端已有 `TagEntity`，文章 DTO 也接收 `tagIds`，但缺少 tag 路由、控制器、服务、DAO 和前端标签选择/创建入口。
   - 参考：`backend/entities/tag_entity.go`、`backend/dto/article_dto.go`

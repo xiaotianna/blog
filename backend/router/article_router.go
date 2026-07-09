@@ -15,6 +15,8 @@ func ArticleRouter(r *gin.RouterGroup) {
 	r.PATCH("/:id", middlewares.JWTAuth, middlewares.ValidateJSON[dto.UpdateArticleRequest], controllers.Article.Update)
 	// 更新文章封面接口
 	r.PATCH("/:id/cover", middlewares.JWTAuth, controllers.Article.UploadCover)
+	// 上传文章内容图片接口
+	r.POST("/:id/assets/images", middlewares.JWTAuth, controllers.Article.UploadImage)
 	// 删除文章封面接口
 	r.DELETE("/:id/cover", middlewares.JWTAuth, controllers.Article.DeleteCover)
 	// 删除文章接口

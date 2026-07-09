@@ -22,8 +22,10 @@ import (
 )
 
 const maxArticleCoverSize = 5 << 20
+const maxArticleImageSize = 10 << 20
 
 const MaxArticleCoverRequestSize = maxArticleCoverSize + (1 << 20)
+const MaxArticleImageRequestSize = maxArticleImageSize + (1 << 20)
 
 var (
 	ErrArticleCoverRequired = errors.New("请上传封面图")
@@ -32,6 +34,12 @@ var (
 	ErrArticleCoverType     = errors.New("封面图仅支持 PNG、JPEG 或 WebP")
 	ErrArticleCoverDir      = errors.New("封面目录创建失败")
 	ErrArticleCoverSave     = errors.New("封面保存失败")
+	ErrArticleImageRequired = errors.New("请上传图片")
+	ErrArticleImageTooLarge = errors.New("图片不能超过10MB")
+	ErrArticleImageRead     = errors.New("图片读取失败")
+	ErrArticleImageType     = errors.New("图片仅支持 PNG、JPEG、WebP 或 GIF")
+	ErrArticleImageDir      = errors.New("图片目录创建失败")
+	ErrArticleImageSave     = errors.New("图片保存失败")
 )
 
 type ArticleService struct{}
@@ -167,6 +175,40 @@ func (s ArticleService) UploadCover(ctx context.Context, id uuid.UUID, fileHeade
 	return res, nil
 }
 
+func (ArticleService) UploadImage(ctx context.Context, id uuid.UUID, fileHeader *multipart.FileHeader) (*vo.ArticleImageVO, error) {
+	if fileHeader == nil {
+		return nil, ErrArticleImageRequired
+	}
+
+	if fileHeader.Size > maxArticleImageSize {
+		return nil, ErrArticleImageTooLarge
+	}
+
+	if _, err := dao.Article.FindByID(ctx, id); err != nil {
+		return nil, err
+	}
+
+	ext, err := detectArticleImageExt(fileHeader)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := os.MkdirAll(filepath.Join("uploads", "article-images"), 0755); err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrArticleImageDir, err)
+	}
+
+	filename := fmt.Sprintf("%s-%d.%s", id.String(), time.Now().UnixNano(), ext)
+	dst := filepath.Join("uploads", "article-images", filename)
+
+	if err := saveUploadedArticleImage(fileHeader, dst); err != nil {
+		return nil, err
+	}
+
+	return &vo.ArticleImageVO{
+		URL: "/uploads/article-images/" + filename,
+	}, nil
+}
+
 func (s ArticleService) DeleteCover(ctx context.Context, id uuid.UUID) (*vo.ArticleVO, error) {
 	res, oldCover, err := s.updateCover(ctx, id, "")
 	if err != nil {
@@ -211,16 +253,24 @@ func (ArticleService) Delete(ctx context.Context, id uuid.UUID) (*vo.ArticleVO, 
 }
 
 func detectArticleCoverExt(fileHeader *multipart.FileHeader) (string, error) {
+	return detectUploadedImageExt(fileHeader, ErrArticleCoverRead, ErrArticleCoverType, false)
+}
+
+func detectArticleImageExt(fileHeader *multipart.FileHeader) (string, error) {
+	return detectUploadedImageExt(fileHeader, ErrArticleImageRead, ErrArticleImageType, true)
+}
+
+func detectUploadedImageExt(fileHeader *multipart.FileHeader, readErr error, typeErr error, allowGIF bool) (string, error) {
 	file, err := fileHeader.Open()
 	if err != nil {
-		return "", ErrArticleCoverRead
+		return "", readErr
 	}
 	defer file.Close()
 
 	buffer := make([]byte, 512)
 	n, err := file.Read(buffer)
 	if err != nil && !errors.Is(err, io.EOF) {
-		return "", ErrArticleCoverRead
+		return "", readErr
 	}
 
 	contentType := http.DetectContentType(buffer[:n])
@@ -231,26 +281,40 @@ func detectArticleCoverExt(fileHeader *multipart.FileHeader) (string, error) {
 		return "jpg", nil
 	case "image/webp":
 		return "webp", nil
+	case "image/gif":
+		if allowGIF {
+			return "gif", nil
+		}
 	default:
-		return "", ErrArticleCoverType
+		return "", typeErr
 	}
+
+	return "", typeErr
 }
 
 func saveUploadedArticleCover(fileHeader *multipart.FileHeader, dst string) error {
+	return saveUploadedImage(fileHeader, dst, ErrArticleCoverRead, ErrArticleCoverSave)
+}
+
+func saveUploadedArticleImage(fileHeader *multipart.FileHeader, dst string) error {
+	return saveUploadedImage(fileHeader, dst, ErrArticleImageRead, ErrArticleImageSave)
+}
+
+func saveUploadedImage(fileHeader *multipart.FileHeader, dst string, readErr error, saveErr error) error {
 	src, err := fileHeader.Open()
 	if err != nil {
-		return ErrArticleCoverRead
+		return readErr
 	}
 	defer src.Close()
 
 	out, err := os.Create(dst)
 	if err != nil {
-		return fmt.Errorf("%w: %v", ErrArticleCoverSave, err)
+		return fmt.Errorf("%w: %v", saveErr, err)
 	}
 	defer out.Close()
 
 	if _, err := io.Copy(out, src); err != nil {
-		return fmt.Errorf("%w: %v", ErrArticleCoverSave, err)
+		return fmt.Errorf("%w: %v", saveErr, err)
 	}
 
 	return nil

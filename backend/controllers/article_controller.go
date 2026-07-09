@@ -88,6 +88,36 @@ func (article ArticleController) UploadCover(c *gin.Context) {
 	utils.Success(c, "更新文章封面成功", res)
 }
 
+func (article ArticleController) UploadImage(c *gin.Context) {
+	ctx := c.Request.Context()
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		utils.Error(c, http.StatusBadRequest, "文章 ID 不合法")
+		return
+	}
+
+	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, services.MaxArticleImageRequestSize)
+
+	fileHeader, err := c.FormFile("image")
+	if err != nil {
+		if strings.Contains(err.Error(), "http: request body too large") {
+			utils.Error(c, http.StatusBadRequest, services.ErrArticleImageTooLarge.Error())
+			return
+		}
+
+		utils.Error(c, http.StatusBadRequest, services.ErrArticleImageRequired.Error())
+		return
+	}
+
+	res, err := article.service.UploadImage(ctx, id, fileHeader)
+	if err != nil {
+		utils.Error(c, articleImageErrorStatus(err), articleImageErrorMessage(err))
+		return
+	}
+
+	utils.Success(c, "上传文章图片成功", res)
+}
+
 func (article ArticleController) DeleteCover(c *gin.Context) {
 	ctx := c.Request.Context()
 	id, err := uuid.Parse(c.Param("id"))
@@ -222,6 +252,26 @@ func articleCoverErrorStatus(err error) int {
 }
 
 func articleCoverErrorMessage(err error) string {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return "文章不存在"
+	}
+
+	return err.Error()
+}
+
+func articleImageErrorStatus(err error) int {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return http.StatusNotFound
+	}
+
+	if errors.Is(err, services.ErrArticleImageDir) || errors.Is(err, services.ErrArticleImageSave) {
+		return http.StatusInternalServerError
+	}
+
+	return http.StatusBadRequest
+}
+
+func articleImageErrorMessage(err error) string {
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return "文章不存在"
 	}

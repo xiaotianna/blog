@@ -52,6 +52,10 @@ type ArticleDetailVO struct {
 	Tags        []TagVO    `json:"tags"`
 }
 
+type ArticleImageVO struct {
+	URL string `json:"url"`
+}
+
 type TagVO struct {
 	ID   uuid.UUID `json:"id"`
 	Name string    `json:"name"`

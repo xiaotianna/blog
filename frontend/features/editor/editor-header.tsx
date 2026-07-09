@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   Code2,
   FileText,
+  ImagePlus,
   LoaderCircle,
   Redo2,
   Save,
@@ -22,6 +23,7 @@ type EditorHeaderProps = {
   canUndo: boolean
   mode: EditorMode
   onRedo: () => void
+  onImage: () => void
   onSave: () => void
   onUndo: () => void
   onModeChange: (mode: EditorMode) => void
@@ -64,6 +66,7 @@ export function EditorHeader({
   canUndo,
   mode,
   onRedo,
+  onImage,
   onSave,
   onUndo,
   onModeChange,
@@ -130,6 +133,15 @@ export function EditorHeader({
             variant='outline'
           >
             <Redo2 className='size-4' />
+          </Button>
+          <Button
+            aria-label='插入图片'
+            onClick={onImage}
+            size='icon'
+            type='button'
+            variant='outline'
+          >
+            <ImagePlus className='size-4' />
           </Button>
           <AnimatedThemeToggler duration={600} />
           <Button

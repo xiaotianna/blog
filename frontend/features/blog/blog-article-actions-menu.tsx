@@ -7,10 +7,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import { FilePenLine, FolderInput, MoreHorizontal } from 'lucide-react'
+import { FilePenLine, FolderInput, MoreHorizontal, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 
 import {
+  BlogArticleDeleteDialog,
   BlogArticleEditDialog,
   BlogArticleMoveDialog
 } from './blog-node-edit-dialog'
@@ -27,6 +28,7 @@ export function BlogArticleActionsMenu({
 }: BlogArticleActionsMenuProps) {
   const [editOpen, setEditOpen] = useState(false)
   const [moveOpen, setMoveOpen] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
 
   return (
     <>
@@ -53,6 +55,13 @@ export function BlogArticleActionsMenu({
             <FolderInput className='size-4' />
             移动文章
           </DropdownMenuItem>
+          <DropdownMenuItem
+            onSelect={() => setDeleteOpen(true)}
+            variant='destructive'
+          >
+            <Trash2 className='size-4' />
+            删除文章
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
@@ -68,6 +77,13 @@ export function BlogArticleActionsMenu({
         directoryOptions={directoryOptions}
         onOpenChange={setMoveOpen}
         open={moveOpen}
+        trigger={null}
+      />
+      <BlogArticleDeleteDialog
+        article={article}
+        directoryOptions={directoryOptions}
+        onOpenChange={setDeleteOpen}
+        open={deleteOpen}
         trigger={null}
       />
     </>

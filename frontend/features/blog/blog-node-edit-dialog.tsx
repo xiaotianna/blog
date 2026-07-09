@@ -10,13 +10,22 @@ import {
   DialogTitle,
   DialogTrigger
 } from '@/components/ui/dialog'
-import { FilePenLine, FolderInput, LoaderCircle, Pencil, X } from 'lucide-react'
+import {
+  FilePenLine,
+  FolderInput,
+  LoaderCircle,
+  Pencil,
+  Trash2,
+  X
+} from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useMemo, useState } from 'react'
 import type { FormEvent, ReactNode } from 'react'
 import { toast } from 'sonner'
 
 import {
+  deleteArticleAction,
+  deleteCategoryAction,
   moveArticleAction,
   moveCategoryAction,
   updateArticleAction,
@@ -298,6 +307,57 @@ export function BlogCategoryMoveDialog({
   )
 }
 
+export function BlogCategoryDeleteDialog({
+  category,
+  onOpenChange,
+  open,
+  trigger
+}: BlogCategoryDialogProps) {
+  const router = useRouter()
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const isOpen = open ?? uncontrolledOpen
+  const setOpen = onOpenChange ?? setUncontrolledOpen
+  const parentPath = getParentPath(category.path)
+
+  const handleDelete = async () => {
+    try {
+      setIsSubmitting(true)
+      const result = await deleteCategoryAction({
+        id: category.id
+      })
+
+      if (!result.ok) {
+        toast.error(result.message ?? '删除目录失败，请稍后重试')
+        return
+      }
+
+      toast.success(result.message ?? '删除目录成功')
+      setOpen(false)
+      router.push(getBlogHref(parentPath))
+      router.refresh()
+    } catch {
+      toast.error('删除目录失败，请稍后重试')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  return (
+    <BlogDeleteDialog
+      description='仅空目录可以删除；如果目录下还有子目录或文章，需要先移走或删除这些内容。'
+      isSubmitting={isSubmitting}
+      onConfirm={handleDelete}
+      onOpenChange={setOpen}
+      open={isOpen}
+      submitLabel='删除目录'
+      submittingLabel='正在删除'
+      title={`删除目录「${category.name}」？`}
+      trigger={trigger}
+    />
+  )
+}
+
 export function BlogArticleEditDialog({
   article,
   directoryOptions,
@@ -522,6 +582,58 @@ export function BlogArticleMoveDialog({
   )
 }
 
+export function BlogArticleDeleteDialog({
+  article,
+  onOpenChange,
+  open,
+  trigger
+}: BlogArticleDialogProps) {
+  const router = useRouter()
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const isOpen = open ?? uncontrolledOpen
+  const setOpen = onOpenChange ?? setUncontrolledOpen
+  const parentPath = getParentPath(article.path)
+
+  const handleDelete = async () => {
+    try {
+      setIsSubmitting(true)
+      const result = await deleteArticleAction({
+        id: article.id,
+        path: article.path
+      })
+
+      if (!result.ok) {
+        toast.error(result.message ?? '删除文章失败，请稍后重试')
+        return
+      }
+
+      toast.success(result.message ?? '删除文章成功')
+      setOpen(false)
+      router.push(getBlogHref(parentPath))
+      router.refresh()
+    } catch {
+      toast.error('删除文章失败，请稍后重试')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  return (
+    <BlogDeleteDialog
+      description='删除后文章不会再出现在目录列表和公开文章页中。'
+      isSubmitting={isSubmitting}
+      onConfirm={handleDelete}
+      onOpenChange={setOpen}
+      open={isOpen}
+      submitLabel='删除文章'
+      submittingLabel='正在删除'
+      title={`删除文章「${article.title}」？`}
+      trigger={trigger}
+    />
+  )
+}
+
 function BlogDialogFooter({
   buttonLabel,
   icon,
@@ -558,6 +670,88 @@ function BlogDialogFooter({
         {isSubmitting ? submittingLabel : buttonLabel}
       </Button>
     </div>
+  )
+}
+
+function BlogDeleteDialog({
+  description,
+  isSubmitting,
+  onConfirm,
+  onOpenChange,
+  open,
+  submitLabel,
+  submittingLabel,
+  title,
+  trigger
+}: {
+  description: string
+  isSubmitting: boolean
+  onConfirm: () => Promise<void>
+  onOpenChange: (open: boolean) => void
+  open: boolean
+  submitLabel: string
+  submittingLabel: string
+  title: string
+  trigger?: ReactNode
+}) {
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (!isSubmitting) {
+          onOpenChange(nextOpen)
+        }
+      }}
+    >
+      {trigger === null ? null : (
+        <DialogTrigger asChild>
+          {trigger ?? (
+            <Button
+              type='button'
+              variant='destructive'
+            >
+              <Trash2 className='size-4' />
+              删除
+            </Button>
+          )}
+        </DialogTrigger>
+      )}
+      <DialogContent
+        className='w-[min(22rem,calc(100vw-2rem))] gap-0 p-5 sm:max-w-[min(22rem,calc(100vw-2rem))]'
+        showCloseButton={false}
+      >
+        <DialogTitle className='text-base font-semibold leading-normal'>
+          {title}
+        </DialogTitle>
+        <DialogDescription className='mt-2 text-sm leading-6 text-muted-foreground'>
+          {description}
+        </DialogDescription>
+
+        <div className='mt-5 flex justify-end gap-2'>
+          <Button
+            disabled={isSubmitting}
+            onClick={() => onOpenChange(false)}
+            type='button'
+            variant='ghost'
+          >
+            取消
+          </Button>
+          <Button
+            disabled={isSubmitting}
+            onClick={onConfirm}
+            type='button'
+            variant='destructive'
+          >
+            {isSubmitting ? (
+              <LoaderCircle className='size-4 animate-spin' />
+            ) : (
+              <Trash2 className='size-4' />
+            )}
+            {isSubmitting ? submittingLabel : submitLabel}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }
 
@@ -700,4 +894,8 @@ function getPreviewPath(parentPath: string, slug: string) {
   return parentPath && parentPath !== ROOT_DIRECTORY_PATH
     ? `${parentPath}/${slug}`
     : slug
+}
+
+function getBlogHref(path: string) {
+  return path && path !== ROOT_DIRECTORY_PATH ? `/blog/${path}` : '/blog'
 }

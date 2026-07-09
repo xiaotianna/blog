@@ -62,6 +62,22 @@ func (ArticleDAO) Save(ctx context.Context, article *entities.ArticleEntity) err
 	return config.PgDB.WithContext(ctx).Save(article).Error
 }
 
+func (ArticleDAO) Delete(ctx context.Context, article *entities.ArticleEntity) error {
+	return config.PgDB.WithContext(ctx).Delete(article).Error
+}
+
+func (ArticleDAO) CountByCategory(ctx context.Context, categoryID uuid.UUID) (int64, error) {
+	var total int64
+	err := config.PgDB.
+		WithContext(ctx).
+		Model(&entities.ArticleEntity{}).
+		Where("category_id = ?", categoryID).
+		Count(&total).
+		Error
+
+	return total, err
+}
+
 func (ArticleDAO) FindByPathPrefix(ctx context.Context, categoryPath string) ([]entities.ArticleEntity, error) {
 	var articles []entities.ArticleEntity
 	storagePath := strings.TrimRight(categoryPath, "/")

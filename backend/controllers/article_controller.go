@@ -105,6 +105,28 @@ func (article ArticleController) DeleteCover(c *gin.Context) {
 	utils.Success(c, "删除文章封面成功", res)
 }
 
+func (article ArticleController) Delete(c *gin.Context) {
+	ctx := c.Request.Context()
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		utils.Error(c, http.StatusBadRequest, "文章 ID 不合法")
+		return
+	}
+
+	res, err := article.service.Delete(ctx, id)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			utils.Error(c, http.StatusNotFound, "文章不存在")
+			return
+		}
+
+		utils.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	utils.Success(c, "删除文章成功", res)
+}
+
 func (article ArticleController) Move(c *gin.Context) {
 	ctx := c.Request.Context()
 	req := c.MustGet(middlewares.BodyKey).(dto.MoveArticleRequest)

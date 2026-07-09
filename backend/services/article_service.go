@@ -193,6 +193,23 @@ func (ArticleService) updateCover(ctx context.Context, id uuid.UUID, cover strin
 	return articleToVO(article), oldCover, nil
 }
 
+func (ArticleService) Delete(ctx context.Context, id uuid.UUID) (*vo.ArticleVO, error) {
+	article, err := dao.Article.FindByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	res := articleToVO(article)
+	oldCover := article.Cover
+
+	if err := dao.Article.Delete(ctx, article); err != nil {
+		return nil, err
+	}
+
+	removeLocalArticleCover(oldCover)
+	return res, nil
+}
+
 func detectArticleCoverExt(fileHeader *multipart.FileHeader) (string, error) {
 	file, err := fileHeader.Open()
 	if err != nil {

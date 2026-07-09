@@ -80,6 +80,28 @@ func (category CategoryController) Move(c *gin.Context) {
 	utils.Success(c, "移动目录成功", res)
 }
 
+func (category CategoryController) Delete(c *gin.Context) {
+	ctx := c.Request.Context()
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		utils.Error(c, http.StatusBadRequest, "目录 ID 不合法")
+		return
+	}
+
+	res, err := category.service.Delete(ctx, id)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			utils.Error(c, http.StatusNotFound, "目录不存在")
+			return
+		}
+
+		utils.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	utils.Success(c, "删除目录成功", res)
+}
+
 func (category CategoryController) Detail(c *gin.Context) {
 	ctx := c.Request.Context()
 	path := c.Query("path")

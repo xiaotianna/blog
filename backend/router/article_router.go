@@ -17,6 +17,8 @@ func ArticleRouter(r *gin.RouterGroup) {
 	r.PATCH("/:id/cover", middlewares.JWTAuth, controllers.Article.UploadCover)
 	// 删除文章封面接口
 	r.DELETE("/:id/cover", middlewares.JWTAuth, controllers.Article.DeleteCover)
+	// 删除文章接口
+	r.DELETE("/:id", middlewares.JWTAuth, controllers.Article.Delete)
 	// 移动文章接口
 	r.PATCH("/:id/move", middlewares.JWTAuth, middlewares.ValidateJSON[dto.MoveArticleRequest], controllers.Article.Move)
 	// 分页获取文章接口

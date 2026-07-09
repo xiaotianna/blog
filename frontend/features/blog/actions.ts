@@ -133,6 +133,31 @@ export async function moveCategoryAction(input: {
   })
 }
 
+export async function deleteCategoryAction(input: {
+  id: string
+}): Promise<BlogMutationActionResult> {
+  const id = input.id.trim()
+
+  if (!id) {
+    return { ok: false, message: '目录 ID 不存在' }
+  }
+
+  const result = await runBlogMutation<CategoryData>({
+    path: `/category/${encodeURIComponent(id)}`,
+    method: 'DELETE',
+    failureMessage: '删除目录失败，请稍后重试',
+    serviceUnavailableMessage: '目录服务暂不可用，请稍后重试',
+    successMessage: '删除目录成功'
+  })
+
+  if (result.ok && result.path) {
+    revalidatePath(`/blog/${result.path}`)
+    revalidatePath(getParentBlogPath(result.path))
+  }
+
+  return result
+}
+
 export async function createArticleAction(input: {
   categoryId: string
   description: string
@@ -407,6 +432,42 @@ export async function moveArticleAction(input: {
   })
 }
 
+export async function deleteArticleAction(input: {
+  id: string
+  path: string
+}): Promise<BlogMutationActionResult> {
+  const id = input.id.trim()
+  const path = input.path.trim()
+
+  if (!id) {
+    return { ok: false, message: '文章 ID 不存在' }
+  }
+
+  const result = await runBlogMutation<ArticleData>({
+    path: `/article/${encodeURIComponent(id)}`,
+    method: 'DELETE',
+    failureMessage: '删除文章失败，请稍后重试',
+    serviceUnavailableMessage: '文章服务暂不可用，请稍后重试',
+    successMessage: '删除文章成功'
+  })
+
+  if (result.ok) {
+    if (path) {
+      revalidatePath(`/blog/${path}`)
+      revalidatePath(`/post/${path}`)
+      revalidatePath(getParentBlogPath(path))
+    }
+
+    if (result.path && result.path !== path) {
+      revalidatePath(`/blog/${result.path}`)
+      revalidatePath(`/post/${result.path}`)
+      revalidatePath(getParentBlogPath(result.path))
+    }
+  }
+
+  return result
+}
+
 async function fetchArticleCoverUpload(
   id: string,
   formData: FormData
@@ -451,4 +512,14 @@ async function fetchArticleCoverDelete(
     message: result.message || '删除文章封面成功',
     path: result.data.path
   }
+}
+
+function getParentBlogPath(path: string) {
+  const segments = path.split('/').filter(Boolean)
+
+  if (segments.length <= 1) {
+    return '/blog'
+  }
+
+  return `/blog/${segments.slice(0, -1).join('/')}`
 }

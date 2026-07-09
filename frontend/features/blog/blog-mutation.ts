@@ -14,9 +14,9 @@ type BlogMutationData = {
 }
 
 type RunBlogMutationOptions = {
-  body: unknown
+  body?: unknown
   failureMessage: string
-  method: 'PATCH' | 'POST'
+  method: 'DELETE' | 'PATCH' | 'POST'
   path: string
   serviceUnavailableMessage: string
   successMessage: string
@@ -37,13 +37,20 @@ export async function runBlogMutation<T extends BlogMutationData>({
   }
 
   try {
-    const response = await goApiFetch(path, {
-      method,
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(body)
-    })
+    const response = await goApiFetch(
+      path,
+      body === undefined
+        ? {
+            method
+          }
+        : {
+            method,
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+          }
+    )
     const result = await readApiResponse<T>(response)
 
     if (!response.ok || !result.data?.id) {

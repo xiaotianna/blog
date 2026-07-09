@@ -39,6 +39,22 @@ func (CategoryDAO) Save(ctx context.Context, category *entities.CategoryEntity) 
 	return config.PgDB.WithContext(ctx).Save(category).Error
 }
 
+func (CategoryDAO) Delete(ctx context.Context, category *entities.CategoryEntity) error {
+	return config.PgDB.WithContext(ctx).Delete(category).Error
+}
+
+func (CategoryDAO) CountChildren(ctx context.Context, parentID uuid.UUID) (int64, error) {
+	var total int64
+	err := config.PgDB.
+		WithContext(ctx).
+		Model(&entities.CategoryEntity{}).
+		Where("parent_id = ?", parentID).
+		Count(&total).
+		Error
+
+	return total, err
+}
+
 func (CategoryDAO) FindDescendantsByPath(ctx context.Context, categoryPath string) ([]entities.CategoryEntity, error) {
 	var categories []entities.CategoryEntity
 	storagePath := strings.TrimRight(categoryPath, "/")

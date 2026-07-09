@@ -7,6 +7,7 @@ import (
 	"blog/entities"
 	"blog/vo"
 	"context"
+	"database/sql"
 	"errors"
 	"path"
 	"strings"
@@ -190,6 +191,51 @@ func (CategoryService) Move(ctx context.Context, id uuid.UUID, req dto.MoveCateg
 	}
 
 	return categoryToVO(category), nil
+}
+
+func (CategoryService) Delete(ctx context.Context, id uuid.UUID) (*vo.CategoryVO, error) {
+	var res *vo.CategoryVO
+
+	err := config.PgDB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		var category entities.CategoryEntity
+		if err := tx.First(&category, "id = ?", id).Error; err != nil {
+			return err
+		}
+
+		var childCount int64
+		if err := tx.
+			Model(&entities.CategoryEntity{}).
+			Where("parent_id = ?", category.ID).
+			Count(&childCount).
+			Error; err != nil {
+			return err
+		}
+		if childCount > 0 {
+			return errors.New("目录下还有子目录，不能删除")
+		}
+
+		var articleCount int64
+		if err := tx.
+			Model(&entities.ArticleEntity{}).
+			Where("category_id = ?", category.ID).
+			Count(&articleCount).
+			Error; err != nil {
+			return err
+		}
+		if articleCount > 0 {
+			return errors.New("目录下还有文章，不能删除")
+		}
+
+		res = categoryToVO(&category)
+		return tx.Delete(&category).Error
+	}, &sql.TxOptions{
+		Isolation: sql.LevelSerializable,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }
 
 func (CategoryService) Detail(ctx context.Context, path string) (*vo.CategoryVO, error) {

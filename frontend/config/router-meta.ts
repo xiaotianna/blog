@@ -46,7 +46,6 @@ export const routerMeta = {
   },
   '/post/[...slug]': {
     isBack: true,
-    backPath: '/blog',
     headerActions: ['back', 'menu', 'blog-tree', 'auth', 'search', 'theme'],
     showMenu: 'show',
     menuItems: baseMenuItems

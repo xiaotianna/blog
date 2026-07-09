@@ -311,7 +311,6 @@ export function BlogArticleEditDialog({
   const [slug, setSlug] = useState(article.slug)
   const [description, setDescription] = useState(article.description)
   const [status, setStatus] = useState<ArticleStatus>(article.status)
-  const [content, setContent] = useState(article.content)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const isOpen = open ?? uncontrolledOpen
   const setOpen = onOpenChange ?? setUncontrolledOpen
@@ -344,7 +343,7 @@ export function BlogArticleEditDialog({
         slug: currentSlug,
         description,
         status,
-        content,
+        content: article.content,
         tagIds: article.tags.map((tag) => tag.id)
       })
 
@@ -414,11 +413,6 @@ export function BlogArticleEditDialog({
         <BlogStatusField
           onChange={setStatus}
           value={status}
-        />
-
-        <BlogArticleContentField
-          onChange={setContent}
-          value={content}
         />
 
         <BlogDialogFooter
@@ -595,33 +589,6 @@ function BlogStatusField({
         ))}
       </div>
     </fieldset>
-  )
-}
-
-function BlogArticleContentField({
-  onChange,
-  value
-}: {
-  onChange: (value: string) => void
-  value: string
-}) {
-  return (
-    <div>
-      <label
-        className='mb-2 block text-sm font-medium'
-        htmlFor='blog-article-edit-content'
-      >
-        正文内容
-      </label>
-      <textarea
-        className='min-h-56 w-full resize-y rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm leading-6 outline-none transition-colors placeholder:text-muted-foreground focus:border-foreground/50'
-        id='blog-article-edit-content'
-        name='content'
-        onChange={(event) => onChange(event.target.value)}
-        placeholder='输入文章正文内容'
-        value={value}
-      />
-    </div>
   )
 }
 

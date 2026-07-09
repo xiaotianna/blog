@@ -21,7 +21,11 @@ export default async function BlogPostDetail({
     notFound()
   }
 
-  return <BlogDetailContent>{article.content}</BlogDetailContent>
+  return (
+    <BlogDetailContent title={article.title} description={article.description}>
+      {article.content}
+    </BlogDetailContent>
+  )
 }
 
 export async function generateMetadata({

@@ -30,7 +30,7 @@ const ARTICLE_STATUS_META: Record<ArticleStatus, { label: string; dot: string }>
     },
     draft: {
       label: '草稿',
-      dot: 'bg-muted-foreground'
+      dot: 'bg-blue-400'
     }
   }
 

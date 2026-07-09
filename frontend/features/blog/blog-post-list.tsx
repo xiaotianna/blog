@@ -107,7 +107,6 @@ export function BlogContentList({
                 ))
               : articles.map((article, index) => (
                   <BlogListItem
-                    description={article.description}
                     icon='article'
                     index={(pagination.page - 1) * PAGE_SIZE + index + 1}
                     key={article.id}

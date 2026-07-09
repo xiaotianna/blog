@@ -7,11 +7,22 @@ import { BlogDetailTableOfContents } from './blog-detail-table-of-contents'
 import { BlogDetailTableOfContentsRegistry } from './blog-detail-table-of-contents-store'
 
 type BlogDetailContentProps = {
+  title: string
+  description: string
   children: string
 }
 
-export function BlogDetailContent({ children }: BlogDetailContentProps) {
+export function BlogDetailContent({
+  title,
+  description,
+  children
+}: BlogDetailContentProps) {
   const { metadata, body: markdownBody } = parseFrontmatter(children)
+  const displayMetadata = {
+    ...metadata,
+    title,
+    description
+  }
   const tableOfContentsItems = extractMarkdownHeadings(markdownBody)
 
   return (
@@ -21,7 +32,7 @@ export function BlogDetailContent({ children }: BlogDetailContentProps) {
     >
       <BlogDetailTableOfContentsRegistry items={tableOfContentsItems} />
       <BlogDetailTableOfContents items={tableOfContentsItems} />
-      <MarkdownMetadata metadata={metadata} />
+      <MarkdownMetadata metadata={displayMetadata} />
       <MarkdownContent>{markdownBody}</MarkdownContent>
     </article>
   )

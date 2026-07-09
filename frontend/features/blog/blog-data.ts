@@ -30,6 +30,7 @@ export type BlogArticle = {
   slug: string
   path: string
   description: string
+  cover: string
   status: ArticleStatus
   categoryId: string
   createdAt: string
@@ -240,8 +241,9 @@ function getPageFromPath(path: string) {
 
 type ArticleApiResponse = Omit<
   BlogArticle,
-  'createdAt' | 'updatedAt' | 'publishedAt' | 'tags'
+  'cover' | 'createdAt' | 'updatedAt' | 'publishedAt' | 'tags'
 > & {
+  cover?: string | null
   createdAt?: string | null
   updatedAt?: string | null
   publishedAt?: string | null
@@ -251,6 +253,7 @@ type ArticleApiResponse = Omit<
 function normalizeArticle<T extends ArticleApiResponse>(article: T) {
   return {
     ...article,
+    cover: article.cover ?? '',
     createdAt: formatArticleDate(article.createdAt),
     updatedAt: formatArticleDate(article.updatedAt),
     publishedAt: formatArticleDate(article.publishedAt),

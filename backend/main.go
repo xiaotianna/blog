@@ -13,6 +13,7 @@ func main() {
 	defer config.ClosePgSqlORM()
 
 	r := gin.Default()
+	r.Static("/uploads", "./uploads")
 
 	router.InitRouter(r)
 	r.Run(config.GlobalConfig.App.Port)

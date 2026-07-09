@@ -5,6 +5,12 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true
   },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '6mb'
+    }
+  },
+  serverExternalPackages: ['@sparticuz/chromium-min', 'playwright-core'],
   allowedDevOrigins: [
     'localhost',
     'localhost:3000',

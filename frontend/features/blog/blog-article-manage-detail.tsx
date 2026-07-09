@@ -1,8 +1,10 @@
 import { PermissionGate } from '@/components/server/permission-gate'
 import { Button } from '@/components/ui/button'
+import { getPublicArticleCoverUrl } from '@/lib/article-cover-url'
 import { ArrowUpRight, CalendarClock } from 'lucide-react'
 import Link from 'next/link'
 
+import { BlogArticleCover } from './blog-article-cover'
 import { BlogArticleActionsMenu } from './blog-article-actions-menu'
 import type {
   ArticleStatus,
@@ -75,7 +77,10 @@ export function BlogArticleManageDetail({
           </div>
 
           <div className='grid gap-5 lg:grid-cols-[minmax(0,0.95fr)_minmax(280px,0.72fr)] lg:items-start'>
-            <ArticleThumbnail article={article} />
+            <ArticleThumbnail
+              article={article}
+              canManageArticle={canManageArticle}
+            />
             <ArticleInfoPanel article={article} />
           </div>
         </div>
@@ -84,27 +89,24 @@ export function BlogArticleManageDetail({
   )
 }
 
-function ArticleThumbnail({ article }: { article: BlogArticleDetail }) {
+function ArticleThumbnail({
+  article,
+  canManageArticle
+}: {
+  article: BlogArticleDetail
+  canManageArticle: boolean
+}) {
+  const coverUrl = getPublicArticleCoverUrl(article.cover)
+
   return (
-    <div className='overflow-hidden rounded-lg border border-border bg-muted/30'>
-      <div className='relative aspect-16/9 w-full'>
-        <div className='flex size-full items-center justify-center bg-[radial-gradient(circle_at_1px_1px,var(--border)_1px,transparent_0)] bg-size-[14px_14px] p-6'>
-          <div className='max-w-xs text-center'>
-            <p className='text-[0.7rem] font-medium uppercase text-muted-foreground'>
-              Preview
-            </p>
-            <p className='mt-2 text-lg font-semibold tracking-tight text-foreground'>
-              {article.title}
-            </p>
-            {article.description ? (
-              <p className='mt-2 line-clamp-2 text-xs leading-5 text-muted-foreground'>
-                {article.description}
-              </p>
-            ) : null}
-          </div>
-        </div>
-      </div>
-    </div>
+    <BlogArticleCover
+      articleId={article.id}
+      canManageArticle={canManageArticle}
+      coverUrl={coverUrl}
+      description={article.description}
+      path={article.path}
+      title={article.title}
+    />
   )
 }
 

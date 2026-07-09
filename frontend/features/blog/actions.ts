@@ -1,5 +1,12 @@
 'use server'
 
+import { generateAndUploadArticleCover } from '@/lib/server/article-cover'
+import { getAuthToken } from '@/lib/server/auth'
+import { goApiFetch, readApiResponse } from '@/lib/server/go-api'
+import { revalidatePath } from 'next/cache'
+import { cookies } from 'next/headers'
+import { after } from 'next/server'
+
 import { runBlogMutation } from './blog-mutation'
 import type { BlogMutationActionResult } from './blog-mutation'
 
@@ -178,7 +185,7 @@ export async function updateArticleAction(input: {
     return { ok: false, message: '请选择有效的文章状态' }
   }
 
-  return runBlogMutation<ArticleData>({
+  const result = await runBlogMutation<ArticleData>({
     path: `/article/${encodeURIComponent(id)}`,
     method: 'PATCH',
     body: {
@@ -193,6 +200,129 @@ export async function updateArticleAction(input: {
     serviceUnavailableMessage: '文章服务暂不可用，请稍后重试',
     successMessage: '更新文章成功'
   })
+
+  if (result.ok && result.path) {
+    revalidatePath(`/post/${result.path}`)
+  }
+
+  return result
+}
+
+export async function updateArticleCoverAction(input: {
+  id: string
+  path: string
+}): Promise<BlogMutationActionResult> {
+  const id = input.id.trim()
+  const path = input.path.trim()
+
+  if (!id) {
+    return { ok: false, message: '文章 ID 不存在' }
+  }
+
+  if (!path) {
+    return { ok: false, message: '文章路径不存在' }
+  }
+
+  const authToken = await getAuthToken()
+
+  if (!authToken) {
+    return { ok: false, message: '请先登录' }
+  }
+
+  const cookieHeader = (await cookies()).toString()
+
+  after(async () => {
+    try {
+      const result = await generateAndUploadArticleCover({
+        authToken,
+        cookieHeader,
+        id,
+        path
+      })
+
+      if (!result.ok) {
+        console.error(result.message ?? '更新文章封面失败')
+        return
+      }
+
+      revalidatePath(`/blog/${path}`)
+      revalidatePath(`/post/${path}`)
+    } catch (error) {
+      console.error('更新文章封面任务异常', error)
+    }
+  })
+
+  return {
+    ok: true,
+    message: '封面更新任务已开始，稍后刷新页面查看结果'
+  }
+}
+
+export async function uploadArticleCoverAction(
+  formData: FormData
+): Promise<BlogMutationActionResult> {
+  const id = String(formData.get('id') ?? '').trim()
+  const path = String(formData.get('path') ?? '').trim()
+  const cover = formData.get('cover')
+
+  if (!id) {
+    return { ok: false, message: '文章 ID 不存在' }
+  }
+
+  if (!(cover instanceof File) || cover.size === 0) {
+    return { ok: false, message: '请选择要上传的封面图' }
+  }
+
+  const uploadFormData = new FormData()
+  uploadFormData.set('cover', cover)
+
+  try {
+    const result = await fetchArticleCoverUpload(id, uploadFormData)
+
+    if (result.ok && path) {
+      revalidatePath(`/blog/${path}`)
+      revalidatePath(`/post/${path}`)
+    }
+
+    return result
+  } catch {
+    return {
+      ok: false,
+      message: '文章服务暂不可用，请稍后重试'
+    }
+  }
+}
+
+export async function deleteArticleCoverAction(input: {
+  id: string
+  path: string
+}): Promise<BlogMutationActionResult> {
+  const id = input.id.trim()
+  const path = input.path.trim()
+
+  if (!id) {
+    return { ok: false, message: '文章 ID 不存在' }
+  }
+
+  try {
+    const response = await fetchArticleCoverDelete(id)
+
+    if (!response.ok) {
+      return response
+    }
+
+    if (path) {
+      revalidatePath(`/blog/${path}`)
+      revalidatePath(`/post/${path}`)
+    }
+
+    return response
+  } catch {
+    return {
+      ok: false,
+      message: '文章服务暂不可用，请稍后重试'
+    }
+  }
 }
 
 export async function moveArticleAction(input: {
@@ -220,4 +350,50 @@ export async function moveArticleAction(input: {
     serviceUnavailableMessage: '文章服务暂不可用，请稍后重试',
     successMessage: '移动文章成功'
   })
+}
+
+async function fetchArticleCoverUpload(
+  id: string,
+  formData: FormData
+): Promise<BlogMutationActionResult> {
+  const response = await goApiFetch(`/article/${encodeURIComponent(id)}/cover`, {
+    method: 'PATCH',
+    body: formData
+  })
+  const result = await readApiResponse<ArticleData>(response)
+
+  if (!response.ok || !result.data?.id) {
+    return {
+      ok: false,
+      message: result.message || '上传文章封面失败，请稍后重试'
+    }
+  }
+
+  return {
+    ok: true,
+    message: result.message || '上传文章封面成功',
+    path: result.data.path
+  }
+}
+
+async function fetchArticleCoverDelete(
+  id: string
+): Promise<BlogMutationActionResult> {
+  const response = await goApiFetch(`/article/${encodeURIComponent(id)}/cover`, {
+    method: 'DELETE'
+  })
+  const result = await readApiResponse<ArticleData>(response)
+
+  if (!response.ok || !result.data?.id) {
+    return {
+      ok: false,
+      message: result.message || '删除文章封面失败，请稍后重试'
+    }
+  }
+
+  return {
+    ok: true,
+    message: result.message || '删除文章封面成功',
+    path: result.data.path
+  }
 }

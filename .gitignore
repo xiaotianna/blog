@@ -1,3 +1,4 @@
 .gocache
 pg_data
 redis_data
+uploads

@@ -13,6 +13,10 @@ func ArticleRouter(r *gin.RouterGroup) {
 	r.POST("/", middlewares.JWTAuth, middlewares.ValidateJSON[dto.CreateArticleRequest], controllers.Article.Create)
 	// 更新文章接口
 	r.PATCH("/:id", middlewares.JWTAuth, middlewares.ValidateJSON[dto.UpdateArticleRequest], controllers.Article.Update)
+	// 更新文章封面接口
+	r.PATCH("/:id/cover", middlewares.JWTAuth, controllers.Article.UploadCover)
+	// 删除文章封面接口
+	r.DELETE("/:id/cover", middlewares.JWTAuth, controllers.Article.DeleteCover)
 	// 移动文章接口
 	r.PATCH("/:id/move", middlewares.JWTAuth, middlewares.ValidateJSON[dto.MoveArticleRequest], controllers.Article.Move)
 	// 分页获取文章接口

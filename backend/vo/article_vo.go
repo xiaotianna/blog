@@ -12,6 +12,7 @@ type ArticleVO struct {
 	Slug        string     `json:"slug"`
 	Path        string     `json:"path"`
 	Description string     `json:"description"`
+	Cover       string     `json:"cover"`
 	Status      string     `json:"status"`
 	CategoryID  uuid.UUID  `json:"categoryId"`
 	CreatedAt   time.Time  `json:"createdAt"`
@@ -26,6 +27,7 @@ type ArticleListItemVO struct {
 	Slug        string     `json:"slug"`
 	Path        string     `json:"path"`
 	Description string     `json:"description"`
+	Cover       string     `json:"cover"`
 	Status      string     `json:"status"`
 	CategoryID  uuid.UUID  `json:"categoryId"`
 	CreatedAt   time.Time  `json:"createdAt"`
@@ -40,6 +42,7 @@ type ArticleDetailVO struct {
 	Slug        string     `json:"slug"`
 	Path        string     `json:"path"`
 	Description string     `json:"description"`
+	Cover       string     `json:"cover"`
 	Content     string     `json:"content"`
 	Status      string     `json:"status"`
 	CategoryID  uuid.UUID  `json:"categoryId"`

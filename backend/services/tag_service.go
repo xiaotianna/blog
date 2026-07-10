@@ -9,12 +9,20 @@ import (
 	"errors"
 	"regexp"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 const defaultTagColor = "#60a5fa"
+
+const maxTagNameLength = 40
+
+var (
+	ErrTagNameRequired = errors.New("标签名称不能为空")
+	ErrTagNameTooLong  = errors.New("标签名称不能超过40个字符")
+)
 
 var tagColorPattern = regexp.MustCompile(`^#[0-9a-fA-F]{6}$`)
 
@@ -77,6 +85,37 @@ func (TagService) Options(ctx context.Context) ([]vo.TagVO, error) {
 	}
 
 	return res, nil
+}
+
+func (TagService) Articles(ctx context.Context, rawName string, includeAllStatuses bool, page int, pageSize int) (*vo.TagArticlePageVO, error) {
+	name := strings.TrimSpace(rawName)
+	if name == "" {
+		return nil, ErrTagNameRequired
+	}
+	if utf8.RuneCountInString(name) > maxTagNameLength {
+		return nil, ErrTagNameTooLong
+	}
+
+	tag, err := dao.Tag.FindByName(ctx, name)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := dao.Tag.FindArticles(ctx, tag.ID, includeAllStatuses, page, pageSize)
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]vo.ArticleListItemVO, 0, len(res.Items))
+	for _, article := range res.Items {
+		items = append(items, articleToListItemVO(article, ""))
+	}
+
+	return &vo.TagArticlePageVO{
+		Tag:        *tagToVO(*tag),
+		Items:      items,
+		Pagination: vo.NewPaginationVO(res.Page, res.PageSize, res.Total, res.TotalPages),
+	}, nil
 }
 
 func (TagService) Update(ctx context.Context, id uuid.UUID, req dto.UpdateTagRequest) (*vo.TagVO, error) {

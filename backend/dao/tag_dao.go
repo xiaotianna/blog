@@ -62,3 +62,34 @@ func (TagDAO) FindByIDs(ctx context.Context, ids []uuid.UUID) ([]entities.TagEnt
 func (TagDAO) Update(ctx context.Context, tag *entities.TagEntity) error {
 	return config.PgDB.WithContext(ctx).Save(tag).Error
 }
+
+func (TagDAO) FindArticles(ctx context.Context, tagID uuid.UUID, includeAllStatuses bool, page int, pageSize int) (PageResult[entities.ArticleEntity], error) {
+	var articles []entities.ArticleEntity
+	var total int64
+	query := config.PgDB.
+		WithContext(ctx).
+		Model(&entities.ArticleEntity{}).
+		Joins("JOIN article_tags ON article_tags.article_entity_id = article.id").
+		Where("article_tags.tag_entity_id = ?", tagID)
+
+	if !includeAllStatuses {
+		query = query.Where("article.status = ?", entities.ArticleStatusPublish)
+	}
+
+	if err := query.Count(&total).Error; err != nil {
+		return PageResult[entities.ArticleEntity]{}, err
+	}
+
+	err := query.
+		Preload("Tags").
+		Order("article.created_at DESC").
+		Offset(Offset(page, pageSize)).
+		Limit(pageSize).
+		Find(&articles).
+		Error
+	if err != nil {
+		return PageResult[entities.ArticleEntity]{}, err
+	}
+
+	return NewPageResult(articles, page, pageSize, total), nil
+}

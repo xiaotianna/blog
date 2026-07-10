@@ -61,3 +61,9 @@ type TagVO struct {
 	Name  string    `json:"name"`
 	Color string    `json:"color"`
 }
+
+type TagArticlePageVO struct {
+	Tag        TagVO              `json:"tag"`
+	Items      []ArticleListItemVO `json:"items"`
+	Pagination PaginationVO        `json:"pagination"`
+}

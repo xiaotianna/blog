@@ -68,3 +68,24 @@ func (tag TagController) Options(c *gin.Context) {
 
 	utils.Success(c, "获取标签选项成功", res)
 }
+
+func (tag TagController) Articles(c *gin.Context) {
+	ctx := c.Request.Context()
+	page, pageSize := readPagination(c)
+	_, isAuthenticated := middlewares.CurrentUser(c)
+
+	res, err := tag.service.Articles(ctx, c.Query("name"), isAuthenticated, page, pageSize)
+	if err != nil {
+		switch {
+		case errors.Is(err, services.ErrTagNameRequired), errors.Is(err, services.ErrTagNameTooLong):
+			utils.Error(c, http.StatusBadRequest, err.Error())
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			utils.Error(c, http.StatusNotFound, "标签不存在")
+		default:
+			utils.Error(c, http.StatusInternalServerError, err.Error())
+		}
+		return
+	}
+
+	utils.Success(c, "获取标签文章成功", res)
+}

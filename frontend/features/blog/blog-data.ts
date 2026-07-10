@@ -46,6 +46,12 @@ export type BlogArticleTag = {
   name: string
 }
 
+export type TagArticlePage = {
+  tag: BlogArticleTag
+  items: BlogArticle[]
+  pagination: Pagination
+}
+
 export type BlogArticleDetail = BlogArticle & {
   content: string
 }
@@ -211,6 +217,31 @@ export async function getTagOptions() {
     }
 
     return []
+  }
+}
+
+export async function getArticlesByTag(tag: string, page: number) {
+  const params = new URLSearchParams({
+    name: tag,
+    page: String(page),
+    pageSize: String(PAGE_SIZE)
+  })
+
+  try {
+    const result = await requestGoApiData<
+      Omit<TagArticlePage, 'items'> & { items: ArticleApiResponse[] }
+    >(`/tag/articles?${params.toString()}`)
+
+    return {
+      ...result,
+      items: result.items.map(normalizeArticle)
+    }
+  } catch (error) {
+    if (!isNotFoundApiError(error)) {
+      throw error
+    }
+
+    return null
   }
 }
 

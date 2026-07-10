@@ -15,4 +15,6 @@ func TagRouter(r *gin.RouterGroup) {
 	r.PATCH("/:id", middlewares.JWTAuth, middlewares.ValidateJSON[dto.UpdateTagRequest], controllers.Tag.Update)
 	// 获取标签选择项接口
 	r.GET("/options", controllers.Tag.Options)
+	// 分页获取标签下的文章接口
+	r.GET("/articles", middlewares.OptionalJWTAuth, controllers.Tag.Articles)
 }

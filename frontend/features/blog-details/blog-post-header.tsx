@@ -40,8 +40,11 @@ export function BlogPostHeader({
 
   return (
     <header className='not-prose mb-10'>
-      <div className='flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between'>
-        <h1 className='m-0 min-w-0 text-[40px] font-semibold leading-[1.16] tracking-normal text-(--ds-gray-1000)'>
+      <div className='flex items-center justify-between gap-4 sm:items-start'>
+        <h1
+          className='m-0 min-w-0 flex-1 text-[40px] font-semibold leading-[1.16] tracking-normal text-(--ds-gray-1000)'
+          data-search-field='title'
+        >
           {title}
         </h1>
 
@@ -49,7 +52,10 @@ export function BlogPostHeader({
       </div>
 
       {description ? (
-        <p className='mb-0 mt-4 max-w-190 text-[17px] leading-7 text-(--ds-gray-900)'>
+        <p
+          className='mb-0 mt-4 max-w-190 text-[17px] leading-7 text-(--ds-gray-900)'
+          data-search-field='description'
+        >
           {description}
         </p>
       ) : null}
@@ -70,7 +76,10 @@ export function BlogPostHeader({
       ) : null}
 
       {tags.length > 0 ? (
-        <div className='mt-5 flex flex-wrap gap-2 lg:hidden'>
+        <div
+          className='mt-5 flex flex-wrap gap-2 lg:hidden'
+          data-search-field='tag'
+        >
           {tags.map((tag) => (
             <BlogArticleTagBadge
               href={getArticleTagHref(tag)}

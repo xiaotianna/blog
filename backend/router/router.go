@@ -15,4 +15,5 @@ func InitRouter(r *gin.Engine) {
 	Use(r, "/article", ArticleRouter)
 	Use(r, "/category", CategoryRouter)
 	Use(r, "/tag", TagRouter)
+	Use(r, "/search", SearchRouter)
 }

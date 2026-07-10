@@ -16,6 +16,7 @@ import {
 import { BlogPageAction } from '@/features/blog/blog-page-action'
 import { BlogContentList } from '@/features/blog/blog-post-list'
 import { isAuthenticated } from '@/lib/server/permissions/check'
+import { SearchArrivalHighlighter } from '@/features/search/search-arrival-highlighter'
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import type { Metadata } from 'next'
@@ -36,7 +37,11 @@ export default async function BlogPage({
   searchParams
 }: {
   params: Promise<{ slug?: string[] }>
-  searchParams: Promise<{ page?: string; status?: string; tab?: string }>
+  searchParams: Promise<{
+    page?: string
+    status?: string
+    tab?: string
+  }>
 }) {
   const [
     { slug },
@@ -90,6 +95,9 @@ export default async function BlogPage({
 
   return (
     <main className='mx-auto flex min-h-[calc(100dvh-9rem)] w-full max-w-5xl flex-col px-6 pb-0 lg:min-h-0 lg:px-0'>
+      <SearchArrivalHighlighter
+        rootId='blog'
+      />
       <section
         className='min-h-0 flex-1'
         id='blog'
@@ -98,12 +106,18 @@ export default async function BlogPage({
           <div className='flex items-start justify-between gap-4'>
             <div className='min-w-0 flex-1'>
               <div className='flex flex-wrap items-center gap-2'>
-                <h1 className='text-2xl font-semibold tracking-tight'>
+                <h1
+                  className='text-2xl font-semibold tracking-tight'
+                  data-search-field='title'
+                >
                   {currentCategory.name}
                 </h1>
               </div>
               {currentCategory.description ? (
-                <p className='mt-2 max-w-2xl text-sm text-muted-foreground'>
+                <p
+                  className='mt-2 max-w-2xl text-sm text-muted-foreground'
+                  data-search-field='description'
+                >
                   {currentCategory.description}
                 </p>
               ) : null}

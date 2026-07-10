@@ -31,7 +31,10 @@ export default async function BlogPostDetail({
     <BlogDetailContent
       beforeScrollToTop={
         article.tags.length > 0 ? (
-          <div className='flex flex-wrap gap-2'>
+          <div
+            className='flex flex-wrap gap-2'
+            data-search-field='tag'
+          >
             {article.tags.map((tag) => (
               <BlogArticleTagBadge
                 href={getArticleTagHref(tag)}

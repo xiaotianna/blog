@@ -1,15 +1,6 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
-import {
-  Empty,
-  EmptyContent,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle
-} from '@/components/ui/empty'
-import { AlertTriangle, Home, NotebookText, RotateCcw } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, RotateCcw } from 'lucide-react'
 import Link from 'next/link'
 
 type ErrorStateProps = {
@@ -26,63 +17,42 @@ export function ErrorState({
   variant = 'error'
 }: ErrorStateProps) {
   const isNotFound = variant === 'not-found'
-  const title = isNotFound ? '这里什么都没有～' : '页面暂时不可用'
+  const title = isNotFound ? '404' : '页面暂时不可用'
   const fallbackDescription = isNotFound
-    ? '这个地址可能已经移动，或者暂时还没有内容。'
+    ? '这里什么都没有～'
     : '服务响应异常，请稍后重试'
 
   return (
-    <section
-      className='flex min-h-[calc(100dvh-12rem)] items-center justify-center px-1 pb-10'
+    <main
+      className='mx-auto flex min-h-[calc(100dvh-9rem)] w-full flex-col px-6 pb-20 lg:px-0'
       data-page-state='error'
     >
-      <Empty>
-        <EmptyHeader>
-          <EmptyMedia variant='icon'>
-            <AlertTriangle />
-          </EmptyMedia>
-          {isNotFound ? (
-            <p className='font-mono text-xs uppercase tracking-normal text-muted-foreground'>
-              404
-            </p>
-          ) : null}
-          <EmptyTitle className='text-base'>{title}</EmptyTitle>
-          <EmptyDescription>
-            {message || description || fallbackDescription}
-          </EmptyDescription>
-        </EmptyHeader>
-        <EmptyContent className='mt-2 flex-row justify-center'>
+      <div className='flex flex-1 flex-col items-center justify-center text-center'>
+        <AlertTriangle className='mb-5 size-10 text-muted-foreground' />
+        <h1 className='text-4xl font-semibold tracking-tight'>{title}</h1>
+        <p className='mt-4 text-muted-foreground'>
+          {message || description || fallbackDescription}
+        </p>
+        <div className='mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-3'>
           {onRetry ? (
-            <Button
+            <button
+              className='inline-flex items-center gap-2 text-sm font-medium text-foreground transition-colors hover:text-primary'
               type='button'
               onClick={onRetry}
             >
               <RotateCcw className='size-4' />
               重试
-            </Button>
+            </button>
           ) : null}
-          <Button
-            asChild
-            variant={isNotFound ? 'default' : 'outline'}
+          <Link
+            className='inline-flex items-center gap-2 text-sm font-medium text-foreground transition-colors hover:text-primary'
+            href='/blog'
           >
-            <Link href='/'>
-              <Home className='size-4' />
-              回到首页
-            </Link>
-          </Button>
-          {isNotFound ? (
-            <Button
-              asChild
-              variant='outline'
-            >
-              <Link href='/blog'>
-                <NotebookText className='size-4' />
-                看文章
-              </Link>
-            </Button>
-          ) : null}
-        </EmptyContent>
-      </Empty>
-    </section>
+            <ArrowLeft className='size-4' />
+            返回博客
+          </Link>
+        </div>
+      </div>
+    </main>
   )
 }

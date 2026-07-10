@@ -16,6 +16,9 @@ const nextConfig: NextConfig = {
     '@takumi-rs/core',
     'playwright-core'
   ],
+  outputFileTracingIncludes: {
+    '/*': ['./node_modules/playwright-core/browsers.json']
+  },
   allowedDevOrigins: [
     'localhost',
     'localhost:3000',

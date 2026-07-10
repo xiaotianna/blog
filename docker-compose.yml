@@ -27,6 +27,7 @@ services:
       HOSTNAME: 0.0.0.0
       SITE_URL: ${SITE_URL:-http://localhost}
       NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-${SITE_URL:-http://localhost}}
+      AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-true}
       GO_API_BASE_URL: http://backend:8000
       GO_PUBLIC_BASE_URL: http://backend:8000
     expose:

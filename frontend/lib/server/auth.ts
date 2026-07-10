@@ -1,8 +1,13 @@
 import { cookies } from 'next/headers'
 
+const AUTH_COOKIE_SECURE =
+  process.env.AUTH_COOKIE_SECURE == null
+    ? process.env.NODE_ENV === 'production'
+    : process.env.AUTH_COOKIE_SECURE !== 'false'
+
 export const AUTH_COOKIE_NAME =
   process.env.AUTH_COOKIE_NAME ??
-  (process.env.NODE_ENV === 'production'
+  (AUTH_COOKIE_SECURE && process.env.NODE_ENV === 'production'
     ? '__Host-access_token'
     : 'access_token')
 
@@ -21,7 +26,7 @@ export async function setAuthToken(token: string) {
 
   cookieStore.set(AUTH_COOKIE_NAME, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: AUTH_COOKIE_SECURE,
     sameSite: 'lax',
     path: '/',
     maxAge: AUTH_COOKIE_MAX_AGE

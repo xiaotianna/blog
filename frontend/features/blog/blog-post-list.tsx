@@ -114,9 +114,9 @@ export function BlogContentList({
                     index={(pagination.page - 1) * PAGE_SIZE + index + 1}
                     key={article.id}
                     href={`/${canManageArticles ? 'blog' : 'post'}/${article.path}`}
-                    publishedAt={article.publishedAt}
                     showStatus={canManageArticles}
                     status={article.status}
+                    time={getArticleListTime(article)}
                     thumbnailUrl={getPublicArticleCoverUrl(article.cover)}
                     title={article.title}
                   />
@@ -195,20 +195,20 @@ function BlogListItem({
   href,
   icon,
   index,
-  publishedAt,
   showStatus,
   status,
   thumbnailUrl,
+  time,
   title
 }: {
   description?: string
   href: string
   icon: 'article' | 'directory'
   index: number
-  publishedAt?: string
   showStatus?: boolean
   status?: ArticleStatus
   thumbnailUrl?: string
+  time?: ArticleListTime
   title: string
 }) {
   const Icon = icon === 'directory' ? Folder : FileText
@@ -246,12 +246,35 @@ function BlogListItem({
             {description}
           </p>
         ) : null}
-        {publishedAt ? (
-          <p className='text-xs text-muted-foreground'>{publishedAt}</p>
+        {time ? (
+          <p className='text-xs text-muted-foreground'>
+            {time.label} {time.value}
+          </p>
         ) : null}
       </div>
     </Link>
   )
+}
+
+type ArticleListTime = {
+  label: '发布于' | '更新于'
+  value: string
+}
+
+function getArticleListTime(article: BlogArticle): ArticleListTime | undefined {
+  if (article.publishedAt) {
+    return {
+      label: '发布于',
+      value: article.publishedAt
+    }
+  }
+
+  if (article.updatedAt) {
+    return {
+      label: '更新于',
+      value: article.updatedAt
+    }
+  }
 }
 
 function ArticleStatusBadge({ status }: { status: ArticleStatus }) {

@@ -82,8 +82,8 @@ export function BlogCreateCategoryForm({
       }
 
       toast.success(result.message ?? '新增目录成功')
-      router.refresh()
       onDone()
+      router.push(getBlogDirectoryHref(result.path || previewPath))
     } catch {
       toast.error('新增目录失败，请稍后重试')
     } finally {
@@ -215,8 +215,12 @@ export function BlogCreateArticleForm({
       }
 
       toast.success(result.message ?? '新增文章成功')
-      router.refresh()
       onDone()
+      if (result.id) {
+        router.push(`/edit/${encodeURIComponent(result.id)}`)
+      } else {
+        router.refresh()
+      }
     } catch {
       toast.error('新增文章失败，请稍后重试')
     } finally {
@@ -386,4 +390,14 @@ function getPreviewPath(parentPath: string, slug: string) {
   return parentPath && parentPath !== ROOT_DIRECTORY_PATH
     ? `${parentPath}/${slug}`
     : slug
+}
+
+function getBlogDirectoryHref(path: string) {
+  const normalizedPath = path
+    .split('/')
+    .map((segment) => segment.trim())
+    .filter(Boolean)
+    .join('/')
+
+  return normalizedPath ? `/blog/${normalizedPath}` : '/blog'
 }

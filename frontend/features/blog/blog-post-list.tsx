@@ -1,5 +1,11 @@
 import { Badge } from '@/components/ui/badge'
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
+import {
   Empty,
   EmptyDescription,
   EmptyHeader,
@@ -8,10 +14,12 @@ import {
 import BlurFade from '@/components/magicui/blur-fade'
 import { getPublicArticleCoverUrl } from '@/lib/article-cover-url'
 import {
+  Check,
   ChevronLeft,
   ChevronRight,
   FileText,
   Folder,
+  ListFilter,
   Newspaper
 } from 'lucide-react'
 import Link from 'next/link'
@@ -21,6 +29,7 @@ import {
   getBlogPathHref,
   PAGE_SIZE,
   type ArticleStatus,
+  type ArticleStatusFilter,
   type BlogArticle,
   type BlogCategory,
   type BlogTab,
@@ -31,6 +40,7 @@ type BlogContentListProps = {
   activeTab: BlogTab
   articles: BlogArticle[]
   articlePagination: Pagination
+  articleStatus: ArticleStatusFilter
   articleTotal: number
   canManageArticles: boolean
   currentPath: string
@@ -46,10 +56,21 @@ const ARTICLE_STATUS_LABEL: Record<ArticleStatus, string> = {
   draft: '草稿'
 }
 
+const ARTICLE_STATUS_FILTER_OPTIONS: Array<{
+  label: string
+  value: ArticleStatusFilter
+}> = [
+  { label: '全部文章', value: 'all' },
+  { label: '已发布', value: 'publish' },
+  { label: '私密', value: 'private' },
+  { label: '草稿', value: 'draft' }
+]
+
 export function BlogContentList({
   activeTab,
   articles,
   articlePagination,
+  articleStatus,
   articleTotal,
   canManageArticles,
   currentPath,
@@ -80,7 +101,9 @@ export function BlogContentList({
           {currentPath ? (
             <BlogTabLink
               active={!isDirectoryTab}
+              articleStatus={articleStatus}
               currentPath={currentPath}
+              showArticleStatusFilter={canManageArticles}
               tab='articles'
               total={articleTotal}
             >
@@ -143,6 +166,7 @@ export function BlogContentList({
 
       <BlogPagination
         activeTab={activeTab}
+        articleStatus={articleStatus}
         currentPath={currentPath}
         delay={delay * 4}
         pagination={pagination}
@@ -153,14 +177,18 @@ export function BlogContentList({
 
 function BlogTabLink({
   active,
+  articleStatus = 'all',
   children,
   currentPath,
+  showArticleStatusFilter = false,
   tab,
   total
 }: {
   active: boolean
+  articleStatus?: ArticleStatusFilter
   children: string
   currentPath: string
+  showArticleStatusFilter?: boolean
   tab: BlogTab
   total: number
 }) {
@@ -172,21 +200,78 @@ function BlogTabLink({
     : 'border-border bg-muted text-muted-foreground group-hover:border-foreground/10 group-hover:bg-foreground group-hover:text-background'
 
   return (
-    <Link
+    <span
       className={`group relative -mb-px inline-flex items-center gap-1.5 pb-2.5 text-sm font-semibold transition-colors ${stateClassName}`}
-      href={getBlogPathHref(currentPath, tab)}
     >
-      {children}
-      <span
-        aria-label={`${children}数量 ${total}`}
-        className={`inline-flex h-4 min-w-4 items-center justify-center rounded-full border px-0 text-[9px] font-medium leading-none tabular-nums transition-colors ${dotClassName}`}
+      <Link
+        className='inline-flex items-center gap-1.5'
+        href={getBlogPathHref(currentPath, tab, 1, articleStatus)}
       >
-        {total}
-      </span>
+        {children}
+        <span
+          aria-label={`${children}数量 ${total}`}
+          className={`inline-flex h-4 min-w-4 items-center justify-center rounded-full border px-0 text-[9px] font-medium leading-none tabular-nums transition-colors ${dotClassName}`}
+        >
+          {total}
+        </span>
+      </Link>
+      {showArticleStatusFilter ? (
+        <ArticleStatusFilterDropdown
+          currentPath={currentPath}
+          value={articleStatus}
+        />
+      ) : null}
       <span
         className={`absolute inset-x-0 bottom-0 h-0.5 origin-left bg-foreground transition-all duration-200 ease-out ${active ? 'scale-x-100 opacity-100' : 'scale-x-0 opacity-0'}`}
       />
-    </Link>
+    </span>
+  )
+}
+
+function ArticleStatusFilterDropdown({
+  currentPath,
+  value
+}: {
+  currentPath: string
+  value: ArticleStatusFilter
+}) {
+  const currentLabel =
+    ARTICLE_STATUS_FILTER_OPTIONS.find((option) => option.value === value)
+      ?.label ?? '全部文章'
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          aria-label={`筛选文章状态：${currentLabel}`}
+          className='inline-flex size-5 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none'
+          type='button'
+        >
+          <ListFilter className='size-3.5' />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align='start'
+        className='w-32'
+      >
+        {ARTICLE_STATUS_FILTER_OPTIONS.map((option) => (
+          <DropdownMenuItem
+            asChild
+            key={option.value}
+          >
+            <Link
+              className='w-full'
+              href={getBlogPathHref(currentPath, 'articles', 1, option.value)}
+            >
+              {option.label}
+              {value === option.value ? (
+                <Check className='ml-auto size-3.5' />
+              ) : null}
+            </Link>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
 
@@ -292,11 +377,13 @@ function ArticleStatusBadge({ status }: { status: ArticleStatus }) {
 
 function BlogPagination({
   activeTab,
+  articleStatus,
   currentPath,
   delay,
   pagination
 }: {
   activeTab: BlogTab
+  articleStatus: ArticleStatusFilter
   currentPath: string
   delay: number
   pagination: Pagination
@@ -316,7 +403,12 @@ function BlogPagination({
         {pagination.hasPreviousPage ? (
           <Link
             className='flex h-8 w-fit items-center justify-center gap-1 rounded-lg border border-border px-2 text-sm transition-colors hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
-            href={getBlogPathHref(currentPath, activeTab, pagination.page - 1)}
+            href={getBlogPathHref(
+              currentPath,
+              activeTab,
+              pagination.page - 1,
+              articleStatus
+            )}
           >
             <ChevronLeft
               aria-hidden
@@ -336,7 +428,12 @@ function BlogPagination({
         {pagination.hasNextPage ? (
           <Link
             className='flex h-8 w-fit items-center justify-center gap-1 rounded-lg border border-border px-2 text-sm transition-colors hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
-            href={getBlogPathHref(currentPath, activeTab, pagination.page + 1)}
+            href={getBlogPathHref(
+              currentPath,
+              activeTab,
+              pagination.page + 1,
+              articleStatus
+            )}
           >
             下一页
             <ChevronRight

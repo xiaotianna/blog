@@ -185,10 +185,15 @@ func (article ArticleController) List(c *gin.Context) {
 	page, pageSize := readPagination(c)
 	_, isAuthenticated := middlewares.CurrentUser(c)
 
-	res, err := article.service.List(ctx, c.Query("categoryPath"), isAuthenticated, page, pageSize)
+	res, err := article.service.List(ctx, c.Query("categoryPath"), isAuthenticated, c.Query("status"), page, pageSize)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			utils.Error(c, http.StatusNotFound, "目录不存在")
+			return
+		}
+
+		if errors.Is(err, services.ErrInvalidArticleStatus) {
+			utils.Error(c, http.StatusBadRequest, err.Error())
 			return
 		}
 

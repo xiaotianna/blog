@@ -15,3 +15,4 @@
   - 参考：`frontend/app/(home)/page.tsx`、`frontend/features/home/categories.tsx`
 
 - 导入外部的文章（飞书、掘金、csdn），以及图片转移
+- error页面按照tag demo页面完成

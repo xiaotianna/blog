@@ -8,6 +8,7 @@ import {
   getChildDirectories,
   getDirectoryOptions,
   getTagOptions,
+  normalizeArticleStatusFilter,
   normalizeBlogPath,
   normalizePage,
   normalizeTab
@@ -35,12 +36,12 @@ export default async function BlogPage({
   searchParams
 }: {
   params: Promise<{ slug?: string[] }>
-  searchParams: Promise<{ page?: string; tab?: string }>
+  searchParams: Promise<{ page?: string; status?: string; tab?: string }>
 }) {
-  const [{ slug }, { page: pageParam, tab: tabParam }] = await Promise.all([
-    params,
-    searchParams
-  ])
+  const [
+    { slug },
+    { page: pageParam, status: statusParam, tab: tabParam }
+  ] = await Promise.all([params, searchParams])
   const currentPath = normalizeBlogPath(slug)
   const [currentNode, directoryOptions, canManageArticles] = await Promise.all([
     getBlogNode(currentPath),
@@ -71,13 +72,20 @@ export default async function BlogPage({
 
   const currentCategory = currentNode.item
   const activeTab = normalizeTab(tabParam)
+  const articleStatus = canManageArticles
+    ? normalizeArticleStatusFilter(statusParam)
+    : 'all'
   const currentPage = normalizePage(pageParam)
   const [directoryPage, articlePage] = await Promise.all([
     getChildDirectories(
       currentPath,
       activeTab === 'directories' ? currentPage : 1
     ),
-    getArticles(currentPath, activeTab === 'articles' ? currentPage : 1)
+    getArticles(
+      currentPath,
+      activeTab === 'articles' ? currentPage : 1,
+      articleStatus
+    )
   ])
 
   return (
@@ -131,6 +139,7 @@ export default async function BlogPage({
           articlePagination={articlePage.pagination}
           articleTotal={articlePage.pagination.total}
           articles={articlePage.items}
+          articleStatus={articleStatus}
           canManageArticles={canManageArticles}
           currentPath={currentPath}
           delay={BLUR_FADE_DELAY}

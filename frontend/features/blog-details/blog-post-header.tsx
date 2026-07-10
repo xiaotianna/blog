@@ -8,8 +8,10 @@ import type {
   BlogArticleTag
 } from '@/features/blog/blog-data'
 import { CalendarDays } from 'lucide-react'
+import type { ReactNode } from 'react'
 
 type BlogPostHeaderProps = {
+  action?: ReactNode
   description: string
   publishedAt: string
   status: ArticleStatus
@@ -24,6 +26,7 @@ const ARTICLE_PREVIEW_LABEL: Partial<Record<ArticleStatus, string>> = {
 }
 
 export function BlogPostHeader({
+  action,
   description,
   publishedAt,
   status,
@@ -37,9 +40,13 @@ export function BlogPostHeader({
 
   return (
     <header className='not-prose mb-10'>
-      <h1 className='m-0 text-[40px] font-semibold leading-[1.16] tracking-normal text-(--ds-gray-1000)'>
-        {title}
-      </h1>
+      <div className='flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between'>
+        <h1 className='m-0 min-w-0 text-[40px] font-semibold leading-[1.16] tracking-normal text-(--ds-gray-1000)'>
+          {title}
+        </h1>
+
+        {action ? <div className='shrink-0 sm:pt-1'>{action}</div> : null}
+      </div>
 
       {description ? (
         <p className='mb-0 mt-4 max-w-190 text-[17px] leading-7 text-(--ds-gray-900)'>

@@ -1,4 +1,5 @@
 import { BlogDetailContent } from '@/features/blog-details/blog-detail-content'
+import { BlogPostEditAction } from '@/features/blog-details/blog-post-edit-action'
 import { BlogPostHeader } from '@/features/blog-details/blog-post-header'
 import {
   BlogArticleTagBadge,
@@ -43,6 +44,7 @@ export default async function BlogPostDetail({
       }
       header={
         <BlogPostHeader
+          action={<BlogPostEditAction articleId={article.id} />}
           description={article.description}
           publishedAt={article.publishedAt}
           status={article.status}

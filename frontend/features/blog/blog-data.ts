@@ -23,6 +23,7 @@ export type BlogDirectoryOption = {
 }
 
 export type ArticleStatus = 'publish' | 'private' | 'draft'
+export type ArticleStatusFilter = ArticleStatus | 'all'
 
 export type BlogArticle = {
   id: string
@@ -108,9 +109,23 @@ export async function getChildDirectories(parentPath: string, page: number) {
   )
 }
 
-export async function getArticles(categoryPath: string, page: number) {
+export async function getArticles(
+  categoryPath: string,
+  page: number,
+  status: ArticleStatusFilter = 'all'
+) {
+  const params = new URLSearchParams({
+    categoryPath,
+    page: String(page),
+    pageSize: String(PAGE_SIZE)
+  })
+
+  if (status !== 'all') {
+    params.set('status', status)
+  }
+
   const result = await readPage<ArticleApiResponse>(
-    `/article/list?categoryPath=${encodeURIComponent(categoryPath)}&page=${page}&pageSize=${PAGE_SIZE}`
+    `/article/list?${params.toString()}`
   )
 
   return {
@@ -217,12 +232,29 @@ export function normalizeTab(tab: string | undefined): BlogTab {
   return tab === 'articles' ? 'articles' : 'directories'
 }
 
-export function getBlogPathHref(path: string, tab: BlogTab, page = 1) {
+export function normalizeArticleStatusFilter(
+  status: string | undefined
+): ArticleStatusFilter {
+  return status === 'publish' || status === 'private' || status === 'draft'
+    ? status
+    : 'all'
+}
+
+export function getBlogPathHref(
+  path: string,
+  tab: BlogTab,
+  page = 1,
+  status: ArticleStatusFilter = 'all'
+) {
   const pathname = path ? `/blog/${path}` : '/blog'
   const params = new URLSearchParams()
 
   params.set('tab', tab)
   params.set('page', String(page))
+
+  if (tab === 'articles' && status !== 'all') {
+    params.set('status', status)
+  }
 
   return `${pathname}?${params.toString()}`
 }

@@ -103,7 +103,7 @@ func (ArticleDAO) FindByPathPrefix(ctx context.Context, categoryPath string) ([]
 	return articles, err
 }
 
-func (ArticleDAO) FindByCategory(ctx context.Context, categoryID uuid.UUID, includeAllStatuses bool, page int, pageSize int) (PageResult[entities.ArticleEntity], error) {
+func (ArticleDAO) FindByCategory(ctx context.Context, categoryID uuid.UUID, includeAllStatuses bool, statusFilter *entities.ArticleStatus, page int, pageSize int) (PageResult[entities.ArticleEntity], error) {
 	var articles []entities.ArticleEntity
 	var total int64
 	query := config.PgDB.
@@ -113,6 +113,8 @@ func (ArticleDAO) FindByCategory(ctx context.Context, categoryID uuid.UUID, incl
 
 	if !includeAllStatuses {
 		query = query.Where("status = ?", entities.ArticleStatusPublish)
+	} else if statusFilter != nil {
+		query = query.Where("status = ?", *statusFilter)
 	}
 
 	if err := query.Count(&total).Error; err != nil {
@@ -121,7 +123,6 @@ func (ArticleDAO) FindByCategory(ctx context.Context, categoryID uuid.UUID, incl
 
 	err := query.
 		Preload("Tags").
-		Order("published_at DESC NULLS LAST").
 		Order("created_at DESC").
 		Offset(Offset(page, pageSize)).
 		Limit(pageSize).

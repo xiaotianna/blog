@@ -41,6 +41,7 @@ var (
 	ErrArticleImageType     = errors.New("图片仅支持 PNG、JPEG、WebP 或 GIF")
 	ErrArticleImageDir      = errors.New("图片目录创建失败")
 	ErrArticleImageSave     = errors.New("图片保存失败")
+	ErrInvalidArticleStatus = errors.New("文章状态不合法")
 )
 
 type ArticleService struct{}
@@ -391,7 +392,7 @@ func (ArticleService) Move(ctx context.Context, id uuid.UUID, req dto.MoveArticl
 	return articleToVO(article), nil
 }
 
-func (ArticleService) List(ctx context.Context, categoryPath string, includeAllStatuses bool, page int, pageSize int) (vo.PageVO[vo.ArticleListItemVO], error) {
+func (ArticleService) List(ctx context.Context, categoryPath string, includeAllStatuses bool, status string, page int, pageSize int) (vo.PageVO[vo.ArticleListItemVO], error) {
 	if toStoragePath(categoryPath) == "" {
 		return vo.PageVO[vo.ArticleListItemVO]{
 			Items:      []vo.ArticleListItemVO{},
@@ -399,12 +400,17 @@ func (ArticleService) List(ctx context.Context, categoryPath string, includeAllS
 		}, nil
 	}
 
+	statusFilter, err := parseArticleStatusFilter(status)
+	if err != nil {
+		return vo.PageVO[vo.ArticleListItemVO]{}, err
+	}
+
 	category, err := dao.Category.FindByPath(ctx, toStoragePath(categoryPath))
 	if err != nil {
 		return vo.PageVO[vo.ArticleListItemVO]{}, err
 	}
 
-	res, err := dao.Article.FindByCategory(ctx, category.ID, includeAllStatuses, page, pageSize)
+	res, err := dao.Article.FindByCategory(ctx, category.ID, includeAllStatuses, statusFilter, page, pageSize)
 	if err != nil {
 		return vo.PageVO[vo.ArticleListItemVO]{}, err
 	}
@@ -418,6 +424,24 @@ func (ArticleService) List(ctx context.Context, categoryPath string, includeAllS
 		Items:      items,
 		Pagination: vo.NewPaginationVO(res.Page, res.PageSize, res.Total, res.TotalPages),
 	}, nil
+}
+
+func parseArticleStatusFilter(status string) (*entities.ArticleStatus, error) {
+	switch strings.TrimSpace(status) {
+	case "", "all":
+		return nil, nil
+	case string(entities.ArticleStatusPublish):
+		filter := entities.ArticleStatusPublish
+		return &filter, nil
+	case string(entities.ArticleStatusPrivate):
+		filter := entities.ArticleStatusPrivate
+		return &filter, nil
+	case string(entities.ArticleStatusDraft):
+		filter := entities.ArticleStatusDraft
+		return &filter, nil
+	default:
+		return nil, ErrInvalidArticleStatus
+	}
 }
 
 func (ArticleService) Detail(ctx context.Context, articlePath string, includeAllStatuses bool) (*vo.ArticleDetailVO, error) {

@@ -1,5 +1,5 @@
 export type MarkdownHeadingItem = {
-  level: 2 | 3
+  level: 1 | 2 | 3
   title: string
 }
 
@@ -33,7 +33,7 @@ export function extractMarkdownHeadings(source: string): MarkdownHeadingItem[] {
 
     if (codeFence) continue
 
-    const headingMatch = line.match(/^(#{2,3})\s+(.+?)\s*#*\s*$/)
+    const headingMatch = line.match(/^(#{1,3})\s+(.+?)\s*#*\s*$/)
 
     if (!headingMatch) continue
 
@@ -42,7 +42,7 @@ export function extractMarkdownHeadings(source: string): MarkdownHeadingItem[] {
     if (!title) continue
 
     headings.push({
-      level: headingMatch[1].length as 2 | 3,
+      level: headingMatch[1].length as 1 | 2 | 3,
       title
     })
   }

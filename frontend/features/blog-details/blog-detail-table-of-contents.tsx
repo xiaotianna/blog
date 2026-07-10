@@ -22,11 +22,19 @@ type BlogDetailTableOfContentsContentProps = {
 }
 
 const ARTICLE_SCROLL_OFFSET = 140
+const headingIndentClassNames: Record<MarkdownHeadingItem['level'], string> = {
+  1: '',
+  2: 'pl-4',
+  3: 'pl-8'
+}
+const contentHeadingSelector = [
+  '#blog-detail-content [data-search-field="content"] h1',
+  '#blog-detail-content [data-search-field="content"] h2',
+  '#blog-detail-content [data-search-field="content"] h3'
+].join(', ')
 
 function getContentHeadings() {
-  return document.querySelectorAll(
-    '#blog-detail-content h2, #blog-detail-content h3'
-  )
+  return document.querySelectorAll(contentHeadingSelector)
 }
 
 function getEncodedHash(title: string) {
@@ -195,7 +203,7 @@ export function BlogDetailTableOfContentsContent({
                 onClick={() => handleHeadingClick(item, index)}
                 className={cn(
                   'block w-full cursor-pointer text-left text-sm leading-5 text-(--ds-gray-900) transition-colors hover:text-(--geist-link-color)',
-                  item.level === 3 && 'pl-5',
+                  headingIndentClassNames[item.level],
                   isActive && 'text-(--geist-link-color)'
                 )}
               >

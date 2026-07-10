@@ -216,11 +216,9 @@ export function BlogCreateArticleForm({
 
       toast.success(result.message ?? '新增文章成功')
       onDone()
-      if (result.id) {
-        router.push(`/edit/${encodeURIComponent(result.id)}`)
-      } else {
-        router.refresh()
-      }
+      const targetPath = result.path || getPreviewPath(categoryPath, currentSlug)
+
+      router.push(getBlogDirectoryHref(targetPath))
     } catch {
       toast.error('新增文章失败，请稍后重试')
     } finally {

@@ -5,9 +5,7 @@
 在项目根目录执行：
 
 ```bash
-docker compose build
-docker compose pull db redis
-docker image save $(docker compose config --images) -o blog-images.tar
+docker compose build && docker compose pull db redis && docker image save $(docker compose config --images) -o blog-images.tar
 ```
 
 打包完成后，需要上传到服务器：

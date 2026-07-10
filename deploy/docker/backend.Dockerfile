@@ -18,7 +18,10 @@ FROM alpine:3.22
 
 WORKDIR /app
 
-RUN addgroup -S app \
+ENV TZ=Asia/Shanghai
+
+RUN apk add --no-cache tzdata \
+  && addgroup -S app \
   && adduser -S app -G app
 
 COPY --from=builder /out/blog-api ./blog-api

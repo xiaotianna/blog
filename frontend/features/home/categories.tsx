@@ -5,33 +5,17 @@ import { motion } from 'motion/react'
 import Link from 'next/link'
 import { useState } from 'react'
 
-const categories = [
-  {
-    question: '这个博客主要写什么？',
-    answer:
-      '这里会记录前端工程、全栈实践、性能优化、开发工具，以及真实产品开发里那些容易被忽略的小决策。',
-  },
-  {
-    question: '会经常出现哪些技术栈？',
-    answer:
-      'React、TypeScript、Next.js、Vite、Tailwind CSS、Node.js、Go、数据库、测试和现代构建工具都会经常出现。',
-  },
-  {
-    question: '内容更偏教程还是笔记？',
-    answer:
-      '两者都会有。有些文章是一步步拆解的教程，有些则是调试、重构和交付功能时沉淀下来的现场笔记。',
-  },
-  {
-    question: '适合谁阅读？',
-    answer:
-      '适合关注实现细节、界面质量、工程取舍的前端和全栈开发者，也适合正在搭建自己知识体系的人。',
-  },
-  {
-    question: '更新频率会是怎样？',
-    answer:
-      '不会为了更新而更新。通常会在解决了一个问题、整理出一个模式，或者找到更清晰的解释方式后发布。',
-  },
-]
+import { homeCategoryCardAnimations } from '@/config/home-category-card-animations'
+import type {
+  HomeArticleStatus,
+  HomeCategoryCard
+} from '@/features/home/home-category-data'
+
+const articleStatusLabels: Record<HomeArticleStatus, string> = {
+  publish: '已发布',
+  private: '私密',
+  draft: '草稿',
+}
 
 const sectionContainerVariants = {
   hidden: { opacity: 0 },
@@ -49,67 +33,20 @@ const sectionItemVariants = {
   visible: { opacity: 1, y: 0, scale: 1 },
 }
 
-const ctaFaqVariants = [
-  {
-    id: 'warm',
-    gradientClassName: 'c5-animated-gradient',
-  },
-  {
-    id: 'blue-cyan',
-    gradientClassName: 'c5-animated-gradient c5-animated-gradient-blue-cyan',
-  },
-  {
-    id: 'purple-pink',
-    gradientClassName: 'c5-animated-gradient c5-animated-gradient-purple-pink',
-  },
-  {
-    id: 'mint-lime-yellow',
-    gradientClassName:
-      'c5-animated-gradient c5-animated-gradient-mint-lime-yellow',
-  },
-  {
-    id: 'coral-peach-cream',
-    gradientClassName:
-      'c5-animated-gradient c5-animated-gradient-coral-peach-cream',
-  },
-  {
-    id: 'lake-seafoam-warm',
-    gradientClassName:
-      'c5-animated-gradient c5-animated-gradient-lake-seafoam-warm',
-  },
-  {
-    id: 'lavender-rose-apricot',
-    gradientClassName:
-      'c5-animated-gradient c5-animated-gradient-lavender-rose-apricot',
-  },
-  {
-    id: 'berry-grape-rose',
-    gradientClassName:
-      'c5-animated-gradient c5-animated-gradient-berry-grape-rose',
-  },
-  {
-    id: 'indigo-violet-cool-pink',
-    gradientClassName:
-      'c5-animated-gradient c5-animated-gradient-indigo-violet-cool-pink',
-  },
-  {
-    id: 'gold-turquoise-grass',
-    gradientClassName:
-      'c5-animated-gradient c5-animated-gradient-gold-turquoise-grass',
-  },
-  {
-    id: 'sky-sunset-soft-orange',
-    gradientClassName:
-      'c5-animated-gradient c5-animated-gradient-sky-sunset-soft-orange',
-  },
-]
-
-type CategoryBlockProps = {
+type CategoryBlockProps = HomeCategoryCard & {
+  canManageArticles: boolean
   gradientClassName: string
 }
 
-function CategoryBlock({ gradientClassName }: CategoryBlockProps) {
-  const [activeIndex, setActiveIndex] = useState<number | null>(0)
+function CategoryBlock({
+  articles,
+  canManageArticles,
+  category,
+  gradientClassName,
+}: CategoryBlockProps) {
+  const [activeIndex, setActiveIndex] = useState<number | null>(
+    articles.length > 0 ? 0 : null,
+  )
 
   return (
     <motion.div
@@ -125,18 +62,18 @@ function CategoryBlock({ gradientClassName }: CategoryBlockProps) {
         className={`${gradientClassName} flex min-h-[240px] flex-col items-center justify-center rounded-3xl px-8 py-10 text-center text-white shadow-[0_10px_30px_rgba(0,0,0,0.05)] sm:min-h-[280px] sm:px-10 lg:min-h-[320px]`}
       >
         <h3 className='mb-3 text-4xl font-normal leading-[1.08] sm:text-5xl lg:text-6xl'>
-          阅读我的
-          <br />
-          技术笔记
+          {category.name}
         </h3>
-        <p className='mb-6 max-w-2xl text-sm font-normal leading-relaxed text-white/85 sm:text-base'>
-          关于 React、TypeScript、Go、工程化和产品化 UI 的实践记录。
-        </p>
+        {category.description ? (
+          <p className='mb-6 max-w-2xl text-sm font-normal leading-relaxed text-white/85 sm:text-base'>
+            {category.description}
+          </p>
+        ) : null}
         <Link
-          href='/blog'
+          href={`/blog/${category.path}`}
           className='rounded-xl bg-neutral-900 px-8 py-3.5 text-base font-semibold text-white shadow-[0_10px_20px_rgba(0,0,0,0.3)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(0,0,0,0.4)]'
         >
-          开始阅读
+          进入目录
         </Link>
       </motion.div>
 
@@ -145,12 +82,12 @@ function CategoryBlock({ gradientClassName }: CategoryBlockProps) {
         transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
         className='flex flex-col justify-center gap-3'
       >
-        {categories.slice(0, 3).map((category, index) => {
+        {articles.map((article, index) => {
           const isActive = activeIndex === index
 
           return (
             <div
-              key={category.question}
+              key={article.id}
               className='rounded-[10px] border bg-card px-5 py-[18px] text-left shadow-[0_2px_8px_rgba(0,0,0,0.02)] transition-all duration-200 hover:border-border dark:bg-card'
               style={{
                 borderColor: isActive
@@ -171,7 +108,14 @@ function CategoryBlock({ gradientClassName }: CategoryBlockProps) {
                   )
                 }}
               >
-                <span>{category.question}</span>
+                <span className='flex min-w-0 items-center gap-2'>
+                  <span>{article.title}</span>
+                  {canManageArticles ? (
+                    <span className='shrink-0 rounded-full border px-2 py-0.5 text-xs text-muted-foreground'>
+                      {articleStatusLabels[article.status]}
+                    </span>
+                  ) : null}
+                </span>
                 <motion.span
                   animate={{ rotate: isActive ? 180 : 0 }}
                   transition={{ duration: 0.2, ease: 'easeOut' }}
@@ -192,20 +136,22 @@ function CategoryBlock({ gradientClassName }: CategoryBlockProps) {
                 transition={{ duration: 0.22, ease: 'easeOut' }}
                 className='block overflow-hidden'
               >
-                <span
-                  className='mt-3 overflow-hidden text-sm leading-relaxed text-muted-foreground'
-                  style={{
-                    display: '-webkit-box',
-                    lineClamp: 2,
-                    WebkitBoxOrient: 'vertical',
-                    WebkitLineClamp: 2,
-                  }}
-                >
-                  {category.answer}
-                </span>
+                {article.description ? (
+                  <span
+                    className='mt-3 overflow-hidden text-sm leading-relaxed text-muted-foreground'
+                    style={{
+                      display: '-webkit-box',
+                      lineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      WebkitLineClamp: 2,
+                    }}
+                  >
+                    {article.description}
+                  </span>
+                ) : null}
                 <span className='mt-3 flex justify-end'>
                   <Link
-                    href='/blog'
+                    href={`/${canManageArticles ? 'blog' : 'post'}/${article.path}`}
                     className='rounded-lg cursor-pointer bg-secondary px-3 py-1.5 text-sm font-medium text-secondary-foreground transition-colors hover:bg-accent'
                   >
                     详情
@@ -220,13 +166,29 @@ function CategoryBlock({ gradientClassName }: CategoryBlockProps) {
   )
 }
 
-export function Categories() {
+type CategoriesProps = {
+  canManageArticles: boolean
+  items: HomeCategoryCard[]
+}
+
+export function Categories({ canManageArticles, items }: CategoriesProps) {
+  if (items.length === 0) {
+    return null
+  }
+
   return (
     <div className='flex flex-col gap-14 sm:gap-16 mt-2'>
-      {ctaFaqVariants.map((variant) => (
+      {items.map(({ articles, category }, index) => (
         <CategoryBlock
-          key={variant.id}
-          gradientClassName={variant.gradientClassName}
+          articles={articles}
+          canManageArticles={canManageArticles}
+          category={category}
+          key={category.id}
+          gradientClassName={
+            homeCategoryCardAnimations[
+              index % homeCategoryCardAnimations.length
+            ]
+          }
         />
       ))}
     </div>

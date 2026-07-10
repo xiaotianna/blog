@@ -30,6 +30,28 @@ type CategoryOptionVO struct {
 	Path  string    `json:"path"`
 }
 
+type HomeCategoryArticleVO struct {
+	ID          uuid.UUID `json:"id"`
+	Title       string    `json:"title"`
+	Path        string    `json:"path"`
+	Description string    `json:"description"`
+	Status      string    `json:"status"`
+	UpdatedAt   time.Time `json:"updatedAt"`
+}
+
+type HomeCategoryVO struct {
+	ID          uuid.UUID               `json:"id"`
+	Name        string                  `json:"name"`
+	Path        string                  `json:"path"`
+	Description string                  `json:"description"`
+	Articles    []HomeCategoryArticleVO `json:"articles"`
+}
+
+type HomeCategoryResponseVO struct {
+	CanManageArticles bool             `json:"canManageArticles"`
+	Items             []HomeCategoryVO `json:"items"`
+}
+
 type CategoryCatalogNodeType string
 
 const (

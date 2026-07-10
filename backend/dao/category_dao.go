@@ -5,6 +5,7 @@ import (
 	"blog/entities"
 	"context"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -12,6 +13,20 @@ import (
 type CategoryDAO struct{}
 
 var Category = CategoryDAO{}
+
+type HomeCategoryArticleRow struct {
+	CategoryID          uuid.UUID
+	CategoryName        string
+	CategoryPath        string
+	CategoryDescription string
+	ArticleID           uuid.UUID
+	ArticleTitle        string
+	ArticleSlug         string
+	ArticlePath         string
+	ArticleDescription  string
+	ArticleStatus       entities.ArticleStatus
+	ArticleUpdatedAt    time.Time
+}
 
 func (CategoryDAO) FindByID(ctx context.Context, id uuid.UUID) (*entities.CategoryEntity, error) {
 	var category entities.CategoryEntity
@@ -102,4 +117,61 @@ func (CategoryDAO) FindAll(ctx context.Context) ([]entities.CategoryEntity, erro
 		Find(&categories).Error
 
 	return categories, err
+}
+
+func (CategoryDAO) FindHomeCategoryArticles(ctx context.Context, includeAllStatuses bool, articleLimit int) ([]HomeCategoryArticleRow, error) {
+	rankedArticles := config.PgDB.
+		WithContext(ctx).
+		Table("article").
+		Select(`
+			article.id AS article_id,
+			article.title AS article_title,
+			article.slug AS article_slug,
+			article.path AS article_path,
+			article.description AS article_description,
+			article.status AS article_status,
+			article.category_id,
+			article.updated_at AS article_updated_at,
+			ROW_NUMBER() OVER (
+				PARTITION BY article.category_id
+				ORDER BY article.updated_at DESC, article.id DESC
+			) AS row_number,
+			MAX(article.updated_at) OVER (
+				PARTITION BY article.category_id
+			) AS category_updated_at
+		`).
+		Where("article.deleted_at IS NULL")
+
+	if !includeAllStatuses {
+		rankedArticles = rankedArticles.Where("article.status = ?", entities.ArticleStatusPublish)
+	}
+
+	var rows []HomeCategoryArticleRow
+	err := config.PgDB.
+		WithContext(ctx).
+		Table("category").
+		Select(`
+			category.id AS category_id,
+			category.name AS category_name,
+			category.path AS category_path,
+			category.description AS category_description,
+			ranked_articles.article_id,
+			ranked_articles.article_title,
+			ranked_articles.article_slug,
+			ranked_articles.article_path,
+			ranked_articles.article_description,
+			ranked_articles.article_status,
+			ranked_articles.article_updated_at
+		`).
+		Joins("JOIN (?) AS ranked_articles ON ranked_articles.category_id = category.id", rankedArticles).
+		Where("category.deleted_at IS NULL").
+		Where("ranked_articles.row_number <= ?", articleLimit).
+		Order("ranked_articles.category_updated_at DESC").
+		Order("category.id ASC").
+		Order("ranked_articles.article_updated_at DESC").
+		Order("ranked_articles.article_id DESC").
+		Scan(&rows).
+		Error
+
+	return rows, err
 }

@@ -108,9 +108,19 @@ export async function getCurrentCategory(path: string) {
   }
 }
 
-export async function getChildDirectories(parentPath: string, page: number) {
+export async function getChildDirectories(
+  parentPath: string,
+  page: number,
+  pageSize = PAGE_SIZE
+) {
+  const params = new URLSearchParams({
+    parentPath,
+    page: String(page),
+    pageSize: String(pageSize)
+  })
+
   return readPage<BlogCategory>(
-    `/category/children?parentPath=${encodeURIComponent(parentPath)}&page=${page}&pageSize=${PAGE_SIZE}`,
+    `/category/children?${params.toString()}`,
     { auth: false }
   )
 }
@@ -118,12 +128,13 @@ export async function getChildDirectories(parentPath: string, page: number) {
 export async function getArticles(
   categoryPath: string,
   page: number,
-  status: ArticleStatusFilter = 'all'
+  status: ArticleStatusFilter = 'all',
+  pageSize = PAGE_SIZE
 ) {
   const params = new URLSearchParams({
     categoryPath,
     page: String(page),
-    pageSize: String(PAGE_SIZE)
+    pageSize: String(pageSize)
   })
 
   if (status !== 'all') {

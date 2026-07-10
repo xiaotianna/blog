@@ -1,6 +1,7 @@
 import { Highlighter } from '@/components/ui/highlighter'
 import { SparklesText } from '@/components/ui/sparkles-text'
 import { Categories } from '@/features/home/categories'
+import { getHomeCategoryData } from '@/features/home/home-category-data'
 import { Links } from '@/features/home/links'
 import { MeImage } from '@/features/home/me-image'
 import { Skills } from '@/features/home/skills'
@@ -29,7 +30,10 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   return <h2 className='text-xl font-bold tracking-tight'>{children}</h2>
 }
 
-export default function Home() {
+export default async function Home() {
+  const { canManageArticles, items: categoryCards } =
+    await getHomeCategoryData()
+
   return (
     <main className='mx-auto flex min-h-dvh w-full flex-col gap-14 px-6 pb-20 pt-4 sm:px-8 lg:px-0'>
       <section id='hero'>
@@ -97,13 +101,18 @@ export default function Home() {
         <Links />
       </section>
 
-      <section
-        id='categories'
-        className='flex flex-col gap-4'
-      >
-        <SectionTitle>Categories</SectionTitle>
-        <Categories />
-      </section>
+      {categoryCards.length > 0 ? (
+        <section
+          id='categories'
+          className='flex flex-col gap-4'
+        >
+          <SectionTitle>Categories</SectionTitle>
+          <Categories
+            canManageArticles={canManageArticles}
+            items={categoryCards}
+          />
+        </section>
+      ) : null}
     </main>
   )
 }

@@ -5,6 +5,7 @@ import (
 	"blog/middlewares"
 	"blog/services"
 	"blog/utils"
+	"blog/vo"
 	"errors"
 	"net/http"
 
@@ -136,6 +137,22 @@ func (category CategoryController) Children(c *gin.Context) {
 	}
 
 	utils.Success(c, "获取目录列表成功", res)
+}
+
+func (category CategoryController) Home(c *gin.Context) {
+	ctx := c.Request.Context()
+	_, canManageArticles := middlewares.CurrentUser(c)
+
+	items, err := category.service.Home(ctx, canManageArticles)
+	if err != nil {
+		utils.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	utils.Success(c, "获取首页目录成功", vo.HomeCategoryResponseVO{
+		CanManageArticles: canManageArticles,
+		Items:             items,
+	})
 }
 
 func (category CategoryController) Options(c *gin.Context) {

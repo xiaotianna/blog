@@ -19,6 +19,8 @@ func CategoryRouter(r *gin.RouterGroup) {
 	r.DELETE("/:id", middlewares.JWTAuth, controllers.Category.Delete)
 	// 获取目录详情接口
 	r.GET("/detail", controllers.Category.Detail)
+	// 获取首页有内容的目录接口
+	r.GET("/home", middlewares.OptionalJWTAuth, controllers.Category.Home)
 	// 分页获取当前层子目录接口
 	r.GET("/children", controllers.Category.Children)
 	// 获取目录选择项接口

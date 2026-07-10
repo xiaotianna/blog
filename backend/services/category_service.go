@@ -20,6 +20,8 @@ type CategoryService struct{}
 
 var Category = CategoryService{}
 
+const homeCategoryArticleLimit = 3
+
 func (CategoryService) Create(ctx context.Context, req dto.CreateCategoryRequest) (*vo.CategoryVO, error) {
 	categoryPath := "/" + req.Slug
 
@@ -273,6 +275,47 @@ func (CategoryService) Children(ctx context.Context, parentPath string, page int
 		Items:      items,
 		Pagination: vo.NewPaginationVO(res.Page, res.PageSize, res.Total, res.TotalPages),
 	}, nil
+}
+
+func (CategoryService) Home(ctx context.Context, includeAllStatuses bool) ([]vo.HomeCategoryVO, error) {
+	rows, err := dao.Category.FindHomeCategoryArticles(ctx, includeAllStatuses, homeCategoryArticleLimit)
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]vo.HomeCategoryVO, 0)
+	categoryIndexes := make(map[uuid.UUID]int)
+
+	for _, row := range rows {
+		categoryIndex, exists := categoryIndexes[row.CategoryID]
+		if !exists {
+			categoryIndex = len(items)
+			categoryIndexes[row.CategoryID] = categoryIndex
+			items = append(items, vo.HomeCategoryVO{
+				ID:          row.CategoryID,
+				Name:        row.CategoryName,
+				Path:        toPublicPath(row.CategoryPath),
+				Description: row.CategoryDescription,
+				Articles:    make([]vo.HomeCategoryArticleVO, 0, homeCategoryArticleLimit),
+			})
+		}
+
+		articlePath := row.ArticlePath
+		if articlePath == "" {
+			articlePath = path.Join(row.CategoryPath, row.ArticleSlug)
+		}
+
+		items[categoryIndex].Articles = append(items[categoryIndex].Articles, vo.HomeCategoryArticleVO{
+			ID:          row.ArticleID,
+			Title:       row.ArticleTitle,
+			Path:        toPublicPath(articlePath),
+			Description: row.ArticleDescription,
+			Status:      string(row.ArticleStatus),
+			UpdatedAt:   row.ArticleUpdatedAt,
+		})
+	}
+
+	return items, nil
 }
 
 func (CategoryService) Options(ctx context.Context) ([]vo.CategoryOptionVO, error) {

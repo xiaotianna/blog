@@ -2,6 +2,7 @@ import type { NextConfig } from 'next'
 import { getLocalDevOrigins } from './utils/get-local-dev-origins'
 
 const nextConfig: NextConfig = {
+  output: 'standalone',
   typescript: {
     ignoreBuildErrors: true
   },

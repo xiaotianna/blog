@@ -2,6 +2,7 @@ package config
 
 import (
 	"log"
+	"strings"
 
 	"github.com/spf13/viper"
 )
@@ -46,6 +47,9 @@ func init() {
 	viper.SetConfigType("yml")
 	// 添加配置文件的路径
 	viper.AddConfigPath("./")
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	viper.AutomaticEnv()
+	bindConfigEnv()
 	// 按前面配置好的路径、文件名、类型去查找，并把配置内容加载到 Viper 里
 	if err := viper.ReadInConfig(); err != nil {
 		log.Fatalf("Error reading config: %v", err)
@@ -54,5 +58,29 @@ func init() {
 	GlobalConfig = &Config{}
 	if err := viper.Unmarshal(GlobalConfig); err != nil {
 		log.Fatalf("Error unmarshalling config: %v", err)
+	}
+}
+
+func bindConfigEnv() {
+	keys := []string{
+		"app.port",
+		"db.host",
+		"db.port",
+		"db.user",
+		"db.password",
+		"db.db_name",
+		"redis.host",
+		"redis.port",
+		"redis.password",
+		"redis.db",
+		"account.phone",
+		"account.password",
+		"jwt.secret_key",
+	}
+
+	for _, key := range keys {
+		if err := viper.BindEnv(key); err != nil {
+			log.Fatalf("Error binding env %s: %v", key, err)
+		}
 	}
 }

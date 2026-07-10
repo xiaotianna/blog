@@ -1,0 +1,7 @@
+pg_data
+redis_data
+uploads
+.gocache
+tmp
+*.log
+.DS_Store

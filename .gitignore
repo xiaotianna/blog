@@ -4,3 +4,4 @@ redis_data
 backend/uploads
 docs/superpowers
 .superpowers
+.DS_Store

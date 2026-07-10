@@ -2,10 +2,17 @@
 
 ## 1. 本地打包
 
+默认按 `linux/amd64` 架构构建和拉取镜像，适用于常见的 AMD64 Linux 服务器。
 在项目根目录执行：
 
 ```bash
 docker compose build && docker compose pull db redis && docker image save $(docker compose config --images) -o blog-images.tar
+```
+
+如需为 ARM64 环境打包，可在 `.env` 中设置：
+
+```dotenv
+DOCKER_PLATFORM=linux/arm64
 ```
 
 打包完成后，需要上传到服务器：

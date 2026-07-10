@@ -7,27 +7,17 @@ import {
   useActiveCode,
   type SandpackTheme
 } from '@codesandbox/sandpack-react'
-import { CodeBlockHeader } from '@/components/markdown/markdown-components/code/code-block-header'
-import { CodeTheme } from '@/components/markdown/markdown-components/code/extension/code-theme'
-import { MarkdownBlockquote } from '@/components/markdown/markdown-components/alert'
-import { remarkCodeMeta } from '@/components/markdown/markdown-components/code/extension'
+import { MarkdownContentClient } from '@/components/markdown/markdown-content-client'
 import { useTheme } from 'next-themes'
 import {
   forwardRef,
   useEffect,
   useImperativeHandle,
   useMemo,
-  useRef,
-  useState,
-  type CSSProperties,
-  type ReactNode
+  useRef
 } from 'react'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
-import { codeToHtml } from 'shiki'
 
 import { cn } from '@/lib/utils'
-import { getStringProperty } from '@/utils/get-string-property'
 
 import { createMarkdownImage } from './editor-image-markdown'
 import type { EditorCommandHandle } from './rich-text-editor'
@@ -291,12 +281,14 @@ const SandpackMdxBody = forwardRef<EditorCommandHandle, MdxSourceEditorProps>(
             />
           </div>
           <div
-            className='min-h-0 flex-1 overflow-auto bg-background max-md:min-h-[50dvh]'
+            className='min-h-0 flex-1 overflow-auto bg-background p-6 max-md:min-h-[50dvh] max-md:p-4'
             onScroll={handlePreviewScroll}
             ref={previewScrollRef}
           >
-            <article className='article-content mx-auto min-h-full max-w-3xl px-7 py-10'>
-              <MdxPreview content={stripMdxRuntimeOnlyBlocks(currentCode)} />
+            <article className='article-content min-h-full'>
+              <MarkdownContentClient>
+                {stripMdxRuntimeOnlyBlocks(currentCode)}
+              </MarkdownContentClient>
             </article>
           </div>
         </SandpackLayout>
@@ -331,175 +323,6 @@ function getSyncedScrollTop(source: HTMLElement, target: HTMLElement) {
 
   return (source.scrollTop / sourceRange) * targetRange
 }
-
-function MdxPreview({ content }: { content: string }) {
-  return (
-    <ReactMarkdown
-      components={{
-        a: ({ children, ...props }) => (
-          <a
-            rel='noreferrer noopener'
-            target='_blank'
-            {...props}
-          >
-            {children}
-          </a>
-        ),
-        strong: ({ children }) => (
-          <strong className='font-semibold'>{children}</strong>
-        ),
-        blockquote: MarkdownBlockquote,
-        pre: ({ children }) => <>{children}</>,
-        code: ({ children, className, node }) => {
-          const language = /language-([^\s]+)/.exec(className ?? '')?.[1]
-          const value = getMdxPreviewCodeValue(children)
-
-          if (!language && !isMdxPreviewCodeBlockNode(node)) {
-            return <code className={cn('inline-block', className)}>{children}</code>
-          }
-
-          return (
-            <MdxPreviewCodeBlock
-              code={value}
-              language={language ?? 'text'}
-              meta={getStringProperty(node, 'data-meta')}
-            />
-          )
-        },
-        table: ({ children, className, ...props }) => (
-          <div className='my-8 w-full max-w-full overflow-x-auto overscroll-x-contain'>
-            <table
-              className={cn('my-0 w-full min-w-max table-auto', className)}
-              {...props}
-            >
-              {children}
-            </table>
-          </div>
-        )
-      }}
-      remarkPlugins={[remarkGfm, remarkCodeMeta]}
-    >
-      {content}
-    </ReactMarkdown>
-  )
-}
-
-function MdxPreviewCodeBlock({
-  code,
-  language,
-  meta
-}: {
-  code: string
-  language: string
-  meta?: string
-}) {
-  const filename = meta?.match(/filename="([^"]+)"/)?.[1]
-  const highlightedHtml = useHighlightedCode(code, language)
-
-  return (
-    <div className='relative my-4 overflow-hidden rounded-md border border-(--ds-gray-400) bg-(--ds-background-100)'>
-      <CodeBlockHeader
-        code={code}
-        filename={filename}
-        language={language}
-      />
-      <pre
-        className='m-0 overflow-x-auto bg-(--ds-background-100) py-5'
-        style={codeThemeVariables}
-      >
-        <code
-          className='grid rounded-none border-0 bg-transparent p-0 text-left font-mono text-[13px]! leading-5 whitespace-pre text-(--ds-gray-1000) [font-variant-ligatures:none] break-normal hyphens-none [&_.line]:relative [&_.line]:min-h-5 [&_.line]:px-5 [&_.line>span]:inline-block'
-          dangerouslySetInnerHTML={{ __html: highlightedHtml }}
-        />
-      </pre>
-    </div>
-  )
-}
-
-function getMdxPreviewCodeValue(children: ReactNode): string {
-  if (children === undefined || children === null) return ''
-  if (Array.isArray(children)) {
-    return children.map(getMdxPreviewCodeValue).join('')
-  }
-
-  return String(children)
-}
-
-function isMdxPreviewCodeBlockNode(node: unknown) {
-  return Boolean(
-    node &&
-      typeof node === 'object' &&
-      'properties' in node &&
-      (node as { properties?: Record<string, unknown> }).properties?.[
-        'data-code-block'
-      ]
-  )
-}
-
-function useHighlightedCode(code: string, language: string) {
-  const [highlightedHtml, setHighlightedHtml] = useState(() =>
-    escapeCodeHtml(code)
-  )
-
-  useEffect(() => {
-    let active = true
-    setHighlightedHtml(escapeCodeHtml(code))
-
-    void codeToHtml(code.replace(/\n$/, ''), {
-      lang: language || 'text',
-      theme: CodeTheme
-    })
-      .then((highlighted) => {
-        if (!active) return
-
-        setHighlightedHtml(
-          highlighted
-            .replace(/^<pre[^>]*><code>/, '')
-            .replace(/<\/code><\/pre>$/, '')
-            .replaceAll('class="line"', 'class="line" data-line=""')
-        )
-      })
-      .catch(() => {
-        if (!active) return
-
-        setHighlightedHtml(escapeCodeHtml(code))
-      })
-
-    return () => {
-      active = false
-    }
-  }, [code, language])
-
-  return highlightedHtml
-}
-
-function escapeCodeHtml(code: string) {
-  return code
-    .replace(/\n$/, '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .split('\n')
-    .map(
-      (line) =>
-        `<span class="line" data-line=""><span>${line || ' '}</span></span>`
-    )
-    .join('\n')
-}
-
-const codeThemeVariables = {
-  '--shiki-color-text': 'var(--ds-gray-1000)',
-  '--shiki-color-background': 'transparent',
-  '--shiki-token-constant': 'var(--ds-blue-900)',
-  '--shiki-token-string': 'var(--ds-green-900)',
-  '--shiki-token-comment': 'var(--ds-gray-900)',
-  '--shiki-token-keyword': 'var(--ds-pink-900)',
-  '--shiki-token-parameter': 'var(--ds-amber-900)',
-  '--shiki-token-function': 'var(--ds-purple-900)',
-  '--shiki-token-string-expression': 'var(--ds-green-900)',
-  '--shiki-token-punctuation': 'var(--ds-gray-1000)',
-  '--shiki-token-link': 'var(--ds-green-900)'
-} as CSSProperties
 
 const sandpackBaseTheme = {
   font: {

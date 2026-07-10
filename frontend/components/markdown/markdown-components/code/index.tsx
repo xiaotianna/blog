@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils'
 import { type ReactNode } from 'react'
 import { CodeBlock } from './code-block'
 
-import { type MarkdownComponentProps } from '..'
+import { type MarkdownComponentProps } from '../shared'
 
 function getCodeValue(children: ReactNode): string {
   if (children === undefined || children === null) return ''

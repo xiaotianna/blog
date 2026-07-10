@@ -1,20 +1,21 @@
-import { use } from 'react'
-import { headers } from 'next/headers'
-import { cn } from "@/lib/utils"
-import { ArrowUpRight } from "lucide-react"
+'use client'
+
+import { ArrowUpRight } from 'lucide-react'
+import { useSyncExternalStore } from 'react'
+
+import { cn } from '@/lib/utils'
 import { getExternalRel, isInternalUrl } from '@/utils/link'
 
-import { type MarkdownComponentProps } from '../shared'
+import { type MarkdownComponentProps } from './shared'
 
-export const Link = ({
+export const ClientLink = ({
   children,
   className,
   rel,
   target,
   ...props
 }: MarkdownComponentProps<'a'>) => {
-  const headersList = use(headers())
-  const currentHost = headersList.get('x-forwarded-host') ?? headersList.get('host')
+  const currentHost = useCurrentHost()
   const href = typeof props.href === 'string' ? props.href : undefined
   const isInternal = isInternalUrl(href, currentHost)
 
@@ -35,5 +36,15 @@ export const Link = ({
         </span>
       )}
     </a>
+  )
+}
+
+const emptySubscribe = () => () => {}
+
+function useCurrentHost() {
+  return useSyncExternalStore(
+    emptySubscribe,
+    () => window.location.host,
+    () => null
   )
 }

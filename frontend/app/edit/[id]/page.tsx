@@ -4,12 +4,16 @@ import { normalizeInternalRedirect } from '@/lib/redirect'
 import { isNotFoundApiError } from '@/lib/server/go-api'
 import { getCurrentUser } from '@/lib/server/current-user'
 import type { Metadata } from 'next'
+import { buildPageMetadata } from '@/lib/metadata'
 import { notFound, redirect } from 'next/navigation'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: '编辑文章',
-  description: '编辑文章 MDX 内容。'
-}
+  description: '编辑文章 MDX 内容。',
+  label: 'EDITOR',
+  noIndex: true,
+  path: '/edit'
+})
 
 type EditArticlePageProps = {
   params: Promise<{

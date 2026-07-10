@@ -8,7 +8,17 @@ import { Skills } from '@/features/home/skills'
 import { ArrowRight } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
+import type { Metadata } from 'next'
 import Markdown from 'react-markdown'
+import { buildPageMetadata } from '@/lib/metadata'
+
+export const metadata: Metadata = buildPageMetadata({
+  description:
+    'T1an 的个人博客，记录前端工程化、全栈开发、Go、AI 应用与产品实践。',
+  keywords: ['前端工程化', '构建工具', '产品开发'],
+  label: 'HOME',
+  path: '/'
+})
 
 const profile = {
   name: 'T1an',

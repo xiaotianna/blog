@@ -7,6 +7,7 @@ import {
   getBlogNode,
   getChildDirectories,
   getDirectoryOptions,
+  getBlogPathHref,
   getTagOptions,
   normalizeArticleStatusFilter,
   normalizeBlogPath,
@@ -17,20 +18,91 @@ import { BlogPageAction } from '@/features/blog/blog-page-action'
 import { BlogContentList } from '@/features/blog/blog-post-list'
 import { isAuthenticated } from '@/lib/server/permissions/check'
 import { SearchArrivalHighlighter } from '@/features/search/search-arrival-highlighter'
+import { getPublicArticleCoverUrl } from '@/lib/article-cover-url'
+import { buildPageMetadata } from '@/lib/metadata'
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = {
-  title: 'Blog',
-  description: '关于技术、编程和生活的一些想法。',
-  openGraph: {
-    title: 'Blog',
-    description: '关于技术、编程和生活的一些想法。'
-  }
+const BLUR_FADE_DELAY = 0.04
+
+type BlogPageParams = {
+  slug?: string[]
 }
 
-const BLUR_FADE_DELAY = 0.04
+export async function generateMetadata({
+  params,
+  searchParams
+}: {
+  params: Promise<BlogPageParams>
+  searchParams: Promise<{
+    page?: string
+    status?: string
+    tab?: string
+  }>
+}): Promise<Metadata> {
+  const [
+    { slug },
+    { page: pageParam, status: statusParam, tab: tabParam }
+  ] = await Promise.all([params, searchParams])
+  const currentPath = normalizeBlogPath(slug)
+  const currentNode = await getBlogNode(currentPath)
+
+  if (!currentNode) {
+    return {}
+  }
+
+  const basePath = currentPath ? `/blog/${currentPath}` : '/blog'
+
+  if (currentNode.type === 'article') {
+    const article = currentNode.item
+    const tags = article.tags.map((tag) => tag.name)
+
+    return buildPageMetadata({
+      description: article.description,
+      image: getPublicArticleCoverUrl(article.cover, { absolute: true }),
+      keywords: tags,
+      label: 'ARTICLE',
+      modifiedTime: article.updatedAt,
+      noIndex: true,
+      path: `/post/${currentPath}`,
+      publishedTime: article.publishedAt,
+      tags,
+      title: article.title,
+      type: 'article'
+    })
+  }
+
+  const activeTab = normalizeTab(tabParam)
+  const currentPage = normalizePage(pageParam)
+  const canonicalParams = new URLSearchParams()
+
+  if (activeTab === 'articles') {
+    canonicalParams.set('tab', 'articles')
+  }
+
+  if (currentPage > 1) {
+    canonicalParams.set('page', String(currentPage))
+  }
+
+  const canonicalPath = `${basePath}${
+    canonicalParams.size > 0 ? `?${canonicalParams.toString()}` : ''
+  }`
+  const pageLabel = currentPage > 1 ? ` - 第 ${currentPage} 页` : ''
+  const sectionLabel = activeTab === 'articles' ? ' - 文章' : ''
+  const pageDescription =
+    currentNode.item.description ||
+    `浏览“${currentNode.item.name}”目录下的博客内容。`
+
+  return buildPageMetadata({
+    description: `${pageDescription}${pageLabel}`,
+    keywords: [currentNode.item.name],
+    label: currentPath ? 'CATEGORY' : 'BLOG',
+    noIndex: Boolean(statusParam),
+    path: canonicalPath,
+    title: `${currentNode.item.name}${sectionLabel}${pageLabel}`
+  })
+}
 
 export default async function BlogPage({
   params,
@@ -92,6 +164,21 @@ export default async function BlogPage({
       articleStatus
     )
   ])
+  const activePagination =
+    activeTab === 'directories'
+      ? directoryPage.pagination
+      : articlePage.pagination
+
+  if (currentPage > activePagination.totalPages) {
+    redirect(
+      getBlogPathHref(
+        currentPath,
+        activeTab,
+        activePagination.totalPages,
+        articleStatus
+      )
+    )
+  }
 
   return (
     <main className='mx-auto flex min-h-[calc(100dvh-9rem)] w-full max-w-5xl flex-col px-6 pb-0 lg:min-h-0 lg:px-0'>

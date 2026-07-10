@@ -129,7 +129,8 @@ export async function getArticles(
   categoryPath: string,
   page: number,
   status: ArticleStatusFilter = 'all',
-  pageSize = PAGE_SIZE
+  pageSize = PAGE_SIZE,
+  init?: { auth?: boolean }
 ) {
   const params = new URLSearchParams({
     categoryPath,
@@ -142,7 +143,8 @@ export async function getArticles(
   }
 
   const result = await readPage<ArticleApiResponse>(
-    `/article/list?${params.toString()}`
+    `/article/list?${params.toString()}`,
+    init
   )
 
   return {

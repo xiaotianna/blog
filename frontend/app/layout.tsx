@@ -5,6 +5,9 @@ import { Toaster } from '@/components/ui/sonner'
 import './globals.css'
 import '@/styles/article.css'
 import { cn } from '@/lib/utils'
+import { siteConfig, siteUrl } from '@/config/site'
+import { buildPageMetadata } from '@/lib/metadata'
+import { JsonLd } from '@/components/metadata/json-ld'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -25,9 +28,47 @@ const geistMono = Geist_Mono({
   subsets: ['latin']
 })
 
+const personId = new URL('#person', siteUrl).toString()
+const websiteId = new URL('#website', siteUrl).toString()
+const websiteJsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@id': websiteId,
+      '@type': 'WebSite',
+      description: siteConfig.description,
+      inLanguage: 'zh-CN',
+      name: siteConfig.name,
+      publisher: { '@id': personId },
+      url: siteUrl.toString()
+    },
+    {
+      '@id': personId,
+      '@type': 'Person',
+      image: new URL('image/me.png', siteUrl).toString(),
+      name: siteConfig.author,
+      url: siteUrl.toString()
+    }
+  ]
+}
+
 export const metadata: Metadata = {
-  title: "小T1an's Blog",
-  description: '一个关于我个人经历和对技术、编程以及生活的思考的博客。'
+  ...buildPageMetadata(),
+  applicationName: siteConfig.name,
+  authors: [
+    {
+      name: siteConfig.author,
+      url: siteUrl
+    }
+  ],
+  category: 'technology',
+  creator: siteConfig.author,
+  metadataBase: siteUrl,
+  publisher: siteConfig.author,
+  title: {
+    default: siteConfig.name,
+    template: `%s | ${siteConfig.name}`
+  }
 }
 
 export default function RootLayout({
@@ -37,7 +78,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang='en'
+      lang='zh-CN'
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
@@ -48,6 +89,7 @@ export default function RootLayout({
           '**:scrollbar-thin **:[scrollbar-color:var(--muted)_transparent] [&_*:not([data-scrollbar="hidden"])::-webkit-scrollbar]:w-2.5 [&_*:not([data-scrollbar="hidden"])::-webkit-scrollbar-thumb]:rounded-full [&_*:not([data-scrollbar="hidden"])::-webkit-scrollbar-thumb]:border-2 [&_*:not([data-scrollbar="hidden"])::-webkit-scrollbar-thumb]:border-solid [&_*:not([data-scrollbar="hidden"])::-webkit-scrollbar-thumb]:border-transparent [&_*:not([data-scrollbar="hidden"])::-webkit-scrollbar-thumb]:bg-muted-foreground/25 [&_*:not([data-scrollbar="hidden"])::-webkit-scrollbar-thumb]:bg-clip-content [&_*:not([data-scrollbar="hidden"])::-webkit-scrollbar-track]:bg-transparent [&_*:not([data-scrollbar="hidden"]):hover::-webkit-scrollbar-thumb]:bg-muted-foreground/45'
         )}
       >
+        <JsonLd data={websiteJsonLd} />
         <ThemeProvider>
           {children}
           <Toaster position='top-center' />

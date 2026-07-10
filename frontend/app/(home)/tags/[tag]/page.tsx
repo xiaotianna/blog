@@ -11,6 +11,7 @@ import {
 import { isAuthenticated } from '@/lib/server/permissions/check'
 import { ArrowLeft, Hash } from 'lucide-react'
 import type { Metadata } from 'next'
+import { buildPageMetadata } from '@/lib/metadata'
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 
@@ -39,10 +40,7 @@ export default async function TagPage({
     notFound()
   }
 
-  if (
-    result.pagination.total > 0 &&
-    currentPage > result.pagination.totalPages
-  ) {
+  if (currentPage > result.pagination.totalPages) {
     redirect(getTagPageHref(result.tag.name, result.pagination.totalPages))
   }
 
@@ -89,14 +87,28 @@ export default async function TagPage({
 }
 
 export async function generateMetadata({
-  params
+  params,
+  searchParams
 }: {
   params: Promise<TagPageParams>
+  searchParams: Promise<{ page?: string }>
 }): Promise<Metadata> {
-  const { tag } = await params
+  const [{ tag }, { page: pageParam }] = await Promise.all([
+    params,
+    searchParams
+  ])
+  const page = normalizePage(pageParam)
+  const pageLabel = page > 1 ? ` - 第 ${page} 页` : ''
+  const path = `/tags/${encodeURIComponent(tag)}${
+    page > 1 ? `?page=${page}` : ''
+  }`
 
-  return {
-    title: `# ${tag}`,
-    description: `查看标签“${tag}”下的文章`
-  }
+  return buildPageMetadata({
+    description: `查看标签“${tag}”下的文章${pageLabel}`,
+    keywords: [tag],
+    label: 'TAG',
+    path,
+    tags: [tag],
+    title: `# ${tag}${pageLabel}`
+  })
 }

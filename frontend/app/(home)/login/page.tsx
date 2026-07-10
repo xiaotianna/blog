@@ -3,12 +3,16 @@ import { LoginForm } from '@/features/auth/login-form'
 import { normalizeInternalRedirect } from '@/lib/redirect'
 import { getCurrentUser } from '@/lib/server/current-user'
 import type { Metadata } from 'next'
+import { buildPageMetadata } from '@/lib/metadata'
 import { redirect } from 'next/navigation'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: '登录',
-  description: '使用手机号和密码登录。'
-}
+  description: '使用手机号和密码登录。',
+  label: 'ACCOUNT',
+  noIndex: true,
+  path: '/login'
+})
 
 const BLUR_FADE_DELAY = 0.04
 

@@ -10,7 +10,11 @@ const nextConfig: NextConfig = {
       bodySizeLimit: '6mb'
     }
   },
-  serverExternalPackages: ['@sparticuz/chromium-min', 'playwright-core'],
+  serverExternalPackages: [
+    '@sparticuz/chromium-min',
+    '@takumi-rs/core',
+    'playwright-core'
+  ],
   allowedDevOrigins: [
     'localhost',
     'localhost:3000',

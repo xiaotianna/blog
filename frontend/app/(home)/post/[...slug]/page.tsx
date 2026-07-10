@@ -1,4 +1,9 @@
 import { BlogDetailContent } from '@/features/blog-details/blog-detail-content'
+import { BlogPostHeader } from '@/features/blog-details/blog-post-header'
+import {
+  BlogArticleTagBadge,
+  getArticleTagHref
+} from '@/features/blog/blog-article-tag-badge'
 import { getArticleDetail, normalizeBlogPath } from '@/features/blog/blog-data'
 import { getPublicArticleCoverUrl } from '@/lib/article-cover-url'
 import type { Metadata } from 'next'
@@ -22,7 +27,31 @@ export default async function BlogPostDetail({
   }
 
   return (
-    <BlogDetailContent title={article.title} description={article.description}>
+    <BlogDetailContent
+      beforeScrollToTop={
+        article.tags.length > 0 ? (
+          <div className='flex flex-wrap gap-2'>
+            {article.tags.map((tag) => (
+              <BlogArticleTagBadge
+                href={getArticleTagHref(tag)}
+                key={tag.id}
+                tag={tag}
+              />
+            ))}
+          </div>
+        ) : null
+      }
+      header={
+        <BlogPostHeader
+          description={article.description}
+          publishedAt={article.publishedAt}
+          status={article.status}
+          tags={article.tags}
+          title={article.title}
+          updatedAt={article.updatedAt}
+        />
+      }
+    >
       {article.content}
     </BlogDetailContent>
   )
@@ -51,6 +80,10 @@ export async function generateMetadata({
       title: article.title,
       description: article.description,
       type: 'article',
+      publishedTime:
+        article.status === 'publish' && article.publishedAt
+          ? article.publishedAt
+          : undefined,
       images
     },
     twitter: {

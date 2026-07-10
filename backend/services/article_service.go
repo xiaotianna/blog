@@ -131,7 +131,17 @@ func (ArticleService) Update(ctx context.Context, id uuid.UUID, req dto.UpdateAr
 	article.Path = articlePath
 	article.Description = req.Description
 	article.Content = req.Content
-	article.Status = entities.ArticleStatus(req.Status)
+
+	targetStatus := entities.ArticleStatus(req.Status)
+	if targetStatus == entities.ArticleStatusPublish {
+		if article.Status != entities.ArticleStatusPublish {
+			now := time.Now()
+			article.PublishedAt = &now
+		}
+	} else {
+		article.PublishedAt = nil
+	}
+	article.Status = targetStatus
 
 	tags, err := findArticleTagsByIDs(ctx, req.TagIDs)
 	if err != nil {

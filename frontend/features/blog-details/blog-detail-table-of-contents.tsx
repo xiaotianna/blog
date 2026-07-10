@@ -2,15 +2,18 @@
 
 import { CircleArrowUp } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
+import type { ReactNode } from 'react'
 
 import type { MarkdownHeadingItem } from '@/lib/markdown-headings'
 import { cn } from '@/lib/utils'
 
 type BlogDetailTableOfContentsProps = {
+  beforeScrollToTop?: ReactNode
   items: MarkdownHeadingItem[]
 }
 
 type BlogDetailTableOfContentsContentProps = {
+  beforeScrollToTop?: ReactNode
   className?: string
   headingClassName?: string
   items: MarkdownHeadingItem[]
@@ -56,23 +59,27 @@ function getDecodedHashTitle() {
 }
 
 export function BlogDetailTableOfContents({
+  beforeScrollToTop,
   items
 }: BlogDetailTableOfContentsProps) {
-  if (items.length === 0) {
+  if (items.length === 0 && !beforeScrollToTop) {
     return null
   }
 
   return (
     <aside className='not-prose fixed right-6 top-32 z-40 hidden w-52 lg:block 2xl:left-[calc(50%+34rem)] 2xl:right-auto 2xl:w-56'>
       <BlogDetailTableOfContentsContent
+        beforeScrollToTop={beforeScrollToTop}
         className='max-h-[calc(100vh-10rem)]'
         items={items}
+        title={items.length > 0 ? undefined : ''}
       />
     </aside>
   )
 }
 
 export function BlogDetailTableOfContentsContent({
+  beforeScrollToTop,
   className,
   headingClassName,
   items,
@@ -199,6 +206,9 @@ export function BlogDetailTableOfContentsContent({
         })}
       </ol>
       <div className='mt-8 shrink-0 border-t border-(--ds-gray-200) pt-5'>
+        {beforeScrollToTop ? (
+          <div className='mb-5'>{beforeScrollToTop}</div>
+        ) : null}
         <button
           type='button'
           onClick={scrollToTop}

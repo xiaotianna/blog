@@ -1,28 +1,23 @@
 import { MarkdownContent } from '@/components/markdown/markdown-content'
-import { MarkdownMetadata } from '@/components/markdown/markdown-metadata'
 import { parseFrontmatter } from '@/components/markdown/parse-frontmatter'
 import { extractMarkdownHeadings } from '@/lib/markdown-headings'
+import type { ReactNode } from 'react'
 
 import { BlogDetailTableOfContents } from './blog-detail-table-of-contents'
 import { BlogDetailTableOfContentsRegistry } from './blog-detail-table-of-contents-store'
 
 type BlogDetailContentProps = {
-  title: string
-  description: string
+  beforeScrollToTop?: ReactNode
   children: string
+  header: ReactNode
 }
 
 export function BlogDetailContent({
-  title,
-  description,
-  children
+  beforeScrollToTop,
+  children,
+  header
 }: BlogDetailContentProps) {
-  const { metadata, body: markdownBody } = parseFrontmatter(children)
-  const displayMetadata = {
-    ...metadata,
-    title,
-    description
-  }
+  const { body: markdownBody } = parseFrontmatter(children)
   const tableOfContentsItems = extractMarkdownHeadings(markdownBody)
 
   return (
@@ -31,8 +26,11 @@ export function BlogDetailContent({
       className='article-content min-w-0 max-w-full lg:pr-64 xl:pr-37 2xl:pr-0'
     >
       <BlogDetailTableOfContentsRegistry items={tableOfContentsItems} />
-      <BlogDetailTableOfContents items={tableOfContentsItems} />
-      <MarkdownMetadata metadata={displayMetadata} />
+      <BlogDetailTableOfContents
+        beforeScrollToTop={beforeScrollToTop}
+        items={tableOfContentsItems}
+      />
+      {header}
       <MarkdownContent>{markdownBody}</MarkdownContent>
     </article>
   )

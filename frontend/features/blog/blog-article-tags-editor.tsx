@@ -14,19 +14,15 @@ import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
 import { createTagAction, updateArticleAction, updateTagAction } from './actions'
+import {
+  ARTICLE_TAG_COLOR_OPTIONS,
+  BlogArticleTagBadge,
+  DEFAULT_ARTICLE_TAG_COLOR,
+  getArticleTagBackgroundColor,
+  getArticleTagColor,
+  isArticleTagColor
+} from './blog-article-tag-badge'
 import type { BlogArticleDetail, BlogArticleTag } from './blog-data'
-
-const DEFAULT_TAG_COLOR = '#60a5fa'
-const TAG_COLOR_OPTIONS = [
-  '#60a5fa',
-  '#34d399',
-  '#fbbf24',
-  '#fb7185',
-  '#a78bfa',
-  '#22d3ee',
-  '#f97316',
-  '#94a3b8'
-]
 
 type BlogArticleTagsEditorProps = {
   article: BlogArticleDetail
@@ -48,13 +44,17 @@ export function BlogArticleTagsEditor({
   const [selectedIds, setSelectedIds] = useState(() =>
     article.tags.map((tag) => tag.id)
   )
-  const [selectedColor, setSelectedColor] = useState(DEFAULT_TAG_COLOR)
+  const [selectedColor, setSelectedColor] = useState<string>(
+    DEFAULT_ARTICLE_TAG_COLOR
+  )
   const [isCreating, setIsCreating] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [removingTagId, setRemovingTagId] = useState<string | null>(null)
   const [editingTagId, setEditingTagId] = useState<string | null>(null)
   const [editingName, setEditingName] = useState('')
-  const [editingColor, setEditingColor] = useState(DEFAULT_TAG_COLOR)
+  const [editingColor, setEditingColor] = useState<string>(
+    DEFAULT_ARTICLE_TAG_COLOR
+  )
   const [updatingTagId, setUpdatingTagId] = useState<string | null>(null)
   const normalizedQuery = query.trim()
   const normalizedEditingName = editingName.trim()
@@ -89,9 +89,10 @@ export function BlogArticleTagsEditor({
   const canUpdateTag = editingTag
     ? normalizedEditingName.length > 0 &&
       normalizedEditingName.length <= 40 &&
-      /^#[0-9a-fA-F]{6}$/.test(editingColor) &&
+      isArticleTagColor(editingColor) &&
       (normalizedEditingName !== editingTag.name ||
-        editingColor.toLowerCase() !== getTagColor(editingTag).toLowerCase()) &&
+        editingColor.toLowerCase() !==
+          getArticleTagColor(editingTag).toLowerCase()) &&
       !hasDuplicateEditingName
     : false
 
@@ -209,13 +210,13 @@ export function BlogArticleTagsEditor({
   const startEditTag = (tag: BlogArticleTag) => {
     setEditingTagId(tag.id)
     setEditingName(tag.name)
-    setEditingColor(getTagColor(tag))
+    setEditingColor(getArticleTagColor(tag))
   }
 
   const cancelEditTag = () => {
     setEditingTagId(null)
     setEditingName('')
-    setEditingColor(DEFAULT_TAG_COLOR)
+    setEditingColor(DEFAULT_ARTICLE_TAG_COLOR)
   }
 
   const handleUpdateTag = async () => {
@@ -255,7 +256,7 @@ export function BlogArticleTagsEditor({
   const resetDraft = () => {
     setSelectedIds(article.tags.map((tag) => tag.id))
     setQuery('')
-    setSelectedColor(DEFAULT_TAG_COLOR)
+    setSelectedColor(DEFAULT_ARTICLE_TAG_COLOR)
     cancelEditTag()
   }
 
@@ -339,7 +340,7 @@ export function BlogArticleTagsEditor({
               <div className='flex items-center gap-2'>
                 <span className='text-xs text-muted-foreground'>颜色</span>
                 <div className='flex flex-wrap gap-1.5'>
-                  {TAG_COLOR_OPTIONS.map((color) => {
+                  {ARTICLE_TAG_COLOR_OPTIONS.map((color) => {
                     const isSelected = selectedColor === color
 
                     return (
@@ -349,7 +350,7 @@ export function BlogArticleTagsEditor({
                         key={color}
                         onClick={() => setSelectedColor(color)}
                         style={{
-                          backgroundColor: getTagBackgroundColor(color),
+                          backgroundColor: getArticleTagBackgroundColor(color),
                           borderColor: color
                         }}
                         type='button'
@@ -369,7 +370,7 @@ export function BlogArticleTagsEditor({
               <div className='max-h-32 space-y-1 overflow-y-auto pr-1'>
                 {filteredOptions.map((tag) => {
                   const isSelected = selectedIdSet.has(tag.id)
-                  const color = getTagColor(tag)
+                  const color = getArticleTagColor(tag)
                   const isEditing = editingTagId === tag.id
                   const isUpdating = updatingTagId === tag.id
 
@@ -387,7 +388,8 @@ export function BlogArticleTagsEditor({
                               aria-hidden='true'
                               className='size-2.5 rounded-full border'
                               style={{
-                                backgroundColor: getTagBackgroundColor(color),
+                                backgroundColor:
+                                  getArticleTagBackgroundColor(color),
                                 borderColor: color
                               }}
                             />
@@ -440,35 +442,39 @@ export function BlogArticleTagsEditor({
                               />
 
                               <div className='flex flex-wrap gap-1.5'>
-                                {TAG_COLOR_OPTIONS.map((optionColor) => {
-                                  const optionSelected =
-                                    editingColor === optionColor
+                                {ARTICLE_TAG_COLOR_OPTIONS.map(
+                                  (optionColor) => {
+                                    const optionSelected =
+                                      editingColor === optionColor
 
-                                  return (
-                                    <button
-                                      aria-label={`选择标签颜色 ${optionColor}`}
-                                      className='grid size-6 place-items-center rounded-md border transition-transform hover:scale-105 disabled:opacity-60'
-                                      disabled={isUpdating}
-                                      key={optionColor}
-                                      onClick={() =>
-                                        setEditingColor(optionColor)
-                                      }
-                                      style={{
-                                        backgroundColor:
-                                          getTagBackgroundColor(optionColor),
-                                        borderColor: optionColor
-                                      }}
-                                      type='button'
-                                    >
-                                      {optionSelected ? (
-                                        <Check
-                                          className='size-3.5'
-                                          style={{ color: optionColor }}
-                                        />
-                                      ) : null}
-                                    </button>
-                                  )
-                                })}
+                                    return (
+                                      <button
+                                        aria-label={`选择标签颜色 ${optionColor}`}
+                                        className='grid size-6 place-items-center rounded-md border transition-transform hover:scale-105 disabled:opacity-60'
+                                        disabled={isUpdating}
+                                        key={optionColor}
+                                        onClick={() =>
+                                          setEditingColor(optionColor)
+                                        }
+                                        style={{
+                                          backgroundColor:
+                                            getArticleTagBackgroundColor(
+                                              optionColor
+                                            ),
+                                          borderColor: optionColor
+                                        }}
+                                        type='button'
+                                      >
+                                        {optionSelected ? (
+                                          <Check
+                                            className='size-3.5'
+                                            style={{ color: optionColor }}
+                                          />
+                                        ) : null}
+                                      </button>
+                                    )
+                                  }
+                                )}
                               </div>
 
                               {normalizedEditingName.length > 40 ? (
@@ -593,41 +599,39 @@ function TagChip({
   onDelete: () => void
   tag: BlogArticleTag
 }) {
-  const color = getTagColor(tag)
-
   return (
-    <motion.span
+    <motion.div
       animate={{ opacity: 1, scale: 1 }}
-      className='group inline-flex h-7 items-center gap-1 rounded-md border px-2 text-sm'
+      className='inline-flex'
       exit={{ opacity: 0, scale: 0.96 }}
       initial={{ opacity: 0, scale: 0.96 }}
       layout
-      style={{
-        backgroundColor: getTagBackgroundColor(color),
-        borderColor: color
-      }}
       transition={{ duration: 0.14 }}
     >
-      <span className='max-w-32 truncate'>{tag.name}</span>
-      {canDelete ? (
-        <button
-          aria-label={`移除标签 ${tag.name}`}
-          className='grid size-4 shrink-0 place-items-center rounded-sm opacity-0 transition-opacity hover:bg-background/60 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-100 group-hover:opacity-100'
-          disabled={isDeleting}
-          onClick={(event) => {
-            event.stopPropagation()
-            onDelete()
-          }}
-          type='button'
-        >
-          {isDeleting ? (
-            <LoaderCircle className='size-3 animate-spin' />
-          ) : (
-            <X className='size-3' />
-          )}
-        </button>
-      ) : null}
-    </motion.span>
+      <BlogArticleTagBadge
+        tag={tag}
+        trailing={
+          canDelete ? (
+            <button
+              aria-label={`移除标签 ${tag.name}`}
+              className='grid size-4 shrink-0 place-items-center rounded-sm opacity-0 transition-opacity hover:bg-background/60 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-100 group-hover:opacity-100'
+              disabled={isDeleting}
+              onClick={(event) => {
+                event.stopPropagation()
+                onDelete()
+              }}
+              type='button'
+            >
+              {isDeleting ? (
+                <LoaderCircle className='size-3 animate-spin' />
+              ) : (
+                <X className='size-3' />
+              )}
+            </button>
+          ) : null
+        }
+      />
+    </motion.div>
   )
 }
 
@@ -644,16 +648,6 @@ function mergeTagOptions(
   return Array.from(tagById.values()).sort((a, b) =>
     a.name.localeCompare(b.name, 'zh-Hans-CN')
   )
-}
-
-function getTagColor(tag: BlogArticleTag) {
-  return /^#[0-9a-fA-F]{6}$/.test(tag.color ?? '')
-    ? tag.color
-    : DEFAULT_TAG_COLOR
-}
-
-function getTagBackgroundColor(color: string) {
-  return `${color}66`
 }
 
 function isSameTagSelection(a: string[], b: string[]) {

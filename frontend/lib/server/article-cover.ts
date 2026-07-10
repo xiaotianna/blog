@@ -29,8 +29,10 @@ const LOCAL_CHROMIUM_ARGS = [
   '--disable-background-networking',
   '--disable-dev-shm-usage',
   '--disable-gpu',
+  '--disable-setuid-sandbox',
   '--no-default-browser-check',
-  '--no-first-run'
+  '--no-first-run',
+  '--no-sandbox'
 ]
 
 export async function generateAndUploadArticleCover({

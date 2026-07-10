@@ -12,7 +12,7 @@ export function BlogPostEditAction({ articleId }: BlogPostEditActionProps) {
     <PermissionGate>
       <Button
         asChild
-        className='max-sm:size-9 max-sm:px-0'
+        className='border-foreground/15 bg-background text-foreground hover:bg-muted dark:border-white/20 dark:bg-white/8 dark:text-white dark:hover:bg-white/12 max-sm:size-9 max-sm:px-0'
         variant='outline'
       >
         <Link

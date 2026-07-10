@@ -13,6 +13,7 @@ import {
 import { EditorImageDialog } from './editor-image-dialog'
 import type { EditorImageInput } from './editor-image-markdown'
 import { MdxSourceEditor } from './mdx-source-editor'
+import { MobileEditorDock } from './mobile-editor-dock'
 import {
   RichTextEditor,
   openImageDialogEventName,
@@ -97,6 +98,27 @@ export function ArticleEditorShell({ article }: ArticleEditorShellProps) {
     saveContent(nextContent)
   }, [content, saveContent])
 
+  const handleModeChange = useCallback(
+    (nextMode: EditorMode) => {
+      const nextContent = editorRef.current?.getContent() ?? content
+      latestContentRef.current = nextContent
+      setContent(nextContent)
+      setMode(nextMode)
+      setCommandRevision((value) => value + 1)
+    },
+    [content]
+  )
+
+  const handleUndo = useCallback(() => {
+    editorRef.current?.undo()
+    setCommandRevision((value) => value + 1)
+  }, [])
+
+  const handleRedo = useCallback(() => {
+    editorRef.current?.redo()
+    setCommandRevision((value) => value + 1)
+  }, [])
+
   const handleInsertImage = useCallback((image: EditorImageInput) => {
     const insertedContent = editorRef.current?.insertImage(image)
     const nextContent =
@@ -137,28 +159,19 @@ export function ArticleEditorShell({ article }: ArticleEditorShellProps) {
         canRedo={canRedo}
         canUndo={canUndo}
         mode={mode}
-        onModeChange={(nextMode) => {
-          const nextContent = editorRef.current?.getContent() ?? content
-          latestContentRef.current = nextContent
-          setContent(nextContent)
-          setMode(nextMode)
-          setCommandRevision((value) => value + 1)
-        }}
+        onModeChange={handleModeChange}
         onImage={() => setImageDialogOpen(true)}
-        onRedo={() => {
-          editorRef.current?.redo()
-          setCommandRevision((value) => value + 1)
-        }}
+        onRedo={handleRedo}
         onSave={handleManualSave}
-        onUndo={() => {
-          editorRef.current?.undo()
-          setCommandRevision((value) => value + 1)
-        }}
+        onUndo={handleUndo}
         saveState={saveState}
         title={article.title}
       />
 
-      <main data-command-revision={commandRevision}>
+      <main
+        className='pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-0'
+        data-command-revision={commandRevision}
+      >
         {mode === 'rich' ? (
           <RichTextEditor
             content={content}
@@ -173,6 +186,16 @@ export function ArticleEditorShell({ article }: ArticleEditorShellProps) {
           />
         )}
       </main>
+
+      <MobileEditorDock
+        canRedo={canRedo}
+        canUndo={canUndo}
+        mode={mode}
+        onImage={() => setImageDialogOpen(true)}
+        onModeChange={handleModeChange}
+        onRedo={handleRedo}
+        onUndo={handleUndo}
+      />
 
       <EditorImageDialog
         articleId={article.id}

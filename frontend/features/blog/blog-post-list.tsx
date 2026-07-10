@@ -6,6 +6,7 @@ import {
   EmptyMedia
 } from '@/components/ui/empty'
 import BlurFade from '@/components/magicui/blur-fade'
+import { getPublicArticleCoverUrl } from '@/lib/article-cover-url'
 import {
   ChevronLeft,
   ChevronRight,
@@ -15,6 +16,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 
+import { BlogArticleThumbnail } from './blog-article-thumbnail'
 import {
   getBlogPathHref,
   PAGE_SIZE,
@@ -115,6 +117,7 @@ export function BlogContentList({
                     publishedAt={article.publishedAt}
                     showStatus={canManageArticles}
                     status={article.status}
+                    thumbnailUrl={getPublicArticleCoverUrl(article.cover)}
                     title={article.title}
                   />
                 ))}
@@ -195,6 +198,7 @@ function BlogListItem({
   publishedAt,
   showStatus,
   status,
+  thumbnailUrl,
   title
 }: {
   description?: string
@@ -204,6 +208,7 @@ function BlogListItem({
   publishedAt?: string
   showStatus?: boolean
   status?: ArticleStatus
+  thumbnailUrl?: string
   title: string
 }) {
   const Icon = icon === 'directory' ? Folder : FileText
@@ -217,10 +222,16 @@ function BlogListItem({
         {String(index).padStart(2, '0')}.
       </span>
       <Icon className='mt-1 size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground' />
+      {thumbnailUrl ? (
+        <BlogArticleThumbnail
+          src={thumbnailUrl}
+          title={title}
+        />
+      ) : null}
       <div className='flex min-w-0 flex-1 flex-col gap-y-2'>
         <div className='flex flex-wrap items-center gap-2'>
           <p className='text-base font-medium tracking-tight'>
-            <span className='transition-colors group-hover:text-foreground'>
+            <span className='transition-colors group-hover:text-foreground inline-flex items-center'>
               {title}
               <ChevronRight
                 aria-hidden

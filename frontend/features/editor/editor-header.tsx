@@ -82,7 +82,7 @@ export function EditorHeader({
 
   return (
     <header className='sticky top-0 z-50 border-b border-border/70 bg-background/80 backdrop-blur-xl'>
-      <div className='mx-auto flex h-14 w-full max-w-7xl items-center justify-between gap-3 px-4 max-md:h-auto max-md:items-stretch max-md:py-3'>
+      <div className='mx-auto hidden h-14 w-full max-w-7xl items-center justify-between gap-3 px-4 md:flex'>
         <div className='flex min-w-0 flex-1 items-center gap-3'>
           <Button
             aria-label='返回'
@@ -179,6 +179,53 @@ export function EditorHeader({
             保存
           </Button>
         </div>
+      </div>
+
+      <div className='flex h-12 w-full items-center gap-2 px-2 md:hidden'>
+        <Button
+          aria-label='返回'
+          className='size-11'
+          onClick={() => router.back()}
+          size='icon'
+          type='button'
+          variant='ghost'
+        >
+          <ChevronLeft className='size-4' />
+        </Button>
+
+        <div className='flex min-w-0 flex-1 items-center gap-2'>
+          <h1 className='truncate text-sm font-medium text-foreground'>
+            {title}
+          </h1>
+          <span
+            className={cn(
+              'inline-flex shrink-0 items-center gap-1 text-[11px]',
+              status.tone
+            )}
+          >
+            <StatusIcon
+              className={cn(
+                'size-3 shrink-0',
+                saveState === 'saving' && 'animate-spin'
+              )}
+            />
+            <span className='truncate'>{status.label}</span>
+          </span>
+        </div>
+
+        <Button
+          className='h-9 min-w-9 px-2.5 text-sm'
+          disabled={saveState === 'saving'}
+          onClick={onSave}
+          type='button'
+        >
+          {saveState === 'saving' ? (
+            <LoaderCircle className='size-3.5 animate-spin' />
+          ) : (
+            <Save className='size-3.5' />
+          )}
+          <span className='max-[360px]:sr-only'>保存</span>
+        </Button>
       </div>
     </header>
   )

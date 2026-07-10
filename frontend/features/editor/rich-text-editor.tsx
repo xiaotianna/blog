@@ -519,7 +519,19 @@ export const RichTextEditor = forwardRef<EditorCommandHandle, RichTextEditorProp
     }
 
     if (!editor) {
-      return <div className='mx-auto h-[50dvh] max-w-3xl animate-pulse rounded-lg bg-muted' />
+      return (
+        <div
+          aria-busy='true'
+          aria-live='polite'
+          className='flex min-h-[calc(100dvh-3rem)] items-center justify-center bg-background md:min-h-[calc(100dvh-3.5rem)]'
+        >
+          <span className='sr-only'>编辑器加载中</span>
+          <span className='relative inline-flex size-5'>
+            <span className='absolute inset-0 rounded-full border-2 border-border' />
+            <span className='absolute inset-0 animate-spin rounded-full border-2 border-transparent border-t-foreground' />
+          </span>
+        </div>
+      )
     }
 
     return (

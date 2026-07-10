@@ -281,7 +281,7 @@ const SandpackMdxBody = forwardRef<EditorCommandHandle, MdxSourceEditorProps>(
             <SandpackCodeEditor
               className={cn(
                 '!h-full !bg-background',
-                '[&_.cm-editor]:!h-full [&_.cm-scroller]:!font-mono'
+                '[&_.cm-editor]:!h-full [&_.cm-scroller]:!font-mono max-md:[&_.cm-content]:pb-20'
               )}
               closableTabs={false}
               readOnly={false}

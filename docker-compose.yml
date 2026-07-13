@@ -61,6 +61,8 @@ services:
       ACCOUNT_PHONE: ${ACCOUNT_PHONE:-15583251761}
       ACCOUNT_PASSWORD: ${ACCOUNT_PASSWORD:-123456}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:-secret_key_t1an}
+      FEISHU_APP_ID: ${FEISHU_APP_ID:-}
+      FEISHU_APP_SECRET: ${FEISHU_APP_SECRET:-}
     expose:
       - "8000"
     volumes:

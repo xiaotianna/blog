@@ -27,6 +27,11 @@ type Account struct {
 	Password string
 }
 
+type Feishu struct {
+	AppID     string `mapstructure:"app_id"`
+	AppSecret string `mapstructure:"app_secret"`
+}
+
 type Config struct {
 	App struct {
 		Port string
@@ -34,6 +39,7 @@ type Config struct {
 	DB      DB
 	Redis   Redis
 	Account Account
+	Feishu  Feishu
 	JWT     struct {
 		SecretKey string `mapstructure:"secret_key"` // 告诉viper序列化的字段key
 	}
@@ -75,6 +81,8 @@ func bindConfigEnv() {
 		"redis.db",
 		"account.phone",
 		"account.password",
+		"feishu.app_id",
+		"feishu.app_secret",
 		"jwt.secret_key",
 	}
 

@@ -118,6 +118,52 @@ func (article ArticleController) UploadImage(c *gin.Context) {
 	utils.Success(c, "上传文章图片成功", res)
 }
 
+func (article ArticleController) PreviewImport(c *gin.Context) {
+	ctx := c.Request.Context()
+	req := c.MustGet(middlewares.BodyKey).(dto.PreviewArticleImportRequest)
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		utils.Error(c, http.StatusBadRequest, "文章 ID 不合法")
+		return
+	}
+
+	res, err := article.service.PreviewImport(ctx, id, req)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			utils.Error(c, http.StatusNotFound, "文章不存在")
+			return
+		}
+
+		utils.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	utils.Success(c, "文章预览生成成功", res)
+}
+
+func (article ArticleController) ApplyImport(c *gin.Context) {
+	ctx := c.Request.Context()
+	req := c.MustGet(middlewares.BodyKey).(dto.ApplyArticleImportRequest)
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		utils.Error(c, http.StatusBadRequest, "文章 ID 不合法")
+		return
+	}
+
+	res, err := article.service.ApplyImport(ctx, id, req)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			utils.Error(c, http.StatusNotFound, "文章不存在")
+			return
+		}
+
+		utils.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	utils.Success(c, "外部文章导入成功", res)
+}
+
 func (article ArticleController) DeleteCover(c *gin.Context) {
 	ctx := c.Request.Context()
 	id, err := uuid.Parse(c.Param("id"))

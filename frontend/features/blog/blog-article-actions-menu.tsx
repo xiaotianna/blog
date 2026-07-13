@@ -7,9 +7,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import { FilePenLine, FolderInput, MoreHorizontal, Trash2 } from 'lucide-react'
+import {
+  FileDown,
+  FilePenLine,
+  FolderInput,
+  MoreHorizontal,
+  Trash2
+} from 'lucide-react'
 import { useState } from 'react'
 
+import { BlogArticleImportDialog } from './blog-article-import-dialog'
 import {
   BlogArticleDeleteDialog,
   BlogArticleEditDialog,
@@ -27,6 +34,7 @@ export function BlogArticleActionsMenu({
   directoryOptions
 }: BlogArticleActionsMenuProps) {
   const [editOpen, setEditOpen] = useState(false)
+  const [importOpen, setImportOpen] = useState(false)
   const [moveOpen, setMoveOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
 
@@ -45,8 +53,12 @@ export function BlogArticleActionsMenu({
         </DropdownMenuTrigger>
         <DropdownMenuContent
           align='end'
-          className='w-36'
+          className='w-40'
         >
+          <DropdownMenuItem onSelect={() => setImportOpen(true)}>
+            <FileDown className='size-4' />
+            导入文章
+          </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => setEditOpen(true)}>
             <FilePenLine className='size-4' />
             修改信息
@@ -65,6 +77,12 @@ export function BlogArticleActionsMenu({
         </DropdownMenuContent>
       </DropdownMenu>
 
+      <BlogArticleImportDialog
+        articleId={article.id}
+        onOpenChange={setImportOpen}
+        open={importOpen}
+        trigger={null}
+      />
       <BlogArticleEditDialog
         article={article}
         directoryOptions={directoryOptions}

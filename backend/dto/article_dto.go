@@ -21,3 +21,16 @@ type UpdateArticleRequest struct {
 type MoveArticleRequest struct {
 	CategoryID uuid.UUID `json:"categoryId" binding:"required" message:"required=文章所属目录不能为空"`
 }
+
+type PreviewArticleImportRequest struct {
+	Source     string `json:"source" binding:"required,oneof=feishu juejin csdn" message:"required=文章来源不能为空;oneof=文章来源不合法"`
+	URL        string `json:"url"`
+	RawContent string `json:"rawContent"`
+	RawFormat  string `json:"rawFormat" binding:"omitempty,oneof=html markdown" message:"oneof=粘贴内容格式不合法"`
+}
+
+type ApplyArticleImportRequest struct {
+	Source    string   `json:"source" binding:"required,oneof=feishu juejin csdn" message:"required=文章来源不能为空;oneof=文章来源不合法"`
+	Markdown  string   `json:"markdown" binding:"required" message:"required=导入正文不能为空"`
+	ImageURLs []string `json:"imageUrls"`
+}

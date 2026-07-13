@@ -56,6 +56,21 @@ type ArticleImageVO struct {
 	URL string `json:"url"`
 }
 
+type ArticleImportPreviewVO struct {
+	Title      string   `json:"title"`
+	Markdown   string   `json:"markdown"`
+	ImageCount int      `json:"imageCount"`
+	ImageURLs  []string `json:"imageUrls"`
+	Warnings   []string `json:"warnings"`
+}
+
+type ArticleImportApplyVO struct {
+	ID         uuid.UUID `json:"id"`
+	Path       string    `json:"path"`
+	ImageCount int       `json:"imageCount"`
+	Warnings   []string  `json:"warnings"`
+}
+
 type TagVO struct {
 	ID    uuid.UUID `json:"id"`
 	Name  string    `json:"name"`
@@ -63,7 +78,7 @@ type TagVO struct {
 }
 
 type TagArticlePageVO struct {
-	Tag        TagVO              `json:"tag"`
+	Tag        TagVO               `json:"tag"`
 	Items      []ArticleListItemVO `json:"items"`
 	Pagination PaginationVO        `json:"pagination"`
 }

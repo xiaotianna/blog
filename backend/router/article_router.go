@@ -17,6 +17,10 @@ func ArticleRouter(r *gin.RouterGroup) {
 	r.PATCH("/:id/cover", middlewares.JWTAuth, controllers.Article.UploadCover)
 	// 上传文章内容图片接口
 	r.POST("/:id/assets/images", middlewares.JWTAuth, controllers.Article.UploadImage)
+	// 预览导入外部文章接口
+	r.POST("/:id/import/preview", middlewares.JWTAuth, middlewares.ValidateJSON[dto.PreviewArticleImportRequest], controllers.Article.PreviewImport)
+	// 确认导入外部文章接口
+	r.POST("/:id/import/apply", middlewares.JWTAuth, middlewares.ValidateJSON[dto.ApplyArticleImportRequest], controllers.Article.ApplyImport)
 	// 删除文章封面接口
 	r.DELETE("/:id/cover", middlewares.JWTAuth, controllers.Article.DeleteCover)
 	// 删除文章接口

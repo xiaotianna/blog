@@ -11,6 +11,7 @@ import type {
 } from '@/lib/server/article-cover-jobs'
 import { getAuthToken } from '@/lib/server/auth'
 import { goApiFetch, readApiResponse } from '@/lib/server/go-api'
+import { isAuthenticated } from '@/lib/server/permissions/check'
 import { revalidatePath } from 'next/cache'
 import { cookies } from 'next/headers'
 import { after } from 'next/server'
@@ -53,6 +54,52 @@ type ArticleCoverJobStatusActionResult = {
   status?: ArticleCoverJobStatus
 }
 
+export type ArticleImportSource = 'feishu' | 'juejin' | 'csdn'
+export type ArticleImportRawFormat = 'html' | 'markdown'
+
+export type ArticleImportPreviewInput = {
+  articleId: string
+  rawContent?: string
+  rawFormat?: ArticleImportRawFormat
+  source: ArticleImportSource
+  url?: string
+}
+
+export type ArticleImportApplyInput = {
+  articleId: string
+  imageUrls: string[]
+  markdown: string
+  source: ArticleImportSource
+}
+
+type ArticleImportPreviewActionResult = BlogMutationActionResult & {
+  imageCount?: number
+  imageUrls?: string[]
+  markdown?: string
+  title?: string
+  warnings?: string[]
+}
+
+type ArticleImportApplyActionResult = BlogMutationActionResult & {
+  imageCount?: number
+  warnings?: string[]
+}
+
+type ArticleImportPreviewData = {
+  imageCount?: number
+  imageUrls?: string[]
+  markdown?: string
+  title?: string
+  warnings?: string[]
+}
+
+type ArticleImportApplyData = {
+  id?: string
+  imageCount?: number
+  path?: string
+  warnings?: string[]
+}
+
 const ARTICLE_IMAGE_FILE_TYPES = new Set([
   'image/png',
   'image/jpeg',
@@ -60,6 +107,135 @@ const ARTICLE_IMAGE_FILE_TYPES = new Set([
   'image/gif'
 ])
 const ARTICLE_IMAGE_MAX_SIZE = 10 * 1024 * 1024
+const ARTICLE_IMPORT_SOURCES = new Set<ArticleImportSource>([
+  'feishu',
+  'juejin',
+  'csdn'
+])
+
+export async function previewExternalArticleImportAction(
+  input: ArticleImportPreviewInput
+): Promise<ArticleImportPreviewActionResult> {
+  if (!(await isAuthenticated())) {
+    return { ok: false, message: '请先登录后再操作' }
+  }
+
+  const articleId = input.articleId.trim()
+  if (!articleId) {
+    return { ok: false, message: '文章 ID 不存在' }
+  }
+
+  if (!isArticleImportSourceValue(input.source)) {
+    return { ok: false, message: '请选择有效的文章来源' }
+  }
+
+  try {
+    const response = await goApiFetch(
+      `/article/${encodeURIComponent(articleId)}/import/preview`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          source: input.source,
+          url: input.url,
+          rawContent: input.rawContent,
+          rawFormat: input.rawFormat
+        })
+      }
+    )
+    const result = await readApiResponse<ArticleImportPreviewData>(response)
+
+    if (!response.ok || !result.data?.markdown) {
+      return {
+        ok: false,
+        message:
+          result.message || '未能解析到文章正文，请粘贴 HTML/Markdown 内容后重试'
+      }
+    }
+
+    return {
+      ok: true,
+      imageCount: result.data.imageCount ?? 0,
+      imageUrls: result.data.imageUrls ?? [],
+      markdown: result.data.markdown,
+      message: result.message || '文章预览生成成功',
+      title: result.data.title,
+      warnings: result.data.warnings ?? []
+    }
+  } catch {
+    return {
+      ok: false,
+      message: '外部文章解析失败，请稍后重试'
+    }
+  }
+}
+
+export async function applyExternalArticleImportAction(
+  input: ArticleImportApplyInput
+): Promise<ArticleImportApplyActionResult> {
+  if (!(await isAuthenticated())) {
+    return { ok: false, message: '请先登录后再操作' }
+  }
+
+  const articleId = input.articleId.trim()
+  const markdown = input.markdown.trim()
+
+  if (!articleId) {
+    return { ok: false, message: '文章 ID 不存在' }
+  }
+
+  if (!markdown) {
+    return { ok: false, message: '导入正文不能为空' }
+  }
+
+  if (!isArticleImportSourceValue(input.source)) {
+    return { ok: false, message: '请选择有效的文章来源' }
+  }
+
+  try {
+    const response = await goApiFetch(
+      `/article/${encodeURIComponent(articleId)}/import/apply`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          source: input.source,
+          markdown,
+          imageUrls: input.imageUrls
+        })
+      })
+    const result = await readApiResponse<ArticleImportApplyData>(response)
+
+    if (!response.ok || !result.data?.id) {
+      return {
+        ok: false,
+        message: result.message || '导入文章失败，请稍后重试'
+      }
+    }
+
+    if (result.data.path) {
+      revalidatePath(`/post/${result.data.path}`)
+    }
+
+    return {
+      id: result.data.id,
+      ok: true,
+      imageCount: result.data.imageCount ?? 0,
+      message: result.message || '外部文章导入成功',
+      path: result.data.path,
+      warnings: result.data.warnings ?? []
+    }
+  } catch {
+    return {
+      ok: false,
+      message: '文章服务暂不可用，请稍后重试'
+    }
+  }
+}
 
 export async function createCategoryAction(input: {
   description: string
@@ -696,4 +872,10 @@ function getParentBlogPath(path: string) {
   }
 
   return `/blog/${segments.slice(0, -1).join('/')}`
+}
+
+function isArticleImportSourceValue(
+  source: string
+): source is ArticleImportSource {
+  return ARTICLE_IMPORT_SOURCES.has(source as ArticleImportSource)
 }

@@ -52,7 +52,7 @@ export function BlogArticleCover({
   const [coverJobId, setCoverJobId] = useState('')
   const [isCoverJobRunning, setIsCoverJobRunning] = useState(false)
   const isBusy = isUpdating || isUploading || isDeleting || isCoverJobRunning
-  const shouldSkipImageOptimization = isExternalImageUrl(coverUrl)
+  const shouldSkipImageOptimization = Boolean(coverUrl)
 
   useEffect(() => {
     if (!coverJobId || !isCoverJobRunning) {
@@ -339,10 +339,6 @@ export function BlogArticleCover({
       </Dialog>
     </>
   )
-}
-
-function isExternalImageUrl(src: string) {
-  return /^https?:\/\//.test(src)
 }
 
 function ArticleCoverPlaceholder({

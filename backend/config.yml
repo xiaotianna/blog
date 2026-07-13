@@ -19,8 +19,8 @@ account:
   password: 123456
 
 feishu:
-  app_id: cli_a80c9ecd6cfa901c
-  app_secret: IR5a5VPD6y3sERpIOLtk2bWcI04Ft4Ac
+  app_id: ""
+  app_secret: ""
 
 jwt:
   secret_key: secret_key_t1an

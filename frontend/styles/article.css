@@ -4,14 +4,14 @@
   .article-content {
     @apply prose prose-neutral dark:prose-invert max-w-none;
     @apply prose-headings:scroll-mt-24 prose-headings:tracking-normal;
-    @apply prose-headings:text-(--ds-gray-1000) prose-strong:text-(--ds-gray-1000);
+    @apply prose-headings:text-(--ds-gray-1000) prose-headings:[overflow-wrap:anywhere] prose-strong:text-(--ds-gray-1000);
     @apply prose-h1:mt-0 prose-h1:text-[40px] prose-h1:leading-[1.16] prose-h1:font-semibold;
     @apply prose-h2:mt-12 prose-h2:text-2xl prose-h2:leading-8 prose-h2:font-semibold prose-h2:[&:not(:is(h1+h2))]:border-t prose-h2:[&:not(:is(h1+h2))]:border-(--ds-gray-200) prose-h2:[&:not(:is(h1+h2))]:pt-10;
     @apply prose-h3:mt-8 prose-h3:text-xl prose-h3:font-semibold;
     @apply prose-h4:mt-4 prose-h4:text-base prose-h4:font-semibold;
-    @apply prose-p:my-4 prose-p:text-[15px] prose-p:leading-7 prose-p:text-(--ds-gray-900);
-    @apply prose-a:font-medium prose-a:text-(--geist-link-color) prose-a:no-underline hover:prose-a:no-underline;
-    @apply prose-ul:my-4 prose-ul:list-none prose-ul:pl-3 prose-ol:my-4 prose-ol:list-none prose-ol:p-0 prose-li:relative prose-li:my-0 prose-li:text-[15px] prose-li:leading-7 prose-li:text-(--ds-gray-900);
+    @apply prose-p:my-4 prose-p:text-[15px] prose-p:leading-7 prose-p:text-(--ds-gray-900) prose-p:[overflow-wrap:anywhere];
+    @apply prose-a:font-medium prose-a:text-(--geist-link-color) prose-a:no-underline prose-a:[overflow-wrap:anywhere] hover:prose-a:no-underline;
+    @apply prose-ul:my-4 prose-ul:list-none prose-ul:pl-3 prose-ol:my-4 prose-ol:list-none prose-ol:p-0 prose-li:relative prose-li:my-0 prose-li:text-[15px] prose-li:leading-7 prose-li:text-(--ds-gray-900) prose-li:[overflow-wrap:anywhere];
     @apply prose-code:rounded-md prose-code:border prose-code:border-[#ededed] prose-code:bg-[#f7f7f7] prose-code:px-1 prose-code:py-[0.12em] prose-code:font-mono prose-code:text-[0.88em] prose-code:font-normal prose-code:leading-[1.2] prose-code:text-(--ds-gray-1000) prose-code:before:content-none prose-code:after:content-none dark:prose-code:border-[#3e3c3c] dark:prose-code:bg-[#2a2828];
     @apply prose-pre:m-0 prose-pre:bg-transparent prose-pre:p-0;
     @apply prose-pre:font-mono prose-pre:text-[13px] prose-pre:leading-5;

@@ -8,6 +8,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"html"
 	"io"
 	"net/http"
 	"net/url"
@@ -46,7 +47,27 @@ var (
 	articleImportFeishuTokenRe      = regexp.MustCompile(`^[A-Za-z0-9_-]{8,}$`)
 	articleImportEmptyHeadingLinkRe = regexp.MustCompile(`(?m)^(#{1,6}\s+)(?:\[\]\([^)]+\)\s*)+`)
 	articleImportRawTableRe         = regexp.MustCompile(`(?is)<table\b[^>]*>.*?</table>`)
+	articleImportInlineFenceOpenRe  = regexp.MustCompile("([^\\n])[ \\t]*```([A-Za-z0-9_-]*)[ \\t]+")
+	articleImportInlineFenceCloseRe = regexp.MustCompile("([^\\n])[ \\t]+```")
+	articleImportInlineHeadingRe    = regexp.MustCompile(`([^\n])[ \t]+(#{1,6}[ \t]+)`)
+	articleImportInlineCalloutRe    = regexp.MustCompile(`([^\n])[ \t]+(>[ \t]+\[![A-Za-z]+\])`)
+	articleImportInlineListRe       = regexp.MustCompile(`([：:。.!?])[ \t]+((?:\d+\.|[-*+])[ \t]+)`)
+	articleImportFenceLineRe        = regexp.MustCompile("^[ \\t]*(`{3,}|~{3,})(.*)$")
+	articleImportHeadingLineRe      = regexp.MustCompile(`^(#{1,6}[ \t]+)(.+)$`)
+	articleImportBareURLRe          = regexp.MustCompile(`\(?https?://[^\s)]+[)]?`)
 )
+
+var articleImportCodeLanguages = map[string]struct{}{
+	"abap": {}, "ada": {}, "apache": {}, "apex": {}, "assembly": {}, "bash": {}, "c": {}, "c#": {}, "c++": {}, "clojure": {},
+	"cobol": {}, "coffee": {}, "coffeescript": {}, "cpp": {}, "csharp": {}, "css": {}, "dart": {}, "delphi": {}, "diff": {},
+	"django": {}, "docker": {}, "dockerfile": {}, "elixir": {}, "erl": {}, "erlang": {}, "fortran": {}, "go": {}, "golang": {},
+	"graphql": {}, "groovy": {}, "haskell": {}, "html": {}, "htmlbars": {}, "http": {}, "ini": {}, "java": {}, "javascript": {},
+	"js": {}, "json": {}, "jsx": {}, "julia": {}, "kotlin": {}, "latex": {}, "less": {}, "lisp": {}, "lua": {}, "makefile": {},
+	"markdown": {}, "matlab": {}, "md": {}, "mdx": {}, "nginx": {}, "objectivec": {}, "perl": {}, "php": {}, "plaintext": {},
+	"powershell": {}, "protobuf": {}, "python": {}, "r": {}, "ruby": {}, "rust": {}, "sass": {}, "scala": {}, "scheme": {},
+	"scss": {}, "shell": {}, "sql": {}, "swift": {}, "text": {}, "thrift": {}, "toml": {}, "tsx": {}, "ts": {}, "typescript": {},
+	"vbnet": {}, "vbscript": {}, "vue": {}, "xml": {}, "yaml": {}, "yml": {},
+}
 
 type articleImportAdapter struct {
 	contentSelectors []string
@@ -725,6 +746,11 @@ func normalizeArticleImportMarkdown(markdown string) string {
 	markdown = strings.ReplaceAll(markdown, "\r\n", "\n")
 	markdown = strings.ReplaceAll(markdown, "\r", "\n")
 	markdown = normalizeArticleImportRawHTMLTables(markdown)
+	markdown = normalizeArticleImportEscapedText(markdown)
+	markdown = normalizeArticleImportEmptyCodeFenceLanguage(markdown)
+	markdown = normalizeArticleImportHeadings(markdown)
+	markdown = normalizeArticleImportInlineBlocks(markdown)
+	markdown = normalizeArticleImportCodeFenceBlocks(markdown)
 	markdown = articleImportEmptyHeadingLinkRe.ReplaceAllString(markdown, "$1")
 
 	for strings.Contains(markdown, "\n\n\n") {
@@ -732,6 +758,313 @@ func normalizeArticleImportMarkdown(markdown string) string {
 	}
 
 	return strings.TrimSpace(markdown)
+}
+
+func normalizeArticleImportEscapedText(markdown string) string {
+	lines := strings.Split(markdown, "\n")
+	inFence := false
+	for index, line := range lines {
+		trimmedLine := strings.TrimSpace(line)
+		if isArticleImportFenceLine(trimmedLine) {
+			inFence = !inFence
+			continue
+		}
+		if inFence {
+			continue
+		}
+
+		line = html.UnescapeString(line)
+		line = strings.ReplaceAll(line, `\[`, `[`)
+		line = strings.ReplaceAll(line, `\]`, `]`)
+		line = strings.ReplaceAll(line, `\>`, `>`)
+		lines[index] = line
+	}
+
+	return strings.Join(lines, "\n")
+}
+
+func normalizeArticleImportEmptyCodeFenceLanguage(markdown string) string {
+	lines := strings.Split(markdown, "\n")
+	normalizedLines := make([]string, 0, len(lines))
+	inFence := false
+
+	for index := 0; index < len(lines); index++ {
+		line := lines[index]
+		trimmedLine := strings.TrimSpace(cleanArticleImportLineToken(line))
+		if trimmedLine != "```" && trimmedLine != "~~~" {
+			normalizedLines = append(normalizedLines, line)
+			continue
+		}
+		if inFence {
+			normalizedLines = append(normalizedLines, line)
+			inFence = false
+			continue
+		}
+
+		languageIndex := index + 1
+		for languageIndex < len(lines) && strings.TrimSpace(cleanArticleImportLineToken(lines[languageIndex])) == "" {
+			languageIndex++
+		}
+		if languageIndex >= len(lines) || !isArticleImportCodeLanguage(lines[languageIndex]) {
+			normalizedLines = append(normalizedLines, line)
+			continue
+		}
+		if languageIndex+1 >= len(lines) || isArticleImportFenceLine(strings.TrimSpace(cleanArticleImportLineToken(lines[languageIndex+1]))) {
+			normalizedLines = append(normalizedLines, line)
+			continue
+		}
+
+		normalizedLines = append(normalizedLines, trimmedLine+strings.ToLower(strings.TrimSpace(cleanArticleImportLineToken(lines[languageIndex]))))
+		index = languageIndex
+		inFence = true
+	}
+
+	return strings.Join(normalizedLines, "\n")
+}
+
+func normalizeArticleImportHeadings(markdown string) string {
+	lines := strings.Split(markdown, "\n")
+	inFence := false
+	for index, line := range lines {
+		trimmedLine := strings.TrimSpace(line)
+		if isArticleImportFenceLine(trimmedLine) {
+			inFence = !inFence
+			continue
+		}
+		if inFence {
+			continue
+		}
+
+		matches := articleImportHeadingLineRe.FindStringSubmatch(line)
+		if len(matches) < 3 {
+			continue
+		}
+
+		title := stripArticleImportMarkdownLinks(matches[2])
+		title = articleImportBareURLRe.ReplaceAllString(title, "")
+		title = strings.Join(strings.Fields(title), " ")
+		title = strings.Trim(title, " -|>")
+		if title != "" {
+			lines[index] = matches[1] + title
+		}
+	}
+
+	return strings.Join(lines, "\n")
+}
+
+func normalizeArticleImportInlineBlocks(markdown string) string {
+	markdown = articleImportInlineFenceOpenRe.ReplaceAllString(markdown, "$1\n\n```$2\n")
+	markdown = articleImportInlineFenceCloseRe.ReplaceAllString(markdown, "$1\n```\n\n")
+
+	lines := strings.Split(markdown, "\n")
+	inFence := false
+	for index, line := range lines {
+		trimmedLine := strings.TrimSpace(line)
+		if strings.HasPrefix(trimmedLine, "```") || strings.HasPrefix(trimmedLine, "~~~") {
+			inFence = !inFence
+			continue
+		}
+		if inFence {
+			continue
+		}
+
+		line = articleImportInlineHeadingRe.ReplaceAllString(line, "$1\n\n$2")
+		line = articleImportInlineCalloutRe.ReplaceAllString(line, "$1\n\n$2")
+		line = articleImportInlineListRe.ReplaceAllString(line, "$1\n$2")
+		lines[index] = line
+	}
+
+	return strings.Join(lines, "\n")
+}
+
+func normalizeArticleImportCodeFenceBlocks(markdown string) string {
+	lines := strings.Split(markdown, "\n")
+	normalizedLines := make([]string, 0, len(lines)+4)
+	inFence := false
+	fenceMarker := ""
+	needsBlankAfterFence := false
+
+	for index := 0; index < len(lines); index++ {
+		line := lines[index]
+		fence, info, ok := parseArticleImportFenceLine(line)
+		if ok {
+			if !inFence {
+				language, languageIndex := findArticleImportFenceLanguage(lines, index+1)
+				if info == "" && language != "" {
+					info = language
+					index = languageIndex
+				}
+
+				appendArticleImportBlankLine(&normalizedLines)
+				normalizedLines = append(normalizedLines, fence+info)
+				inFence = true
+				fenceMarker = fence[:1]
+				needsBlankAfterFence = false
+				continue
+			}
+
+			if strings.HasPrefix(fence, fenceMarker) {
+				normalizedLines = append(normalizedLines, fence)
+				inFence = false
+				fenceMarker = ""
+				needsBlankAfterFence = true
+				continue
+			}
+		}
+
+		if needsBlankAfterFence && strings.TrimSpace(line) != "" {
+			appendArticleImportBlankLine(&normalizedLines)
+			needsBlankAfterFence = false
+		}
+		if strings.TrimSpace(line) == "" {
+			needsBlankAfterFence = false
+		}
+
+		normalizedLines = append(normalizedLines, line)
+	}
+
+	return strings.Join(normalizedLines, "\n")
+}
+
+func parseArticleImportFenceLine(line string) (string, string, bool) {
+	matches := articleImportFenceLineRe.FindStringSubmatch(cleanArticleImportLineToken(line))
+	if len(matches) < 3 {
+		return "", "", false
+	}
+
+	fence := matches[1]
+	info := strings.TrimSpace(matches[2])
+	if info != "" && strings.Contains(info, fence[:1]) {
+		return "", "", false
+	}
+
+	return fence, info, true
+}
+
+func findArticleImportFenceLanguage(lines []string, start int) (string, int) {
+	for index := start; index < len(lines); index++ {
+		line := cleanArticleImportLineToken(lines[index])
+		if strings.TrimSpace(line) == "" {
+			continue
+		}
+		if isArticleImportFenceLine(strings.TrimSpace(line)) {
+			return "", start
+		}
+		if !isArticleImportCodeLanguage(line) {
+			return "", start
+		}
+		if index+1 >= len(lines) || isArticleImportFenceLine(strings.TrimSpace(cleanArticleImportLineToken(lines[index+1]))) {
+			return "", start
+		}
+
+		return strings.ToLower(strings.TrimSpace(line)), index
+	}
+
+	return "", start
+}
+
+func appendArticleImportBlankLine(lines *[]string) {
+	if len(*lines) == 0 || strings.TrimSpace((*lines)[len(*lines)-1]) == "" {
+		return
+	}
+
+	*lines = append(*lines, "")
+}
+
+func isArticleImportFenceLine(line string) bool {
+	line = cleanArticleImportLineToken(line)
+	return strings.HasPrefix(line, "```") || strings.HasPrefix(line, "~~~")
+}
+
+func isArticleImportCodeLanguage(line string) bool {
+	language := strings.ToLower(strings.TrimSpace(cleanArticleImportLineToken(line)))
+	if language == "" || strings.ContainsAny(language, " \t`") || len([]rune(language)) > 32 {
+		return false
+	}
+
+	_, ok := articleImportCodeLanguages[language]
+	return ok
+}
+
+func cleanArticleImportLineToken(line string) string {
+	line = strings.ReplaceAll(line, "\u200b", "")
+	line = strings.ReplaceAll(line, "\u200c", "")
+	line = strings.ReplaceAll(line, "\u200d", "")
+	line = strings.ReplaceAll(line, "\ufeff", "")
+
+	return line
+}
+
+func stripArticleImportMarkdownLinks(value string) string {
+	builder := strings.Builder{}
+	for index := 0; index < len(value); {
+		if value[index] != '[' {
+			builder.WriteByte(value[index])
+			index++
+			continue
+		}
+
+		labelEnd := findArticleImportLinkLabelEnd(value, index)
+		if labelEnd < 0 || labelEnd+1 >= len(value) || value[labelEnd+1] != '(' {
+			builder.WriteByte(value[index])
+			index++
+			continue
+		}
+
+		urlEnd := findArticleImportLinkURLEnd(value, labelEnd+1)
+		if urlEnd < 0 {
+			builder.WriteByte(value[index])
+			index++
+			continue
+		}
+
+		linkURL := strings.TrimSpace(value[labelEnd+2 : urlEnd])
+		if !strings.HasPrefix(linkURL, "http://") && !strings.HasPrefix(linkURL, "https://") {
+			builder.WriteString(value[index : urlEnd+1])
+			index = urlEnd + 1
+			continue
+		}
+
+		label := value[index+1 : labelEnd]
+		builder.WriteString(stripArticleImportMarkdownLinks(label))
+		index = urlEnd + 1
+	}
+
+	return builder.String()
+}
+
+func findArticleImportLinkLabelEnd(value string, start int) int {
+	depth := 0
+	for index := start; index < len(value); index++ {
+		switch value[index] {
+		case '[':
+			depth++
+		case ']':
+			depth--
+			if depth == 0 {
+				return index
+			}
+		}
+	}
+
+	return -1
+}
+
+func findArticleImportLinkURLEnd(value string, start int) int {
+	depth := 0
+	for index := start; index < len(value); index++ {
+		switch value[index] {
+		case '(':
+			depth++
+		case ')':
+			depth--
+			if depth == 0 {
+				return index
+			}
+		}
+	}
+
+	return -1
 }
 
 func normalizeArticleImportRawHTMLTables(markdown string) string {

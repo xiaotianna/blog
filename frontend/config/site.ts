@@ -15,8 +15,8 @@ export const siteConfig = {
   locale: 'zh_CN',
   name: "小T1an's Blog",
   url:
-    process.env.NEXT_PUBLIC_SITE_URL ??
     process.env.SITE_URL ??
+    process.env.NEXT_PUBLIC_SITE_URL ??
     'http://localhost:3000'
 } as const
 

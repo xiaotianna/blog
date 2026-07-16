@@ -18,7 +18,6 @@ import { BlogPageAction } from '@/features/blog/blog-page-action'
 import { BlogContentList } from '@/features/blog/blog-post-list'
 import { isAuthenticated } from '@/lib/server/permissions/check'
 import { SearchArrivalHighlighter } from '@/features/search/search-arrival-highlighter'
-import { getPublicArticleCoverUrl } from '@/lib/article-cover-url'
 import { buildPageMetadata } from '@/lib/metadata'
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
@@ -60,9 +59,7 @@ export async function generateMetadata({
 
     return buildPageMetadata({
       description: article.description,
-      image: getPublicArticleCoverUrl(article.cover, { absolute: true }),
       keywords: tags,
-      label: 'ARTICLE',
       modifiedTime: article.updatedAt,
       noIndex: true,
       path: `/post/${currentPath}`,
@@ -97,7 +94,6 @@ export async function generateMetadata({
   return buildPageMetadata({
     description: `${pageDescription}${pageLabel}`,
     keywords: [currentNode.item.name],
-    label: currentPath ? 'CATEGORY' : 'BLOG',
     noIndex: Boolean(statusParam),
     path: canonicalPath,
     title: `${currentNode.item.name}${sectionLabel}${pageLabel}`

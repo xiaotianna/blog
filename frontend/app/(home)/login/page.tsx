@@ -9,7 +9,6 @@ import { redirect } from 'next/navigation'
 export const metadata: Metadata = buildPageMetadata({
   title: '登录',
   description: '使用手机号和密码登录。',
-  label: 'ACCOUNT',
   noIndex: true,
   path: '/login'
 })

@@ -10,7 +10,6 @@ import { notFound, redirect } from 'next/navigation'
 export const metadata: Metadata = buildPageMetadata({
   title: '编辑文章',
   description: '编辑文章 MDX 内容。',
-  label: 'EDITOR',
   noIndex: true,
   path: '/edit'
 })

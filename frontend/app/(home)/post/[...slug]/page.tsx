@@ -9,7 +9,7 @@ import {
 } from '@/features/blog/blog-article-tag-badge'
 import { getArticleDetail, normalizeBlogPath } from '@/features/blog/blog-data'
 import { getPublicArticleCoverUrl } from '@/lib/article-cover-url'
-import { buildOgImageUrl, buildPageMetadata } from '@/lib/metadata'
+import { buildPageMetadata, getDefaultOgImageUrl } from '@/lib/metadata'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
@@ -89,7 +89,6 @@ export async function generateMetadata({
     description: article.description,
     image: getPublicArticleCoverUrl(article.cover, { absolute: true }),
     keywords: tags,
-    label: 'ARTICLE',
     modifiedTime: article.updatedAt,
     noIndex: article.status !== 'publish',
     path: `/post/${path}`,
@@ -111,12 +110,7 @@ function createArticleJsonLd(
   const tags = article.tags.map((tag) => tag.name)
   const image =
     getPublicArticleCoverUrl(article.cover, { absolute: true }) ||
-    buildOgImageUrl({
-      description: article.description,
-      label: 'ARTICLE',
-      tags,
-      title: article.title
-    })
+    getDefaultOgImageUrl()
 
   return {
     '@context': 'https://schema.org',

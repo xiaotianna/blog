@@ -5,7 +5,6 @@ type PageMetadataOptions = {
   description?: string
   image?: string
   keywords?: string[]
-  label?: string
   modifiedTime?: string
   noIndex?: boolean
   path?: string
@@ -15,15 +14,12 @@ type PageMetadataOptions = {
   type?: 'article' | 'website'
 }
 
-const MAX_OG_TITLE_LENGTH = 88
-const MAX_OG_DESCRIPTION_LENGTH = 160
-const MAX_OG_TAGS = 4
+const DEFAULT_OG_IMAGE_PATH = 'image/me.png'
 
 export function buildPageMetadata({
   description = siteConfig.description,
   image,
   keywords = [],
-  label = 'PREVIEW',
   modifiedTime,
   noIndex = false,
   path = '/',
@@ -40,18 +36,14 @@ export function buildPageMetadata({
     ...tags
   ])
   const canonical = new URL(stripLeadingSlash(path), siteUrl)
-  const imageUrl = image || buildOgImageUrl({
-    description: pageDescription,
-    label,
-    tags,
-    title: pageTitle
-  })
+  const imageUrl = image || getDefaultOgImageUrl()
+  const isDefaultImage = !image
   const images = [
     {
       alt: `${pageTitle} 缩略图`,
-      height: 630,
+      height: isDefaultImage ? 1080 : 630,
       url: imageUrl,
-      width: 1200
+      width: isDefaultImage ? 1080 : 1200
     }
   ]
   const sharedOpenGraph = {
@@ -114,37 +106,8 @@ export function buildPageMetadata({
   }
 }
 
-export function buildOgImageUrl({
-  description,
-  label,
-  tags = [],
-  title
-}: {
-  description?: string
-  label?: string
-  tags?: string[]
-  title: string
-}) {
-  const url = new URL('og', siteUrl)
-
-  url.searchParams.set('title', truncate(title, MAX_OG_TITLE_LENGTH))
-
-  if (description?.trim()) {
-    url.searchParams.set(
-      'description',
-      truncate(description.trim(), MAX_OG_DESCRIPTION_LENGTH)
-    )
-  }
-
-  if (label?.trim()) {
-    url.searchParams.set('label', truncate(label.trim(), 24))
-  }
-
-  for (const tag of uniqueStrings(tags).slice(0, MAX_OG_TAGS)) {
-    url.searchParams.append('tag', truncate(tag, 24))
-  }
-
-  return url.toString()
+export function getDefaultOgImageUrl() {
+  return new URL(DEFAULT_OG_IMAGE_PATH, siteUrl).toString()
 }
 
 function normalizeMetadataDate(value: string | undefined) {
@@ -159,14 +122,6 @@ function normalizeMetadataDate(value: string | undefined) {
 
 function stripLeadingSlash(value: string) {
   return value.replace(/^\/+/, '')
-}
-
-function truncate(value: string, maxLength: number) {
-  if (value.length <= maxLength) {
-    return value
-  }
-
-  return `${value.slice(0, Math.max(0, maxLength - 1)).trimEnd()}…`
 }
 
 function uniqueStrings(values: readonly string[]) {

@@ -106,7 +106,6 @@ export async function generateMetadata({
   return buildPageMetadata({
     description: `查看标签“${tag}”下的文章${pageLabel}`,
     keywords: [tag],
-    label: 'TAG',
     path,
     tags: [tag],
     title: `# ${tag}${pageLabel}`

@@ -16,7 +16,6 @@ export const metadata: Metadata = buildPageMetadata({
   description:
     'T1an 的个人博客，记录前端工程化、全栈开发、Go、AI 应用与产品实践。',
   keywords: ['前端工程化', '构建工具', '产品开发'],
-  label: 'HOME',
   path: '/'
 })
 
